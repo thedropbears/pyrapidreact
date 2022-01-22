@@ -2,6 +2,9 @@
 
 import wpilib
 import magicbot
+import rev
+
+from components.shooter import Shooter
 
 from components.chassis import Chassis
 from components.hanger import Hanger
