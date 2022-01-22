@@ -1,5 +1,4 @@
 import wpilib
-import ctre
 import magicbot
 
 from components.chassis import Chassis
