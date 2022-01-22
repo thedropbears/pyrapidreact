@@ -53,3 +53,6 @@ imgui.ini
 
 ### Project-specific ###
 gitid
+simgui-ds.json
+simgui-window.json
+simgui.json
