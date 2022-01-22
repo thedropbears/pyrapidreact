@@ -2,6 +2,6 @@ numpy ~= 1.21
 robotpy-ctre ~= 2022.0.2
 robotpy-navx ~= 2022.0.0
 robotpy-rev ~= 2022.0.0
-robotpy-wpilib-utilities ~= 2020.0.0
+robotpy-wpilib-utilities ~= 2022.0.0
 robotpy-wpimath ~= 2022.2.1
 wpilib ~= 2022.2.1
