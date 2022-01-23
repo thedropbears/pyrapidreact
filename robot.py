@@ -2,7 +2,7 @@
 
 import wpilib
 import magicbot
-import rev
+import ctre
 
 from components.shooter import Shooter
 
@@ -29,7 +29,8 @@ class MyRobot(magicbot.MagicRobot):
     vision: Vision
 
     def createObjects(self) -> None:
-        pass
+        self.left_motor = ctre.TalonFX(11)
+        self.right_motor = ctre.TalonFX(10)
 
     def autonomousInit(self) -> None:
         pass
@@ -45,9 +46,10 @@ class MyRobot(magicbot.MagicRobot):
 
     def teleopPeriodic(self) -> None:
         pass
+        
+        
 
     def testPeriodic(self) -> None:
-        pass
 
 
 if __name__ == "__main__":
