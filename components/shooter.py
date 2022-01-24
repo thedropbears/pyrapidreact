@@ -2,6 +2,8 @@ from magicbot import tunable
 import ctre
 from wpilib import Joystick
 
+import math
+
 
 class Shooter:
     joystick: Joystick
@@ -15,6 +17,22 @@ class Shooter:
 
     motor_speed = tunable(0.0)
 
+    pidF = 0.2
+    pidP = 1.0
+    pidI = 0.000
+    pidIZone = 200
+    pidD = 4.0
+    SLEW_CRUISE_VELOCITY = 4000
+    SCAN_CRUISE_VELOCITY = 1500
+    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
+
+
+    # Constants for Talon on the turret
+    COUNTS_PER_MOTOR_REV = 2048
+    GEAR_REDUCTION = 1 / 1
+    COUNTS_PER_SHOOTER_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
+    COUNTS_PER_SHOOTER_RADIAN = int(COUNTS_PER_SHOOTER_REV / math.tau)
+
     def setup(self):
         self.left_motor.setInverted(True)
         self.right_motor.setInverted(False)
@@ -26,9 +44,20 @@ class Shooter:
         for motor in self.left_motor, self.right_motor, self.left_feeder_motor, self.right_feeder_motor:
             motor.setNeutralMode(ctre.NeutralMode.Coast)
 
+            motor.configNominalOutputForward(0, 10)
+            motor.configNominalOutputReverse(0, 10)
+            motor.configPeakOutputForward(1.0, 10)
+            motor.configPeakOutputReverse(-1.0, 10)
+            motor.config_kF(0, self.pidF, 10)
+            motor.config_kP(0, self.pidP, 10)
+            motor.config_kI(0, self.pidI, 10)
+            motor.config_kD(0, self.pidD, 10)
+            motor.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.IntegratedSensor, 0, 10
+            )
+
     def execute(self):
-        self.right_motor.set(ctre.ControlMode.PercentOutput, self.motor_speed)
-        self.left_motor.set(ctre.ControlMode.PercentOutput, self.motor_speed)
-        
         self.left_feeder_motor.set(ctre.ControlMode.PercentOutput, self.joystick.getTrigger() * self.joystick.getThrottle())
         self.right_feeder_motor.set(ctre.ControlMode.PercentOutput, self.joystick.getTrigger() * self.joystick.getThrottle())
+        self.right_motor.set(ctre.ControlMode.Velocity, self.motor_speed)
+        self.left_motor.set(ctre.ControlMode.Velocity, self.motor_speed)
