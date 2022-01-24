@@ -1,6 +1,6 @@
 import math
 
-from networktables import NetworkTables, NetworkTable
+from networktables import NetworkTables
 from typing import Optional
 from dataclasses import dataclass
 from magicbot import feedback
@@ -21,7 +21,11 @@ class VisionData:
 
     __slots__ = ("x", "y", "timestamp")
 
-class Vision:
+
+class TargetEstimator:
+    """Combines data from vision, odometry, the imu and other sources
+    to estimate where the target is relative to the robot
+    """
 
     SYSTEM_LAG_THRESHOLD = 0.200
 
@@ -55,8 +59,6 @@ class Vision:
                 data[0], data[1], data[2] + self.get_latency()
             )
             # add latency to vision timestamp
-        
-        # print(self.vision_data)
 
         self.nt.flush()
 

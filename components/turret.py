@@ -5,6 +5,7 @@ import math
 from wpilib import DutyCycleEncoder
 from utilities.functions import constrain_angle
 
+
 class Turret:
     motor: ctre.TalonSRX
     absolute_encoder: DutyCycleEncoder
@@ -14,7 +15,7 @@ class Turret:
     pidI = 0.005
     pidIZone = 200
     pidD = 4.0
-    
+
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
     GEAR_REDUCTION = 240 / 60
