@@ -32,6 +32,11 @@ class MyRobot(magicbot.MagicRobot):
         self.left_motor = ctre.TalonFX(11)
         self.right_motor = ctre.TalonFX(10)
 
+        self.left_feeder_motor = ctre.TalonSRX(12)
+        self.right_feeder_motor = ctre.TalonSRX(13)
+
+        self.joystick = wpilib.Joystick(0)
+
     def autonomousInit(self) -> None:
         pass
 
