@@ -30,5 +30,5 @@ class Shooter:
         self.right_motor.set(ctre.ControlMode.PercentOutput, self.motor_speed)
         self.left_motor.set(ctre.ControlMode.PercentOutput, self.motor_speed)
         
-        self.right_feeder_motor.set(ctre.ControlMode.PercentOutput, self.joystick.getTrigger() * self.joystick.getThrottle())
+        self.left_feeder_motor.set(ctre.ControlMode.PercentOutput, self.joystick.getTrigger() * self.joystick.getThrottle())
         self.right_feeder_motor.set(ctre.ControlMode.PercentOutput, self.joystick.getTrigger() * self.joystick.getThrottle())
