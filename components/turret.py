@@ -2,6 +2,7 @@ import ctre
 import magicbot
 import math
 
+
 class Turret:
     motor: ctre.TalonSRX
 
@@ -14,7 +15,6 @@ class Turret:
     SCAN_CRUISE_VELOCITY = 1500
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
 
-
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
     GEAR_REDUCTION = 175 / 18
@@ -24,21 +24,20 @@ class Turret:
     target = magicbot.tunable(0)
 
     def setup(self):
-        print('setup')
         self._setup_motor()
 
     def execute(self) -> None:
         self.motor.getSelectedSensorPosition(0)
 
-        self.motor.set(ctre.ControlMode.MotionMagic, self.target*self.COUNTS_PER_TURRET_RADIAN)
+        self.motor.set(
+            ctre.ControlMode.MotionMagic, self.target * self.COUNTS_PER_TURRET_RADIAN
+        )
 
     # def on_disable(self) -> None:
     #     self.motor.stopMotor()
 
     def _setup_motor(self) -> None:
-        print("before config factory defauts")
         self.motor.configFactoryDefault()
-        print("after config factory defauts")
 
         # Positive motion is counterclockwise from above.
         self.motor.setInverted(ctre.InvertType.InvertMotorOutput)
@@ -60,4 +59,3 @@ class Turret:
         self.motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
-        print("done motor setup")

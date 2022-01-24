@@ -12,7 +12,7 @@ from components.indexer import Indexer
 from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
-from components.vision import Vision
+from components.target_estimator import TargetEstimator
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
@@ -31,7 +31,7 @@ class MyRobot(magicbot.MagicRobot):
     indexer: Indexer
     shooter: Shooter
     turret: Turret
-    vision: Vision
+    target_estimator: TargetEstimator
 
     def createObjects(self):
         self.imu = navx.AHRS.create_i2c()
