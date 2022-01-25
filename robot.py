@@ -14,6 +14,7 @@ from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
 from controllers.indexer import IndexerController
+from components.vision import Vision
 from components.target_estimator import TargetEstimator
 
 from controllers.shooter import ShooterController
@@ -35,6 +36,7 @@ class MyRobot(magicbot.MagicRobot):
     indexer: Indexer
     shooter: Shooter
     turret: Turret
+    vision: Vision
     target_estimator: TargetEstimator
 
     def createObjects(self):
