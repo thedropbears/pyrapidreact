@@ -13,6 +13,10 @@ from components.vision import Vision
 
 from controllers.shooter import ShooterController
 
+from utilities import git
+
+GIT_INFO = git.describe()
+
 
 class MyRobot(magicbot.MagicRobot):
     shooter_control: ShooterController
@@ -26,7 +30,7 @@ class MyRobot(magicbot.MagicRobot):
     vision: Vision
 
     def createObjects(self) -> None:
-        pass
+        self.logger.info("pyrapidreact %s", GIT_INFO)
 
     def autonomousInit(self) -> None:
         pass
