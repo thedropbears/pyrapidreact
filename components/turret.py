@@ -33,8 +33,8 @@ class Turret:
             ctre.ControlMode.MotionMagic, self.target * self.COUNTS_PER_TURRET_RADIAN
         )
 
-    # def on_disable(self) -> None:
-    #     self.motor.stopMotor()
+    def slew_relative(self, angle: float) -> None:
+        self.target += angle
 
     def _setup_motor(self) -> None:
         self.motor.configFactoryDefault()
