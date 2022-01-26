@@ -42,11 +42,7 @@ class Shooter:
         self.left_motor.setInverted(True)
         self.right_motor.setInverted(False)
 
-        for motor in (
-            self.left_motor,
-            self.right_motor,
-        ):
-            motor.configFactoryDefault()
+        for motor in self.left_motor, self.right_motor:
             motor.setNeutralMode(ctre.NeutralMode.Coast)
 
             motor.configNominalOutputForward(0, 10)
