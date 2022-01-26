@@ -31,6 +31,8 @@ class MyRobot(magicbot.MagicRobot):
     vision: Vision
 
     def createObjects(self) -> None:
+        self.logger.info("pyrapidreact %s", GIT_INFO)
+
         self.left_motor = ctre.TalonFX(11)
         self.right_motor = ctre.TalonFX(10)
 
@@ -38,7 +40,6 @@ class MyRobot(magicbot.MagicRobot):
         self.right_feeder_motor = ctre.TalonSRX(3)
 
         self.joystick = wpilib.Joystick(0)
-        self.logger.info("pyrapidreact %s", GIT_INFO)
 
     def autonomousInit(self) -> None:
         pass
