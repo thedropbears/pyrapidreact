@@ -14,6 +14,10 @@ from components.vision import Vision
 
 from controllers.shooter import ShooterController
 
+from utilities import git
+
+GIT_INFO = git.describe()
+
 
 class MyRobot(magicbot.MagicRobot):
     shooter_control: ShooterController
@@ -34,6 +38,7 @@ class MyRobot(magicbot.MagicRobot):
         self.right_feeder_motor = ctre.TalonSRX(3)
 
         self.joystick = wpilib.Joystick(0)
+        self.logger.info("pyrapidreact %s", GIT_INFO)
 
     def autonomousInit(self) -> None:
         pass
