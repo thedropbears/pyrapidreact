@@ -1,7 +1,8 @@
 import magicbot
 import rev
 import ctre
-
+import wpilib
+import time
 
 class Indexer(magicbot.StateMachine):
 
@@ -9,7 +10,7 @@ class Indexer(magicbot.StateMachine):
 
     indexer_speed = magicbot.tunable(0.8)
     feeder_speed = magicbot.tunable(1)
-
+    
     colour_sensor: rev.ColorSensorV3
     indexer_motor: ctre.TalonSRX
     feed_motor: ctre.TalonSRX
