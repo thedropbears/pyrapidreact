@@ -1,13 +1,14 @@
 from magicbot import tunable
 import ctre
-from wpilib import Joystick
+import wpilib
+from wpimath.controller import SimpleMotorFeedforwardMeters
 import magicbot
 
 import math
 
 
 class Shooter:
-    joystick: Joystick
+    joystick: wpilib.Joystick
 
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
@@ -17,9 +18,10 @@ class Shooter:
 
     motor_speed = tunable(0.0)
 
-    pidF = 0.05
-    pidP = 0.01
-    pidI = 0.000
+    ff_calculator = SimpleMotorFeedforwardMeters(kS=0.77895, kV=0.12573, kA=0.011205)
+    pidF = 0
+    pidP = 0.000187  # 9.2104e-5
+    pidI = 0.0
     pidIZone = 200
     pidD = 0
     SLEW_CRUISE_VELOCITY = 4000
@@ -34,7 +36,10 @@ class Shooter:
 
     feeder_speed = 0.7
 
-    rpm_to_native = magicbot.tunable(60 * 10 / 2048)
+    COUNTS_PER_REV = 2048
+    RPS_TO_CTRE_UNITS = COUNTS_PER_REV / 10  # counts per 100ms
+
+    MAX_MOTOR_SPEED = 6000 / 60
 
     def setup(self):
         self.left_motor.setInverted(True)
@@ -49,6 +54,7 @@ class Shooter:
             self.left_feeder_motor,
             self.right_feeder_motor,
         ):
+            motor.configFactoryDefault()
             motor.setNeutralMode(ctre.NeutralMode.Coast)
 
             motor.configNominalOutputForward(0, 10)
@@ -64,6 +70,23 @@ class Shooter:
             )
 
     def execute(self):
+        voltage = wpilib.RobotController.getInputVoltage()
+        feed_forward = self.ff_calculator.calculate(self.motor_speed)
+
+        # self.motor_speed = self.joystick.getThrottle() * self.MAX_MOTOR_SPEED
+        self.right_motor.set(
+            ctre.ControlMode.Velocity,
+            self.motor_speed * self.RPS_TO_CTRE_UNITS,
+            ctre.DemandType.ArbitraryFeedForward,
+            feed_forward / voltage,
+        )
+        self.left_motor.set(
+            ctre.ControlMode.Velocity,
+            self.motor_speed * self.RPS_TO_CTRE_UNITS,
+            ctre.DemandType.ArbitraryFeedForward,
+            feed_forward / voltage,
+        )
+
         self.left_feeder_motor.set(
             ctre.ControlMode.PercentOutput,
             self.joystick.getTrigger() * self.feeder_speed,
@@ -72,18 +95,15 @@ class Shooter:
             ctre.ControlMode.PercentOutput,
             self.joystick.getTrigger() * self.feeder_speed,
         )
-        self.motor_speed = self.joystick.getThrottle()
-        self.right_motor.set(
-            ctre.ControlMode.Velocity, self.motor_speed * self.rpm_to_native
-        )
-        self.left_motor.set(
-            ctre.ControlMode.Velocity, self.motor_speed * self.rpm_to_native
-        )
 
     @magicbot.feedback
     def actual_velocity(self):
-        return 60 * 10 * self.left_motor.getSelectedSensorVelocity() / 2048
+        return self.left_motor.getSelectedSensorVelocity() / self.RPS_TO_CTRE_UNITS
 
     @magicbot.feedback
     def flywheel_error(self):
-        return self.left_motor.getClosedLoopError()
+        return self.left_motor.getClosedLoopError() / self.RPS_TO_CTRE_UNITS
+
+    @magicbot.feedback
+    def get_voltage(self):
+        return wpilib.RobotController.getInputVoltage()
