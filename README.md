@@ -4,11 +4,17 @@ The Drop Bears' robot code for _FIRST_ Rapid React (FRC 2022).
 
 ## Install dependencies
 
-On a computer:
+### On a computer
+
+With [`pipenv`](https://pipenv.pypa.io/en/latest/):
+
+    pipenv install
+
+With plain `pip`:
 
     pip3 install -r requirements-sim.txt
 
-For the roboRIO:
+### For the roboRIO
 
 ```sh
 # Online:
