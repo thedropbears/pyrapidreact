@@ -1,8 +1,8 @@
-from vision import Vision
+from components.vision import Vision
 from typing import Optional, Tuple
 
 
-class TargetEsitmator:
+class TargetEstimator:
     """Fuses data from vision, odometry, the imu and other sources
     to estimate where the target is from the robot and where you should aim to hit it when moving"""
 
@@ -15,7 +15,10 @@ class TargetEsitmator:
 
     def execute(self) -> None:
         visionData = self.vision.get_data()
-        self.angle_to_target = visionData.angle
+        if visionData is not None:
+            self.angle_to_target = visionData.angle
+        else:
+            self.angle_to_target = None
 
-    def to_target(self) -> float:
+    def to_target(self) -> Optional[float]:
         return self.angle_to_target

@@ -11,19 +11,20 @@ class Turret:
     pidI = 0.005
     pidIZone = 200
     pidD = 4.0
-    SLEW_CRUISE_VELOCITY = 4000
-    SCAN_CRUISE_VELOCITY = 1500
+    SLEW_CRUISE_VELOCITY = 4000 * 0.2
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
 
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
-    GEAR_REDUCTION = 175 / 18
+    GEAR_REDUCTION = 175 / 24
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
     target = magicbot.tunable(0)
 
     def setup(self):
+        print("counts per turret radian: ", self.COUNTS_PER_TURRET_RADIAN)
+        print("counts per turret rev: ", self.COUNTS_PER_TURRET_REV)
         self._setup_motor()
 
     def execute(self) -> None:
@@ -34,7 +35,11 @@ class Turret:
         )
 
     def slew_relative(self, angle: float) -> None:
-        self.target += angle
+        self.target = self.get_angle() + angle * 0.8
+
+    @magicbot.feedback
+    def get_angle(self):
+        return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
     def _setup_motor(self) -> None:
         self.motor.configFactoryDefault()

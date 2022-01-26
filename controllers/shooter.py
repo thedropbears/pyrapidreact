@@ -1,11 +1,16 @@
 from components.indexer import Indexer
 from components.intake import Intake
+from components.target_estimator import TargetEstimator
+from components.turret import Turret
 import magicbot
 
 
 class ShooterController:
     intake: Intake
     indexer: Indexer
+    target_estimator: TargetEstimator
+    turret: Turret
+    
     ignore_colour = magicbot.tunable(False)
 
     fire_command = magicbot.will_reset_to(False)
@@ -44,6 +49,10 @@ class ShooterController:
         ):
             self.indexer.engage("firing")
             self.intaking = True
+    
+        angle = self.target_estimator.to_target()
+        if angle is not None:
+            self.turret.slew_relative(angle)
 
     def toggle_intaking(self):
         self.intaking = not self.intaking
