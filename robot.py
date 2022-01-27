@@ -3,10 +3,13 @@
 import wpilib
 import magicbot
 import ctre
+<<<<<<< HEAD
+=======
+import rev
+>>>>>>> added run motor commands
 
 from components.chassis import Chassis
 from components.hanger import Hanger
-from components.indexer import Indexer
 from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
@@ -24,7 +27,6 @@ class MyRobot(magicbot.MagicRobot):
 
     chassis: Chassis
     hanger: Hanger
-    indexer: Indexer
     intake: Intake
     shooter: Shooter
     turret: Turret
@@ -33,13 +35,15 @@ class MyRobot(magicbot.MagicRobot):
     def createObjects(self) -> None:
         self.logger.info("pyrapidreact %s", GIT_INFO)
 
-        self.left_motor = ctre.TalonFX(11)
-        self.right_motor = ctre.TalonFX(10)
-
-        self.left_feeder_motor = ctre.TalonSRX(1)
-        self.right_feeder_motor = ctre.TalonSRX(3)
+        self.shooter_left_motor = ctre.TalonFX(11)
+        self.shooter_right_motor = ctre.TalonFX(10)
 
         self.joystick = wpilib.Joystick(0)
+
+        self.intake_intake_motor = ctre.TalonSRX(13)
+        self.intake_indexer_motor = ctre.TalonSRX(14)
+        self.intake_feed_motor = ctre.TalonSRX(15)
+        self.intake_colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(0))
 
     def autonomousInit(self) -> None:
         pass

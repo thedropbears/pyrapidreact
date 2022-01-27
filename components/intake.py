@@ -1,56 +1,79 @@
 import magicbot
-import wpilib
 import rev
 import time
+import ctre
 
-class Indexer:
-    intakeSpeed = magicbot.tunable(0.8)
-    indexerSpeed = magicbot.tunable(0.5)
 
-    clearingTime = magicbot.tunable(1) # second
-    fireTime = magicbot.tunable(0.5)
-    is_red = magicbot.tunable(False)
+class Intake:
+    """The intake, indexing and feeding of the ball"""
+
+    # TODO: check for reversed
+    indexer_speed = magicbot.tunable(0.8)
+    intake_speed = magicbot.tunable(1)
+    feeder_speed = magicbot.tunable(1)
 
     prox_limit = magicbot.tunable(300)
 
     colour_sensor: rev.ColorSensorV3
+    intake_motor: ctre.TalonSRX
+    indexer_motor: ctre.TalonSRX
+    feed_motor: ctre.TalonSRX
 
-    def __init__(self) -> None:
+    def setup(self):
+        self.intaking = True
+        self.feeding = False
+        self.firing = False
+        self.firing_since = time.monotonic()
         self.clearing = False
-        self.clearingSince = time.monotonic() # when you began to clear
-
-        self.intaking = True # if we are running intake and indexer
-        self.firing = False # if we are sending a ball to be shot
-        self.firingSince = time.monotonic() # when you began to fire
-
-        self.colorValues = self.colour_sensor.getColors()
+        self.clearing_since = time.monotonic()
 
     def execute(self) -> None:
         if self.clearing:
             if time.monotonic() - self.clearingSince > self.clearingTime:
                 self.clearing = False
-            # run intake/indexer backwards
+            self.intake_motor.set(ctre.ControlMode.PercentOutput, -self.intake_speed)
+            self.indexer_motor.set(ctre.ControlMode.PercentOutput, -self.indexer_speed)
             return
 
         if self.intaking:
-            # run intake/indexer forward
-            if self.get_ball():
+            # lower intake
+            self.intake_motor.set(ctre.ControlMode.PercentOutput, self.intake_speed)
+            self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
+            if self.has_ball():
                 self.intaking = False
         else:
+            # raise intake?
+            self.intake.set(ctre.ControlMode.PercentOutput, 0)
+            self.indexer.set(ctre.ControlMode.PercentOutput, 0)
             if self.has_ball() and not self.is_ball_ours():
                 self.clearing = True
                 self.clearingSince = time.monotonic()
-        
+
         if self.firing:
-            # run everything forward
+            self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
+            self.feed_motor.set(ctre.ControlMode.PercentOutput, self.feeder_speed)
             if time.monotonic() - self.firingSince > self.fireTime:
                 self.firing = False
                 self.intaking = True
+                self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
 
     def fire(self) -> None:
-        self.intaking = True
         self.firing = True
-            
+        self.firing_since = time.monotonic()
+
+    def start_intaking(self):
+        self.intaking = True
+
+    def stop_intaking(self):
+        self.intaking = False
+
+    def clear(self):
+        self.clearing = True
+        self.clearing_since = time.monotonic()
+
+    def stop_clearing(self):
+        self.clearing = False
+
     @magicbot.feedback
     def has_ball(self) -> bool:
         return self.colour_sensor.proximity() > self.prox_limit
@@ -60,6 +83,6 @@ class Indexer:
         values = self.colour_sensor.getColors()
         return (values.red > values.blue) == self.is_red
 
-    @maigcbot.feedback
+    @magicbot.feedback
     def is_ready(self) -> bool:
         return self.has_ball() and self.is_ball_ours()
