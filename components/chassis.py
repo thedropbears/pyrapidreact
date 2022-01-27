@@ -2,10 +2,11 @@ import math
 
 import ctre
 import wpilib
+import magicbot
+
 from wpimath.kinematics import SwerveDrive4Kinematics, ChassisSpeeds, SwerveModuleState
 from wpimath.geometry import Translation2d, Rotation2d
 
-from utilities.scalers import rescale_js, scale_value
 from utilities.functions import constrain_angle
 from wpimath.controller import SimpleMotorFeedforwardMeters
 
@@ -17,38 +18,20 @@ class SwerveModule:
     DRIVE_SENSOR_TO_METRES = DRIVE_GEAR_RATIO / 2048
     METRES_TO_DRIVE_UNITS = 2048 / DRIVE_GEAR_RATIO
 
+    SLEW_CRUISE_VELOCITY = 400  # rpm (according to falconswervetest)
+    CRUISE_ACCELERATION = 200  # rpm/s
+
     def __init__(
         self,
         x: float,
         y: float,
         encoder: ctre.CANCoder,
-        steer: ctre.WPI_TalonFX,
-        drive: ctre.WPI_TalonFX,
+        steer: ctre.TalonFX,
+        drive: ctre.TalonFX,
         steer_reversed=False,
         drive_reversed=False,
     ):
         self.translation = Translation2d(x, y)
-
-        self.steer = steer
-        self.steer.setInverted(steer_reversed)
-        self.steer.setIdleMode(CANSparkMax.IdleMode.kBrake)
-        self.steer_reversed = steer_reversed
-        self.encoder = self.steer.getAnalog()
-        self.hall_effect = self.steer.getEncoder()
-        # make the sensor's return value between 0 and 1
-        self.encoder.setPositionConversionFactor(math.tau / 3.3)
-        self.encoder.setInverted(steer_reversed)
-        self.hall_effect.setPositionConversionFactor(self.STEER_GEAR_RATIO * math.tau)
-        self.rezero_hall_effect()
-        self.steer_pid = steer.getPIDController()
-        self.steer_pid.setFeedbackDevice(self.hall_effect)
-        self.steer_pid.setSmartMotionAllowedClosedLoopError(math.pi / 180)
-        self.steer_pid.setP(1.85e-6)
-        self.steer_pid.setI(0)
-        self.steer_pid.setD(0)
-        self.steer_pid.setFF(0.583 / 12 / math.tau * 60 * self.STEER_GEAR_RATIO)
-        self.steer_pid.setSmartMotionMaxVelocity(400)  # RPM
-        self.steer_pid.setSmartMotionMaxAccel(200)  # RPM/s
 
         self.encoder = encoder
         # set encoder inverted?
@@ -61,10 +44,12 @@ class SwerveModule:
         self.steer.configNominalOutputReverse(0, 10)
         self.steer.configPeakOutputForward(1.0, 10)
         self.steer.configPeakOutputReverse(-1.0, 10)
-        self.steer.config_kF(0, self.pidF, 10)
+        self.steer.config_kF(0, self.pidF, 10)  # ?
         self.steer.config_kP(0, self.pidP, 10)
         self.steer.config_kI(0, self.pidI, 10)
         self.steer.config_kD(0, self.pidD, 10)
+        self.steer.configMotionCruiseVelocity(self.SLEW_CRUISE_VELOCITY, 10)
+        self.steer.configMotionAcceleration(self.CRUISE_ACCELERATION, 10)
         self.steer.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.IntegratedSensor, 0, 10
         )
@@ -95,7 +80,7 @@ class SwerveModule:
         )
         target_angle = target_displacement + current_angle
         self.steer.set(ctre.ControlMode.MotionMagic, target_angle)
-        
+
         # rescale the speed target based on how close we are to being correctly aligned
         target_speed = desired_state.speed * math.cos(target_displacement) ** 4
         speed_volt = self.drive_ff.calculate(target_speed)
@@ -118,85 +103,82 @@ class SwerveModule:
 
 class Chassis:
     # assumes square chassis
-    width: 0.75 # meters between modules
+    width = 0.75  # meters between modules
+    spin_rate = 1.5
+
+    vx = magicbot.will_reset_to(0.0)
+    vy = magicbot.will_reset_to(0.0)
+    vz = magicbot.will_reset_to(0.0)
+
+    NE_drive: ctre.TalonFX
+    NE_steer: ctre.TalonFX
+    SE_drive: ctre.TalonFX
+    SE_steer: ctre.TalonFX
+    SW_drive: ctre.TalonFX
+    SW_steer: ctre.TalonFX
+    NW_drive: ctre.TalonFX
+    NW_steer: ctre.TalonFX
+
+    chassis_NE_encoder: ctre.CANCoder
+    chassis_SE_encoder: ctre.CANCoder
+    chassis_SW_encoder: ctre.CANCoder
+    chassis_NW_encoder: ctre.CANCoder
+
+    gyro: wpilib.ADXRS450_Gyro
 
     def setup(self):
         self.modules = [
             SwerveModule(
                 self.width / 2,
                 self.width / 2,
-                ctre.WPI_TalonFX(1),
-                ctre.WPI_TalonFX(2),
-            ),
-            SwerveModule(
-                -self.width / 2,
-                self.width / 2,
-                ctre.WPI_TalonFX(3),
-                ctre.WPI_TalonFX(4),
+                self.NE_drive,
+                self.NE_steer,
             ),
             SwerveModule(
                 self.width / 2,
                 -self.width / 2,
-                ctre.WPI_TalonFX(5),
-                ctre.WPI_TalonFX(6),
+                self.SE_drive,
+                self.SE_steer,
             ),
             SwerveModule(
                 -self.width / 2,
                 -self.width / 2,
-                ctre.WPI_TalonFX(7),
-                ctre.WPI_TalonFX(8),
+                self.SW_drive,
+                self.SW_steer,
+            ),
+            SwerveModule(
+                -self.width / 2,
+                self.width / 2,
+                self.NW_drive,
+                self.NW_steer,
             ),
         ]
 
-        self.kinematics = SwerveDrive4Kinematics(**map(lambda x:x.translation, self.modules))
-
-        self.spin_rate = 1.5
-
-    def execute(self):
-        throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-
-        # this is where the joystick inputs get converted to numbers that are sent
-        # to the chassis component. we rescale them using the rescale_js function,
-        # in order to make their response exponential, and to set a dead zone -
-        # which just means if it is under a certain value a 0 will be sent
-        # TODO: Tune these constants for whatever robot they are on
-        joystick_vx = (
-            -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
-            * 4
-            * throttle
-        )
-        joystick_vy = (
-            -rescale_js(self.joystick.getX(), deadzone=0.1, exponential=1.5)
-            * 4
-            * throttle
-        )
-        joystick_vz = (
-            -rescale_js(self.joystick.getZ(), deadzone=0.2, exponential=20.0)
-            * self.spin_rate
+        self.kinematics = SwerveDrive4Kinematics(
+            **map(lambda x: x.translation, self.modules)
         )
 
-        if joystick_vx or joystick_vy or joystick_vz:
-            # Drive in field oriented mode unless button 6 is held
-            if not self.joystick.getRawButton(6):
-                rotation = self.gyro.getRotation2d()
-                chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                    joystick_vx, joystick_vy, joystick_vz, rotation
-                )
-            else:
-                chassis_speeds = ChassisSpeeds(joystick_vx, joystick_vy, joystick_vz)
+    def drive_field(self, x, y, z):
+        """Field oriented drive commands"""
+        rotation = self.gyro.getRotation2d()
+        chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(x, y, z, rotation)
+        self._drive(chassis_speeds)
 
-            for state, module in zip(
-                self.kinematics.toSwerveModuleStates(chassis_speeds), self.modules
-            ):
-                new_state = SwerveModuleState.optimize(state, module.get_rotation())
-                module.set(new_state)
-        else:
-            for module in self.modules:
-                module.stop()
+    def drive_local(self, x, y, z):
+        """Field oriented drive commands"""
+        chassis_speeds = ChassisSpeeds(x, y, z)
+        self._drive(chassis_speeds)
 
-        # Reset the heading when button 7 is pressed
-        if self.joystick.getRawButtonPressed(7):
-            self.gyro.reset()
+    def _drive(self, chassis_speeds):
+        for state, module in zip(
+            self.kinematics.toSwerveModuleStates(chassis_speeds), self.modules
+        ):
+            new_state = SwerveModuleState.optimize(state, module.get_rotation())
+            module.set(new_state)
+
+    def stop(self):
+        for module in self.modules:
+            module.stop()
 
     def execute(self):
         wpilib.SmartDashboard.putNumberArray(
