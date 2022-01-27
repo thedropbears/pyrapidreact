@@ -2,8 +2,7 @@ import math
 
 import ctre
 import wpilib
-from rev import CANSparkMax, MotorType, ControlType
-from wpimath.kinematics import SwerveDrive2Kinematics, ChassisSpeeds, SwerveModuleState
+from wpimath.kinematics import SwerveDrive4Kinematics, ChassisSpeeds, SwerveModuleState
 from wpimath.geometry import Translation2d, Rotation2d
 
 from utilities.scalers import rescale_js, scale_value
@@ -22,7 +21,8 @@ class SwerveModule:
         self,
         x: float,
         y: float,
-        steer: CANSparkMax,
+        encoder: ctre.CANCoder,
+        steer: ctre.WPI_TalonFX,
         drive: ctre.WPI_TalonFX,
         steer_reversed=False,
         drive_reversed=False,
@@ -50,6 +50,25 @@ class SwerveModule:
         self.steer_pid.setSmartMotionMaxVelocity(400)  # RPM
         self.steer_pid.setSmartMotionMaxAccel(200)  # RPM/s
 
+        self.encoder = encoder
+        # set encoder inverted?
+        self.steer = steer
+        self.steer.configFactoryDefault()
+        self.steer.setNeutralMode(ctre.NeutralMode.Brake)
+        self.steer.setInverted(steer_reversed)
+
+        self.steer.configNominalOutputForward(0, 10)
+        self.steer.configNominalOutputReverse(0, 10)
+        self.steer.configPeakOutputForward(1.0, 10)
+        self.steer.configPeakOutputReverse(-1.0, 10)
+        self.steer.config_kF(0, self.pidF, 10)
+        self.steer.config_kP(0, self.pidP, 10)
+        self.steer.config_kI(0, self.pidI, 10)
+        self.steer.config_kD(0, self.pidD, 10)
+        self.steer.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.IntegratedSensor, 0, 10
+        )
+
         self.drive = drive
         self.drive.setNeutralMode(ctre.NeutralMode.Brake)
         self.drive.setInverted(drive_reversed)
@@ -60,8 +79,8 @@ class SwerveModule:
     def get_angle(self) -> float:
         return self.hall_effect.getPosition()
 
-    def get_enc_angle(self) -> float:
-        return self.encoder.getPosition()
+    def get_motor_angle(self) -> float:
+        return self.motor.getSelectedPosition()
 
     def get_rotation(self) -> Rotation2d:
         return Rotation2d(self.get_angle())
@@ -75,7 +94,8 @@ class SwerveModule:
             desired_state.angle.radians() - current_angle
         )
         target_angle = target_displacement + current_angle
-        self.steer_pid.setReference(target_angle, ControlType.kSmartMotion)
+        self.steer.set(ctre.ControlMode.MotionMagic, target_angle)
+        
         # rescale the speed target based on how close we are to being correctly aligned
         target_speed = desired_state.speed * math.cos(target_displacement) ** 4
         speed_volt = self.drive_ff.calculate(target_speed)
@@ -93,48 +113,46 @@ class SwerveModule:
 
     def rezero_hall_effect(self):
         print(self.encoder.getPosition())
-        self.hall_effect.setPosition(self.encoder.getPosition())
+        self.steer.setSelectedSensorPosition(self.encoder.getAbsolutePosition())
 
 
-class Chassos:
+class Chassis:
+    # assumes square chassis
+    width: 0.75 # meters between modules
+
     def setup(self):
-        """Robot initialization function"""
-        self.gyro = wpilib.ADXRS450_Gyro()
-        self.gyro.reset()
-        self.gyro.calibrate()
-
         self.modules = [
             SwerveModule(
-                0.8 / 2 - 0.125,
-                0.75 / 2 - 0.1,
-                CANSparkMax(9, MotorType.kBrushless),
-                ctre.WPI_TalonFX(3),
-                steer_reversed=False,
-                drive_reversed=True,
+                self.width / 2,
+                self.width / 2,
+                ctre.WPI_TalonFX(1),
+                ctre.WPI_TalonFX(2),
             ),
             SwerveModule(
-                -0.8 / 2 + 0.125,
-                -0.75 / 2 + 0.1,
-                CANSparkMax(7, MotorType.kBrushless),
+                -self.width / 2,
+                self.width / 2,
+                ctre.WPI_TalonFX(3),
+                ctre.WPI_TalonFX(4),
+            ),
+            SwerveModule(
+                self.width / 2,
+                -self.width / 2,
                 ctre.WPI_TalonFX(5),
-                steer_reversed=False,
-                drive_reversed=True,
+                ctre.WPI_TalonFX(6),
+            ),
+            SwerveModule(
+                -self.width / 2,
+                -self.width / 2,
+                ctre.WPI_TalonFX(7),
+                ctre.WPI_TalonFX(8),
             ),
         ]
 
-        self.kinematics = SwerveDrive2Kinematics(
-            self.modules[0].translation, self.modules[1].translation
-        )
-
-        self.joystick = wpilib.Joystick(0)
+        self.kinematics = SwerveDrive4Kinematics(**map(lambda x:x.translation, self.modules))
 
         self.spin_rate = 1.5
 
-    def teleopInit(self):
-        """Executed at the start of teleop mode"""
-
-    def teleopPeriodic(self):
-        """Runs the motors with tank steering"""
+    def execute(self):
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
 
         # this is where the joystick inputs get converted to numbers that are sent
@@ -180,7 +198,7 @@ class Chassos:
         if self.joystick.getRawButtonPressed(7):
             self.gyro.reset()
 
-    def robotPeriodic(self):
+    def execute(self):
         wpilib.SmartDashboard.putNumberArray(
             "swerve_steer_pos", [module.get_angle() for module in self.modules]
         )
