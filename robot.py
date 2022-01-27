@@ -43,7 +43,8 @@ class MyRobot(magicbot.MagicRobot):
         self.intake_intake_motor = ctre.TalonSRX(13)
         self.intake_indexer_motor = ctre.TalonSRX(14)
         self.intake_feed_motor = ctre.TalonSRX(15)
-        self.intake_colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(0))
+        self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(0))
+        self.ball_prox = wpilib.DigitalInput(0)
 
     def autonomousInit(self) -> None:
         pass

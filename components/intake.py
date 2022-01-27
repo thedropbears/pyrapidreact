@@ -2,19 +2,24 @@ import magicbot
 import rev
 import time
 import ctre
+import wpilib
 
 
 class Intake:
     """The intake, indexing and feeding of the ball"""
 
-    # TODO: check for reversed
+    is_red = magicbot.tunable(False)
+    ignore_colour = magicbot.tunable(False)
+
     indexer_speed = magicbot.tunable(0.8)
     intake_speed = magicbot.tunable(1)
     feeder_speed = magicbot.tunable(1)
 
-    prox_limit = magicbot.tunable(300)
+    clearing_time = magicbot.tunable(1)
+    firing_time = magicbot.tunable(0.5)
 
     colour_sensor: rev.ColorSensorV3
+    ball_prox: wpilib.DigitalInput
     intake_motor: ctre.TalonSRX
     indexer_motor: ctre.TalonSRX
     feed_motor: ctre.TalonSRX
@@ -26,6 +31,9 @@ class Intake:
         self.firing_since = time.monotonic()
         self.clearing = False
         self.clearing_since = time.monotonic()
+
+        self.indexer_motor.setInverted(True)
+        self.feed_motor.setInverted(True)
 
     def execute(self) -> None:
         if self.clearing:
@@ -43,9 +51,9 @@ class Intake:
                 self.intaking = False
         else:
             # raise intake?
-            self.intake.set(ctre.ControlMode.PercentOutput, 0)
-            self.indexer.set(ctre.ControlMode.PercentOutput, 0)
-            if self.has_ball() and not self.is_ball_ours():
+            self.intake_motor.set(ctre.ControlMode.PercentOutput, 0)
+            self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
+            if self.has_ball() and not self.is_ball_ours() and not self.ignore_colour:
                 self.clearing = True
                 self.clearingSince = time.monotonic()
 
@@ -66,6 +74,7 @@ class Intake:
 
     def stop_intaking(self):
         self.intaking = False
+        # raise intake
 
     def clear(self):
         self.clearing = True
@@ -76,11 +85,11 @@ class Intake:
 
     @magicbot.feedback
     def has_ball(self) -> bool:
-        return self.colour_sensor.proximity() > self.prox_limit
+        return self.ball_prox.get()
 
     @magicbot.feedback
     def is_ball_ours(self) -> bool:
-        values = self.colour_sensor.getColors()
+        values = self.colour_sensor.getRawColor()
         return (values.red > values.blue) == self.is_red
 
     @magicbot.feedback
