@@ -1,58 +1,45 @@
 import magicbot
-import time
 import ctre
 import wpilib
-from enum import Enum
 
 
-class IntakeState(Enum):
-    clearing = 1
-    intaking = 2
-    stopped = 3
-
-
-class Intake:
-    intake_speed = magicbot.tunable(1)
-    clearing_time = magicbot.tunable(1)
+class Intake(magicbot.StateMachine):
+    intake_speed = magicbot.tunable(0.9)
 
     intake_prox: wpilib.DigitalInput
     intake_motor: ctre.TalonSRX
 
     def setup(self):
-        self.state = IntakeState.intaking
-        self.clearing_since = time.monotonic()
-
         self.intake_motor.setInverted(True)
+        self.engage()
 
-    def execute(self) -> None:
-        if self.state == IntakeState.clearing:
-            if time.monotonic() - self.clearing_since > self.clearing_time:
-                self.state = IntakeState.intaking
-            self.intake_motor.set(ctre.ControlMode.PercentOutput, -self.intake_speed)
+    @magicbot.state(first=True)
+    def intaking(self):
+        # lower intake
+        self.intake_motor.set(ctre.ControlMode.PercentOutput, self.intake_speed)
+        if self.has_ball():
+            self.next_state("stopped")
 
-        elif self.state == IntakeState.intaking:
-            # lower intake
-            self.intake_motor.set(ctre.ControlMode.PercentOutput, self.intake_speed)
-            if self.has_ball():
-                self.state = IntakeState.stopped
+    @magicbot.state
+    def stopped(self):
+        # raise intake
+        self.intake_motor.set(ctre.ControlMode.PercentOutput, 0)
 
-        elif self.state == IntakeState.stopped:
-            # raise intake?
-            self.intake_motor.set(ctre.ControlMode.PercentOutput, 0)
+    @magicbot.timed_state(duration=1, next_state="stopped")
+    def clearing(self):
+        self.intake_motor.set(ctre.ControlMode.PercentOutput, -self.intake_speed)
 
     def toggle_intaking(self):
-        if self.state == IntakeState.stopped:
-            self.state = IntakeState.intaking
+        if self.state == "intaking":
+            self.next_state("stopped")
         else:
-            self.state = IntakeState.stopped
-        # actuate intake up/down
+            self.next_state("intaking")
 
     def clear(self):
-        self.state = IntakeState.clearing
-        self.clearing_since = time.monotonic()
+        self.next_state("clearing")
 
-    def stop_clearing(self):
-        self.state = IntakeState.stopped
+    def stop(self):
+        self.next_state("stopped")
 
     @magicbot.feedback
     def has_ball(self) -> bool:

@@ -1,95 +1,68 @@
 import magicbot
 import rev
-import time
 import ctre
-from enum import Enum
+
+# rev.ColorSensorV3.RawColor.__add__ = lambda a, b: rev.ColorSensorV3.RawColor(a.red+b.red, a.green+b.green, a.blue+b.blue, a.ir+b.ir)
 
 
-class IndexerState(Enum):
-    indexing = 1
-    stopped = 2
-    reading = 3
-    clearing = 4
-    firing = 5
-
-
-class Indexer:
+class Indexer(magicbot.StateMachine):
 
     is_red = magicbot.tunable(False)
 
     indexer_speed = magicbot.tunable(0.8)
     feeder_speed = magicbot.tunable(1)
 
-    clearing_time = magicbot.tunable(1)
-    firing_time = magicbot.tunable(0.5)
-
     colour_sensor: rev.ColorSensorV3
     indexer_motor: ctre.TalonSRX
     feed_motor: ctre.TalonSRX
 
-    reading_time = magicbot.tunable(0.5)
-
     def setup(self):
-        self.state = IndexerState.indexing
-        self.firing_since = time.monotonic()
-        self.clearing_since = time.monotonic()
-        self.reading_since = time.monotonic()
-        self.read_colour = 0
-        self.read_total = 0
+        self.read_colour = rev.ColorSensorV3.RawColor(0, 0, 0, 0)
 
         self.indexer_motor.setInverted(False)
         self.feed_motor.setInverted(False)
 
-    def execute(self) -> None:
-        if self.state == IndexerState.clearing:
-            if time.monotonic() - self.clearing_since > self.clearing_time:
-                self.state = IndexerState.indexing
-            self.feed_motor.set(ctre.ControlMode.PercentOutput, -self.feeder_speed)
-            self.indexer_motor.set(ctre.ControlMode.PercentOutput, -self.indexer_speed)
+    @magicbot.state(first=True)
+    def indexing(self):
+        self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
+        self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
+        if self.has_ball():
+            self.next_state("reading")
 
-        if self.state == IndexerState.indexing:
-            self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
-            self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
-            if self.has_ball():
-                self.state = IndexerState.reading
-                self.reading_since = time.monotonic()
+    @magicbot.timed_state(duration=0.5, next_state="stopped")
+    def reading(self, initial_call):
+        if initial_call:
+            self.read_colour = rev.ColorSensorV3.RawColor(0, 0, 0, 0)
+        self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
+        self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
+        # self.read_colour += self.colour_sensor.getRawColor()
 
-        if self.state == IndexerState.stopped:
-            self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
-            self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
+    @magicbot.state
+    def stopped(self):
+        self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
+        self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
 
-        if self.state == IndexerState.reading:
-            if time.monotonic() - self.reading_since > self.reading_time:
-                if self.read_colour / self.read_total > 0.5:  # ball is ours
-                    self.state = IndexerState.stopped
-                else:
-                    self.clear()
-                self.read_colour = 0
-                self.read_total = 0
-            self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
-            self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
-            self.read_colour += self.is_ball_ours()
-            self.read_total += 1
+    @magicbot.timed_state(duration=1, next_state="stopped")
+    def clearing(self):
+        self.feed_motor.set(ctre.ControlMode.PercentOutput, -self.feeder_speed)
+        self.indexer_motor.set(ctre.ControlMode.PercentOutput, -self.indexer_speed)
 
-        if self.state == IndexerState.firing:
-            self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
-            self.feed_motor.set(ctre.ControlMode.PercentOutput, self.feeder_speed)
-            if time.monotonic() - self.firing_since > self.firing_time:
-                self.state = IndexerState.stopped
+    @magicbot.timed_state(duration=0.5, next_state="stopped")
+    def firing(self):
+        self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
+        self.feed_motor.set(ctre.ControlMode.PercentOutput, self.feeder_speed)
 
-    def fire(self) -> None:
-        self.firing_since = time.monotonic()
-        self.state = IndexerState.firing
+    def fire(self):
+        self.next_state("firing")
 
     def clear(self):
-        self.state = IndexerState.clearing
-        self.clearing_since = time.monotonic()
+        self.next_state("clearing")
 
     def stop(self):
-        self.state = IndexerState.stopped
+        self.next_state("stopped")
 
     def start(self):
-        self.state = IndexerState.indexing
+        self.next_state("indexing")
 
     @magicbot.feedback
     def has_ball(self) -> bool:
@@ -97,8 +70,13 @@ class Indexer:
 
     @magicbot.feedback
     def is_ball_ours(self) -> bool:
-        values = self.colour_sensor.getRawColor()
-        return (values.red > values.blue) == self.is_red
+        """Assumes we have read ball"""
+        ret = (self.read_colour.red > self.read_colour.blue) == self.is_red
+        print(ret)
+        return ret
+
+    def has_read(self) -> bool:
+        return not self.state == "reading"
 
     @magicbot.feedback
     def colour_values(self):
@@ -107,12 +85,4 @@ class Indexer:
 
     @magicbot.feedback
     def colour_prox(self):
-        return str(self.colour_sensor.getProximity())
-
-    @magicbot.feedback
-    def is_ready(self) -> bool:
-        return self.has_ball() and self.is_ball_ours()
-
-    def has_read(self):
-        # return time.monotonic() - self.reading_since > self.reading_time
-        return self.state == IndexerState.stopped
+        return self.colour_sensor.getProximity()

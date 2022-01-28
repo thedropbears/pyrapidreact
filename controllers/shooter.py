@@ -10,23 +10,25 @@ class ShooterController:
 
     fire_command = magicbot.will_reset_to(False)
 
-    def execute(self) -> None:
+    def execute(self):
         if (
-            self.indexer.has_ball()
-            and not self.indexer.is_ball_ours()
-            and not self.ignore_colour
+            not self.ignore_colour
+            and self.indexer.has_ball()
             and self.indexer.has_read()
+            and not self.indexer.is_ball_ours()
         ):
             self.indexer.clear()
             self.intake.clear()
 
-        if self.is_ready() and self.fire_command:
+        if (
+            self.fire_command
+            and self.indexer.has_ball()
+            and (
+                (self.indexer.has_read() and self.indexer.is_ball_ours())
+                or self.ignore_colour
+            )
+        ):
             self.indexer.fire()
 
     def fire_input(self):
         self.fire_command = True
-
-    def is_ready(self):
-        return self.indexer.has_ball() and (
-            self.indexer.is_ball_ours() or self.ignore_colour
-        )
