@@ -13,9 +13,6 @@ class Shooter:
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
-    left_feeder_motor: ctre.TalonSRX
-    right_feeder_motor: ctre.TalonSRX
-
     motor_speed = tunable(0.0)
 
     ff_calculator = SimpleMotorFeedforwardMeters(kS=0.77895, kV=0.12573, kA=0.011205)
@@ -45,14 +42,9 @@ class Shooter:
         self.left_motor.setInverted(True)
         self.right_motor.setInverted(False)
 
-        self.left_feeder_motor.setInverted(False)
-        self.right_feeder_motor.setInverted(False)
-
         for motor in (
             self.left_motor,
             self.right_motor,
-            self.left_feeder_motor,
-            self.right_feeder_motor,
         ):
             motor.configFactoryDefault()
             motor.setNeutralMode(ctre.NeutralMode.Coast)
@@ -85,15 +77,6 @@ class Shooter:
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
             ctre.DemandType.ArbitraryFeedForward,
             feed_forward / voltage,
-        )
-
-        self.left_feeder_motor.set(
-            ctre.ControlMode.PercentOutput,
-            self.joystick.getTrigger() * self.feeder_speed,
-        )
-        self.right_feeder_motor.set(
-            ctre.ControlMode.PercentOutput,
-            self.joystick.getTrigger() * self.feeder_speed,
         )
 
     @magicbot.feedback

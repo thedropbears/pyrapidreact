@@ -3,10 +3,7 @@
 import wpilib
 import magicbot
 import ctre
-<<<<<<< HEAD
-=======
 import rev
->>>>>>> added run motor commands
 
 from components.chassis import Chassis
 from components.hanger import Hanger
@@ -52,7 +49,8 @@ class MyRobot(magicbot.MagicRobot):
         pass
 
     def teleopInit(self) -> None:
-        pass
+        self.indexer.engage()
+        self.intake.engage()
 
     def testInit(self) -> None:
         pass

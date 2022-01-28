@@ -11,26 +11,25 @@ class Intake(magicbot.StateMachine):
 
     def setup(self):
         self.intake_motor.setInverted(True)
-        self.engage()
 
-    @magicbot.state(first=True)
+    @magicbot.state(first=True, must_finish=True)
     def intaking(self):
         # lower intake
         self.intake_motor.set(ctre.ControlMode.PercentOutput, self.intake_speed)
         if self.has_ball():
             self.next_state("stopped")
 
-    @magicbot.state
+    @magicbot.state(must_finish=True)
     def stopped(self):
         # raise intake
         self.intake_motor.set(ctre.ControlMode.PercentOutput, 0)
 
-    @magicbot.timed_state(duration=1, next_state="stopped")
+    @magicbot.timed_state(duration=1, next_state="stopped", must_finish=True)
     def clearing(self):
         self.intake_motor.set(ctre.ControlMode.PercentOutput, -self.intake_speed)
 
     def toggle_intaking(self):
-        if self.state == "intaking":
+        if self.current_state == "intaking":
             self.next_state("stopped")
         else:
             self.next_state("intaking")
