@@ -53,7 +53,12 @@ class Intake:
             # raise intake?
             self.intake_motor.set(ctre.ControlMode.PercentOutput, 0)
             self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
-            if self.has_ball() and not self.is_ball_ours() and not self.ignore_colour:
+            if (
+                self.has_ball()
+                and self.can_read_ball
+                and not self.is_ball_ours()
+                and not self.ignore_colour
+            ):
                 self.clearing = True
                 self.clearingSince = time.monotonic()
 
@@ -69,12 +74,9 @@ class Intake:
         self.firing = True
         self.firing_since = time.monotonic()
 
-    def start_intaking(self):
-        self.intaking = True
-
-    def stop_intaking(self):
-        self.intaking = False
-        # raise intake
+    def toggle_intaking(self):
+        self.intaking = not self.intaking
+        # actuate intake up/down
 
     def clear(self):
         self.clearing = True
@@ -86,6 +88,10 @@ class Intake:
     @magicbot.feedback
     def has_ball(self) -> bool:
         return self.ball_prox.get()
+
+    @magicbot.feedback
+    def can_read_ball(self) -> bool:
+        return self.colour_sensor.getProximity() > 400
 
     @magicbot.feedback
     def is_ball_ours(self) -> bool:

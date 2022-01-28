@@ -46,6 +46,8 @@ class MyRobot(magicbot.MagicRobot):
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(0))
         self.ball_prox = wpilib.DigitalInput(0)
 
+        self.joystick = wpilib.Joystick(0)
+
     def autonomousInit(self) -> None:
         pass
 
@@ -59,7 +61,13 @@ class MyRobot(magicbot.MagicRobot):
         pass
 
     def teleopPeriodic(self) -> None:
-        pass
+        if self.joystick.getTrigger():
+            self.intake.fire()
+        if self.joystick.getRawButtonPressed(2):
+            self.intake.toggle_intaking()
+        # manually clear ball
+        if self.joystick.getRawButtonPressed(11):
+            self.intake.clear()
 
     def testPeriodic(self) -> None:
         pass
