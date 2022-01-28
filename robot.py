@@ -10,6 +10,7 @@ import rev
 
 from components.chassis import Chassis
 from components.hanger import Hanger
+from components.indexer import Indexer
 from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
@@ -28,6 +29,7 @@ class MyRobot(magicbot.MagicRobot):
     chassis: Chassis
     hanger: Hanger
     intake: Intake
+    indexer: Indexer
     shooter: Shooter
     turret: Turret
     vision: Vision
@@ -40,13 +42,11 @@ class MyRobot(magicbot.MagicRobot):
 
         self.joystick = wpilib.Joystick(0)
 
-        self.intake_intake_motor = ctre.TalonSRX(13)
-        self.intake_indexer_motor = ctre.TalonSRX(14)
-        self.intake_feed_motor = ctre.TalonSRX(15)
-        self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(0))
-        self.ball_prox = wpilib.DigitalInput(0)
-
-        self.joystick = wpilib.Joystick(0)
+        self.intake_motor = ctre.TalonSRX(13)
+        self.indexer_motor = ctre.TalonSRX(14)
+        self.indexer_feed_motor = ctre.TalonSRX(15)
+        self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
+        self.intake_prox = wpilib.DigitalInput(0)
 
     def autonomousInit(self) -> None:
         pass
@@ -61,10 +61,11 @@ class MyRobot(magicbot.MagicRobot):
         pass
 
     def teleopPeriodic(self) -> None:
-        if self.joystick.getTrigger():
-            self.intake.fire()
+        if self.joystick.getTriggerPressed():
+            self.shooter_control.fire_input()
         if self.joystick.getRawButtonPressed(2):
             self.intake.toggle_intaking()
+            self.indexer.start()
         # manually clear ball
         if self.joystick.getRawButtonPressed(11):
             self.intake.clear()
