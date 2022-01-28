@@ -65,6 +65,14 @@ class MyRobot(magicbot.MagicRobot):
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
+        self.left_front_drive_motor = ctre.TalonSRX(0)
+        self.left_back_drive_motor = ctre.TalonSRX(1)
+        self.right_front_drive_motor = ctre.TalonSRX(2)
+        self.right_back_drive_motor = ctre.TalonSRX(3)
+
+        self.joystick_y = float(0)
+        self.joystick_x = float(0)
+
     def autonomousInit(self) -> None:
         pass
 
