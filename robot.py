@@ -41,11 +41,6 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_NW_drive = ctre.TalonFX(7)
         self.chassis_NW_steer = ctre.TalonFX(8)
 
-        self.chassis_NE_encoder = ctre.CANCoder(9)
-        self.chassis_SE_encoder = ctre.CANCoder(10)
-        self.chassis_SW_encoder = ctre.CANCoder(11)
-        self.chassis_NW_encoder = ctre.CANCoder(12)
-
         self.joystick = wpilib.Joystick(0)
 
     def autonomousInit(self) -> None:

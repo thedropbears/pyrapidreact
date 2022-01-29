@@ -25,7 +25,6 @@ class SwerveModule:
         self,
         x: float,
         y: float,
-        encoder: ctre.CANCoder,
         steer: ctre.TalonFX,
         drive: ctre.TalonFX,
         steer_reversed=False,
@@ -33,8 +32,6 @@ class SwerveModule:
     ):
         self.translation = Translation2d(x, y)
 
-        self.encoder = encoder
-        # set encoder inverted?
         self.steer = steer
         self.steer.configFactoryDefault()
         self.steer.setNeutralMode(ctre.NeutralMode.Brake)
@@ -97,8 +94,7 @@ class SwerveModule:
         self.steer.stopMotor()
 
     def rezero_hall_effect(self):
-        print(self.encoder.getPosition())
-        self.steer.setSelectedSensorPosition(self.encoder.getAbsolutePosition())
+        self.steer.setSelectedSensorPosition(0)
 
 
 class Chassis:
@@ -118,11 +114,6 @@ class Chassis:
     SW_steer: ctre.TalonFX
     NW_drive: ctre.TalonFX
     NW_steer: ctre.TalonFX
-
-    chassis_NE_encoder: ctre.CANCoder
-    chassis_SE_encoder: ctre.CANCoder
-    chassis_SW_encoder: ctre.CANCoder
-    chassis_NW_encoder: ctre.CANCoder
 
     gyro: wpilib.ADXRS450_Gyro
 
@@ -183,7 +174,4 @@ class Chassis:
     def execute(self):
         wpilib.SmartDashboard.putNumberArray(
             "swerve_steer_pos", [module.get_angle() for module in self.modules]
-        )
-        wpilib.SmartDashboard.putNumberArray(
-            "swerve_encoder_pos", [module.get_enc_angle() for module in self.modules]
         )
