@@ -13,7 +13,7 @@ class Shooter:
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
-    motor_speed = tunable(0.0)
+    motor_speed = 0.0
 
     ff_calculator = SimpleMotorFeedforwardMeters(kS=0.77895, kV=0.12573, kA=0.011205)
     pidF = 0
