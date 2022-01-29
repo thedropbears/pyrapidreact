@@ -30,5 +30,8 @@ class ShooterController:
         ):
             self.indexer.fire()
 
+    # def toggle(self):
+    #     self.indexer.
+
     def fire_input(self):
         self.fire_command = True

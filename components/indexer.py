@@ -24,25 +24,19 @@ class Indexer(magicbot.StateMachine):
         self.indexer_motor.setInverted(False)
         self.feed_motor.setInverted(False)
 
-    @magicbot.state(first=True, must_finish=True)
+    @magicbot.state(first=True)
     def indexing(self):
         self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
         self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
         if self.has_ball():
             self.next_state("reading")
 
-    @magicbot.timed_state(duration=0.5, next_state="stopped", must_finish=True)
-    def reading(self, initial_call):
-        if initial_call:
-            self.read_colour = rev.ColorSensorV3.RawColor(0, 0, 0, 0)
-        self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
-        self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
-        self.read_colour += self.colour_sensor.getRawColor()
-
-    @magicbot.state(must_finish=True)
+    @magicbot.default_state
     def stopped(self):
         self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
         self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
+        if self.has_ball() and not self.is_ball_ours():
+            self.next_state("clearing")
 
     @magicbot.timed_state(duration=1, next_state="stopped", must_finish=True)
     def clearing(self):
@@ -71,12 +65,14 @@ class Indexer(magicbot.StateMachine):
         return self.colour_sensor.getProximity() > 400
 
     @magicbot.feedback
-    def is_ball_ours(self) -> bool:
-        """Assumes we have read ball"""
-        return (self.read_colour.red > self.read_colour.blue) == self.is_red
+    def can_read_ball(self) -> bool:
+        # or if can see red or blue
+        return self.colour_sensor.getProximity() > 500
 
-    def has_read(self) -> bool:
-        return not self.current_state == "reading"
+    @magicbot.feedback
+    def is_ball_ours(self) -> bool:
+        """Assumes we have a ball we can read"""
+        return (self.read_colour.red > self.read_colour.blue) == self.is_red
 
     @magicbot.feedback
     def colour_values(self):
