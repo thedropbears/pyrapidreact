@@ -41,10 +41,9 @@ class SwerveModule:
         self.steer.configNominalOutputReverse(0, 10)
         self.steer.configPeakOutputForward(1.0, 10)
         self.steer.configPeakOutputReverse(-1.0, 10)
-        self.steer.config_kF(0, self.pidF, 10)  # ?
-        self.steer.config_kP(0, self.pidP, 10)
-        self.steer.config_kI(0, self.pidI, 10)
-        self.steer.config_kD(0, self.pidD, 10)
+        self.steer.config_kP(0, 0.15035, 10)
+        self.steer.config_kI(0, 0, 10)
+        self.steer.config_kD(0, 5.6805, 10)
         self.steer.configMotionCruiseVelocity(self.SLEW_CRUISE_VELOCITY, 10)
         self.steer.configMotionAcceleration(self.CRUISE_ACCELERATION, 10)
         self.steer.configSelectedFeedbackSensor(

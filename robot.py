@@ -32,14 +32,14 @@ class MyRobot(magicbot.MagicRobot):
         self.gyro.reset()
         self.gyro.calibrate()
 
-        self.chassis_NE_drive = ctre.TalonFX(1)
-        self.chassis_NE_steer = ctre.TalonFX(2)
-        self.chassis_SE_drive = ctre.TalonFX(3)
-        self.chassis_SE_steer = ctre.TalonFX(4)
-        self.chassis_SW_drive = ctre.TalonFX(5)
-        self.chassis_SW_steer = ctre.TalonFX(6)
-        self.chassis_NW_drive = ctre.TalonFX(7)
-        self.chassis_NW_steer = ctre.TalonFX(8)
+        self.chassis_1_drive = ctre.TalonFX(1)
+        self.chassis_1_steer = ctre.TalonFX(2)
+        self.chassis_2_drive = ctre.TalonFX(3)
+        self.chassis_2_steer = ctre.TalonFX(4)
+        self.chassis_3_drive = ctre.TalonFX(5)
+        self.chassis_3_steer = ctre.TalonFX(6)
+        self.chassis_4_drive = ctre.TalonFX(7)
+        self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
 
