@@ -3,6 +3,7 @@
 import wpilib
 import magicbot
 import ctre
+import navx
 
 from components.chassis import Chassis
 from components.hanger import Hanger
@@ -28,9 +29,7 @@ class MyRobot(magicbot.MagicRobot):
     vision: Vision
 
     def createObjects(self):
-        self.gyro = wpilib.ADXRS450_Gyro()
-        self.gyro.reset()
-        self.gyro.calibrate()
+        self.imu = navx.AHRS.create_i2c()
 
         self.chassis_1_drive = ctre.TalonFX(1)
         self.chassis_1_steer = ctre.TalonFX(2)
@@ -68,19 +67,16 @@ class MyRobot(magicbot.MagicRobot):
             * 4
             * throttle
         )
-        joystick_z = (
-            -rescale_js(self.joystick.getZ(), deadzone=0.2, exponential=20.0)
-            * self.spin_rate
-        )
+        joystick_z = -rescale_js(self.joystick.getZ(), deadzone=0.2, exponential=20.0)
 
-        if joystick_x or joystick_y or joystick_z:
-            # Drive in field oriented mode unless button 6 is held
-            if not self.joystick.getRawButton(6):
-                self.chassis.drive_field(joystick_x, joystick_y, joystick_z)
-            else:
-                self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
+        # if joystick_x or joystick_y or joystick_z:
+        # Drive in field oriented mode unless button 6 is held
+        if not self.joystick.getRawButton(6):
+            self.chassis.drive_field(joystick_x, joystick_y, joystick_z)
         else:
-            self.chassis.stop()
+            self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
+        # else:
+        #     self.chassis.stop()
 
         # Reset the heading when button 7 is pressed
         if self.joystick.getRawButtonPressed(7):
