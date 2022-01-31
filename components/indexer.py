@@ -2,10 +2,6 @@ import magicbot
 import rev
 import ctre
 
-rev.ColorSensorV3.RawColor.__add__ = lambda a, b: rev.ColorSensorV3.RawColor(
-    a.red + b.red, a.green + b.green, a.blue + b.blue, a.ir + b.ir
-)
-
 
 class Indexer(magicbot.StateMachine):
 
@@ -19,8 +15,6 @@ class Indexer(magicbot.StateMachine):
     feed_motor: ctre.TalonSRX
 
     def setup(self):
-        self.read_colour = rev.ColorSensorV3.RawColor(0, 0, 0, 0)
-
         self.indexer_motor.setInverted(False)
         self.feed_motor.setInverted(False)
 
