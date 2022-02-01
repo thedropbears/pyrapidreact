@@ -39,7 +39,7 @@ class MyRobot(magicbot.MagicRobot):
 
         self.joystick = wpilib.Joystick(0)
 
-        self.intake_motor = ctre.TalonSRX(13)
+        self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
         self.indexer_motor = ctre.TalonSRX(14)
         self.indexer_feed_motor = ctre.TalonSRX(15)
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
@@ -61,12 +61,13 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self) -> None:
         if self.joystick.getTriggerPressed():
             self.shooter_control.fire_input()
+
         if self.joystick.getRawButtonPressed(2):
-            self.intake.toggle_intaking()
-            self.indexer.start()
+            self.shooter_control.toggle_intaking()
+
         # manually clear ball
         if self.joystick.getRawButtonPressed(11):
-            self.intake.clear()
+            self.shooter_control.clear_input()
 
     def testPeriodic(self) -> None:
         pass
