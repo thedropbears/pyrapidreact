@@ -1,15 +1,19 @@
 import traceback
 from magicbot.state_machine import AutonomousStateMachine, state
-from wpimath import trajectory, geometry, controller
+from wpimath import trajectory, geometry, controller, kinematics
 import wpilib
 import ctre
 import wpimath
+
+from components.chassis import Chassis
 
 
 class AutoBase(AutonomousStateMachine):
 
     MODE_NAME = "Drive Backward"
     DEFAULT = True
+
+    chassis: Chassis
 
     def __init__(self):
         super().__init__()
@@ -28,12 +32,11 @@ class AutoBase(AutonomousStateMachine):
         self.end_position = geometry.Pose2d(geometry.Translation2d(-1,0), self.end_angle)
         self.target_trajectory = trajectory.TrajectoryGenerator.generateTrajectory(self.start_position, [], self.end_position, self.config)
         self.next_state("move")
-        pass
 
     @state
     def move(self):
-        chassis_speeds = self.drive_controller.calculate(self.start_position, self.target_trajectory.sample(0), self.end_angle)
-        pass
+        chassis_speeds = self.drive_controller.calculate(self.chassis.odometry.getPose(), self.target_trajectory.sample(0), self.end_angle)
+        self.chassis._drive(chassis_speeds)
     
     @state
     def shoot(self):
