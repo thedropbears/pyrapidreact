@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import wpilib
 import magicbot
 import ctre
@@ -44,6 +43,11 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_3_steer = ctre.TalonFX(6)
         self.chassis_4_drive = ctre.TalonFX(7)
         self.chassis_4_steer = ctre.TalonFX(8)
+
+        self.index_motor_front = ctre.TalonSRX(14)
+        self.index_motor_back = ctre.TalonSRX(15)
+
+        self.intake_motor = ctre.TalonSRX(22)
 
         self.joystick = wpilib.Joystick(0)
 
