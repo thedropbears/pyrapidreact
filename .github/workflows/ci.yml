@@ -22,5 +22,4 @@ jobs:
           pip install -r requirements-test.txt
           pip install pytest-github-actions-annotate-failures
       - name: Test with pytest
-        run: |
-          pytest
+        run: python -m pytest
