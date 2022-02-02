@@ -5,8 +5,13 @@ import wpilib
 import magicbot
 import navx
 
-from wpimath.kinematics import SwerveDrive4Kinematics, ChassisSpeeds, SwerveModuleState
-from wpimath.geometry import Translation2d, Rotation2d
+from wpimath.kinematics import (
+    SwerveDrive4Kinematics,
+    ChassisSpeeds,
+    SwerveModuleState,
+    SwerveDrive4Odometry,
+)
+from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
 from utilities.functions import constrain_angle
 from wpimath.controller import SimpleMotorFeedforwardMeters
@@ -98,7 +103,7 @@ class SwerveModule:
             speed_volt / voltage,
         )
 
-    def rezero_hall_effect(self):
+    def zero(self):
         self.steer.setSelectedSensorPosition(0)
 
 
@@ -163,6 +168,8 @@ class Chassis:
             self.modules[3].translation,
         )
         self.zero_all()
+        self.odometry = SwerveDrive4Odometry(self.kinematics, self.imu.getRotation2d())
+        self.set_odometry(Pose2d(Translation2d(0, 0), Rotation2d(0)))
 
     def drive_field(self, x, y, z):
         """Field oriented drive commands"""
@@ -194,4 +201,10 @@ class Chassis:
 
     def zero_all(self):
         for m in self.modules:
-            m.rezero_hall_effect()
+            m.zero()
+
+    def set_odometry(self, pose: Pose2d) -> None:
+        self.odometry.resetPosition(pose, self.imu.getRotation2d())
+
+    def get_odometry(self) -> Pose2d:
+        return self.odometry.getPose()
