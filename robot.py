@@ -4,6 +4,7 @@ import wpilib
 import magicbot
 import ctre
 import navx
+import rev
 
 from components.chassis import Chassis
 from components.hanger import Hanger
@@ -16,14 +17,18 @@ from components.vision import Vision
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
 
+from utilities import git
+
+GIT_INFO = git.describe()
+
 
 class MyRobot(magicbot.MagicRobot):
     shooter_control: ShooterController
 
     chassis: Chassis
     hanger: Hanger
-    indexer: Indexer
     intake: Intake
+    indexer: Indexer
     shooter: Shooter
     turret: Turret
     vision: Vision
@@ -42,11 +47,23 @@ class MyRobot(magicbot.MagicRobot):
 
         self.joystick = wpilib.Joystick(0)
 
+        self.logger.info("pyrapidreact %s", GIT_INFO)
+
+        self.shooter_left_motor = ctre.TalonFX(11)
+        self.shooter_right_motor = ctre.TalonFX(10)
+
+        self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
+        self.indexer_motor = ctre.TalonSRX(14)
+        self.indexer_feed_motor = ctre.TalonSRX(15)
+        self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
+        self.intake_prox = wpilib.DigitalInput(0)
+
     def autonomousInit(self) -> None:
         pass
 
     def teleopInit(self) -> None:
-        pass
+        self.indexer.engage()
+        self.intake.engage()
 
     def testInit(self) -> None:
         pass
@@ -81,6 +98,16 @@ class MyRobot(magicbot.MagicRobot):
         # Reset the heading when button 7 is pressed
         if self.joystick.getRawButtonPressed(7):
             self.gyro.reset()
+
+        if self.joystick.getTriggerPressed():
+            self.shooter_control.fire_input()
+
+        if self.joystick.getRawButtonPressed(2):
+            self.shooter_control.toggle_intaking()
+
+        # manually clear ball
+        if self.joystick.getRawButtonPressed(11):
+            self.shooter_control.clear_input()
 
     def testPeriodic(self) -> None:
         pass
