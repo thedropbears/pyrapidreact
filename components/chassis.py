@@ -133,6 +133,8 @@ class Chassis:
 
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
 
+    field: wpilib.Field2d
+
     def setup(self):
         self.modules = [
             SwerveModule(
@@ -185,8 +187,8 @@ class Chassis:
     def _drive(self, chassis_speeds):
         self.desired_states = self.kinematics.toSwerveModuleStates(chassis_speeds)
         for state, module in zip(self.desired_states, self.modules):
-            new_state = SwerveModuleState.optimize(state, module.get_rotation())
-            module.set(new_state)
+            # new_state = SwerveModuleState.optimize(state, module.get_rotation())
+            module.set(state)
 
     def execute(self):
         self._drive(self.chassis_speeds)
@@ -194,6 +196,14 @@ class Chassis:
             "swerve_steer_pos_counts",
             [module.get_motor_angle() for module in self.modules],
         )
+        self.odometry.update(
+            self.imu.getRotation2d(),
+            self.desired_states[0],
+            self.desired_states[1],
+            self.desired_states[2],
+            self.desired_states[3],
+        )
+        self.field.setRobotPose(self.odometry.getPose())
 
     @magicbot.feedback
     def get_imu_rotation(self):
@@ -205,6 +215,3 @@ class Chassis:
 
     def set_odometry(self, pose: Pose2d) -> None:
         self.odometry.resetPosition(pose, self.imu.getRotation2d())
-
-    def get_odometry(self) -> Pose2d:
-        return self.odometry.getPose()

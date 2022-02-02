@@ -58,6 +58,9 @@ class MyRobot(magicbot.MagicRobot):
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
         self.intake_prox = wpilib.DigitalInput(0)
 
+        self.field = wpilib.Field2d()
+        wpilib.SmartDashboard.putData(self.field)
+
     def autonomousInit(self) -> None:
         pass
 
