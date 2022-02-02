@@ -109,7 +109,7 @@ class SwerveModule:
 
 class Chassis:
     # assumes square chassis
-    width = 3.04 / 4  # meters between modules
+    width = 0.6167  # meters between modules from CAD
     spin_rate = 1.5
 
     vx = magicbot.will_reset_to(0.0)
