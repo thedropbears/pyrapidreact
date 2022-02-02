@@ -47,4 +47,4 @@ def scale_value(
     output_distance = output_upper - output_lower
     ratio = (value - input_lower) / input_distance
     result = ratio * output_distance + output_lower
-    return math.copysign(result ** exponent, result)
+    return math.copysign(result**exponent, result)
