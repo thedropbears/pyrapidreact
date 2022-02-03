@@ -9,17 +9,20 @@ from wpilib import Timer
 
 @dataclass
 class VisionData:
+    #: The angle to the target in radians.
+    angle: float
+
     #: The distance to the target in metres.
     distance: float
 
-    #: The angle to the target in radians.
-    angle: float
+    # how confident we are that we are correct, is generally lower when the target is smaller or irregular
+    fittness: float
 
     #: An arbitrary timestamp, in seconds,
     #: for when the vision system last obtained data.
     timestamp: float
 
-    __slots__ = ("distance", "angle", "timestamp")
+    __slots__ = ("angle", "distance", "fittness", "timestamp")
 
 
 class Vision:
@@ -40,7 +43,7 @@ class Vision:
         self.last_pong = Timer.getFPGATimestamp()
         self.latency = 0
 
-        self.vision_data = None
+        self.vision_data: Optional[VisionData] = None
 
     def get_data(self) -> Optional[VisionData]:
         """Returns the latest vision data.
@@ -54,7 +57,7 @@ class Vision:
         data = self.vision_data_entry.getDoubleArray(None)
         if data is not None:
             self.vision_data = VisionData(
-                data[0], data[1], data[2] + self.get_latency()
+                data[0], data[1], data[2], data[3] + self.get_latency()
             )
             # add latency to vision timestamp
 
