@@ -67,7 +67,7 @@ class SwerveModule:
         self.drive.config_kI(0, 0, 10)
         self.drive.config_kD(0, 0, 10)
 
-        self.target_angle = 0
+        self.target_angle = 0.0
 
     def get_angle(self) -> float:
         # return self.hall_effect.getPosition()
@@ -103,6 +103,11 @@ class SwerveModule:
             speed_volt / voltage,
         )
 
+    def get(self) -> SwerveModuleState:
+        return SwerveModuleState(
+            self.drive.getSelectedSensorVelocity(), self.get_rotation()
+        )
+
     def zero(self):
         self.steer.setSelectedSensorPosition(0)
 
@@ -130,7 +135,6 @@ class Chassis:
     debug_steer_pos = magicbot.tunable(0)
 
     desired_states = None
-
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
 
     field: wpilib.Field2d
@@ -198,10 +202,10 @@ class Chassis:
         )
         self.odometry.update(
             self.imu.getRotation2d(),
-            self.desired_states[0],
-            self.desired_states[1],
-            self.desired_states[2],
-            self.desired_states[3],
+            self.modules[0].get(),
+            self.modules[1].get(),
+            self.modules[2].get(),
+            self.modules[3].get(),
         )
         self.field.setRobotPose(self.odometry.getPose())
 

@@ -60,7 +60,7 @@ class MyRobot(magicbot.MagicRobot):
         self.indexer_feed_motor = ctre.TalonSRX(15)
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
         self.intake_prox = wpilib.DigitalInput(0)
-        
+
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
@@ -100,10 +100,6 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
         # else:
         #     self.chassis.stop()
-
-        # Reset the heading when button 7 is pressed
-        if self.joystick.getRawButtonPressed(7):
-            self.gyro.reset()
 
         if self.joystick.getTriggerPressed():
             self.shooter_control.fire_input()

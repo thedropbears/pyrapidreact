@@ -50,9 +50,9 @@ class ShooterController:
             self.indexer.engage("firing")
             self.intaking = True
 
-        angle, distance, confidence = self.target_estimator.to_target()
+        angle, distance = self.target_estimator.to_target()
         if angle is not None:
-            self.turret.slew_relative(angle)
+            self.turret.slew_local(angle)
 
     def toggle_intaking(self):
         self.intaking = not self.intaking

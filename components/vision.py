@@ -35,13 +35,16 @@ class Vision:
         self.nt = NetworkTables
         self.table = self.nt.getTable("/vision")
         self.vision_data_entry = self.table.getEntry("data")
-        self.ping_time_entry = self.table.getEntry("ping")
-        self.rio_pong_time_entry = self.table.getEntry("rio_pong")
-        self.raspi_pong_time_entry = self.table.getEntry("raspi_pong")
+        self.ping_time_entry = self.table.getEntry("ping")  # rio time
+        self.rio_pong_time_entry = self.table.getEntry(
+            "rio_pong"
+        )  # rio time sent back with vision data
+        self.raspi_pong_time_entry = self.table.getEntry(
+            "raspi_pong"
+        )  # raspbi time send with data
         self.latency_entry = self.table.getEntry("clock_offset")
 
         self.last_pong = Timer.getFPGATimestamp()
-        self.latency = 0
 
         self.vision_data: Optional[VisionData] = None
 
@@ -53,13 +56,14 @@ class Vision:
         return self.vision_data
 
     def execute(self) -> None:
-
+        self.recive_pong()
+        self.ping()
         data = self.vision_data_entry.getDoubleArray(None)
         if data is not None:
             self.vision_data = VisionData(
-                data[0], data[1], data[2], data[3] + self.get_latency()
+                data[0], data[1], data[2], data[3] + self.get_clocks_offset()
             )
-            # add latency to vision timestamp
+            # add clock offset to vision timestamp
 
         self.nt.flush()
 
@@ -78,7 +82,7 @@ class Vision:
         """Send a ping to the RasPi to determine the connection latency."""
         self.ping_time_entry.setDouble(Timer.getFPGATimestamp())
 
-    def pong(self) -> None:
+    def recive_pong(self) -> None:
         """Receive a pong from the RasPi to determine the connection latency."""
         rio_pong_time = self.rio_pong_time_entry.getDouble(0)
         if abs(rio_pong_time - self.last_pong) > 1e-4:  # Floating point comparison
@@ -86,5 +90,5 @@ class Vision:
             self.latency_entry.setDouble(rio_pong_time - raspi_pong_time)
             self.last_pong = rio_pong_time
 
-    def get_latency(self) -> float:
+    def get_clocks_offset(self) -> float:
         return self.latency_entry.getDouble(0)

@@ -24,7 +24,8 @@ class Turret:
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
-    target = magicbot.tunable(0)
+    target = magicbot.tunable(0.0)
+    control_loop_wait_time: float
 
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
@@ -66,18 +67,27 @@ class Turret:
 
     def slew_relative(self, angle: float) -> None:
         """Slews relative to current turret position"""
-        self._slew(self.get_angle() + angle)
+        self.slew_local(self.get_angle() + angle)
 
     def slew_global(self, angle: float) -> None:
         """Slew to field relative angle"""
-        self._slew(angle - self.imu.getRotation2d().radians())
+        self.slew_local(angle - self.imu.getRotation2d().radians())
 
-    def _slew(self, angle: float) -> None:
+    def slew_local(self, angle: float) -> None:
         """Slew to a robot relative angle"""
+        # handle wrapping
+        self.target = angle
 
     @magicbot.feedback
     def get_angle(self):
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
     def get_angle_at(self, t: float) -> float:
-        wpilib.Timer.getFPGATimestamp()
+        loops_ago = (wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time
+        if loops_ago >= len(self.angle_history):
+            return (
+                self.angle_history[-1]
+                if len(self.angle_history) > 0
+                else self.get_angle()
+            )
+        return self.angle_history[loops_ago]
