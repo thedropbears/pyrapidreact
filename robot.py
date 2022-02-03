@@ -130,10 +130,6 @@ class MyRobot(magicbot.MagicRobot):
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
-        # Reset the heading when button 7 is pressed
-        if self.joystick.getRawButtonPressed(7):
-            self.imu.reset()
-
         if self.joystick.getTriggerPressed():
             self.indexer_control.wants_to_fire = True
 

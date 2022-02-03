@@ -156,7 +156,6 @@ class Chassis:
     debug_steer_pos = magicbot.tunable(0)
 
     desired_states = None
-
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
 
     def setup(self):
