@@ -12,7 +12,7 @@ class TalonEncoder:
 
     Note that this does not change the behaviour of closed-loop set calls.
     """
-    
+
     __slots__ = (
         "talon",
         "pid_idx",
