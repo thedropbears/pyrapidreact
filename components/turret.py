@@ -1,10 +1,14 @@
+from collections import deque
 import ctre
 import magicbot
 import math
+import wpilib
+import navx
 
 
 class Turret:
     motor: ctre.TalonSRX
+    imu: navx.AHRS
 
     pidF = 0.2
     pidP = 1.0
@@ -22,26 +26,10 @@ class Turret:
 
     target = magicbot.tunable(0)
 
+    def __init__(self):
+        self.angle_history = deque([], maxlen=100)
+
     def setup(self):
-        print("counts per turret radian: ", self.COUNTS_PER_TURRET_RADIAN)
-        print("counts per turret rev: ", self.COUNTS_PER_TURRET_REV)
-        self._setup_motor()
-
-    def execute(self) -> None:
-        self.motor.getSelectedSensorPosition(0)
-
-        self.motor.set(
-            ctre.ControlMode.MotionMagic, self.target * self.COUNTS_PER_TURRET_RADIAN
-        )
-
-    def slew_relative(self, angle: float) -> None:
-        self.target = self.get_angle() + angle * 0.8
-
-    @magicbot.feedback
-    def get_angle(self):
-        return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
-
-    def _setup_motor(self) -> None:
         self.motor.configFactoryDefault()
 
         # Positive motion is counterclockwise from above.
@@ -64,3 +52,32 @@ class Turret:
         self.motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
+
+        self.motor.setSelectedSensorPosition(
+            0
+        )  # replace 0 with absolute encoder position
+
+    def execute(self) -> None:
+        self.angle_history.appendleft(self.get_angle())
+
+        self.motor.set(
+            ctre.ControlMode.MotionMagic, self.target * self.COUNTS_PER_TURRET_RADIAN
+        )
+
+    def slew_relative(self, angle: float) -> None:
+        """Slews relative to current turret position"""
+        self._slew(self.get_angle() + angle)
+
+    def slew_global(self, angle: float) -> None:
+        """Slew to field relative angle"""
+        self._slew(angle - self.imu.getRotation2d().radians())
+
+    def _slew(self, angle: float) -> None:
+        """Slew to a robot relative angle"""
+
+    @magicbot.feedback
+    def get_angle(self):
+        return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
+
+    def get_angle_at(self, t: float) -> float:
+        wpilib.Timer.getFPGATimestamp()
