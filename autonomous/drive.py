@@ -1,7 +1,6 @@
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import geometry, controller, trajectory
 from wpimath.trajectory import TrapezoidProfile
-from wpimath.geometry import Rotation2d, Translation2d
 
 from components.chassis import Chassis
 from utilities.trajectory_generator import smoothPath
@@ -33,12 +32,12 @@ class AutoBase(AutonomousStateMachine):
         )
 
         self.waypoints = [
-            geometry.Pose2d(Translation2d(0, 0), Rotation2d(0)),
-            geometry.Pose2d(Translation2d(2, 0), Rotation2d(0)),
-            geometry.Pose2d(Translation2d(4, 2), Rotation2d(0)),
+            geometry.Pose2d(0, 0, 0),
+            geometry.Pose2d(2, 0, 0),
+            geometry.Pose2d(4, 2, 0),
         ]
         # both in meters along straight line path
-        self.stop_point = 1
+        self.stop_point = 5
 
         # generates initial
         self.trap_profile = TrapezoidProfile(
@@ -69,7 +68,7 @@ class AutoBase(AutonomousStateMachine):
         cur_pose = smoothPath(self.waypoints, 0.5, linear_state.position)
         self.chassis_speeds = self.drive_controller.calculate(
             self.chassis.odometry.getPose(),
-            pose_ref=cur_pose,
+            poseRef=cur_pose,
             linearVelocityRef=linear_state.velocity,
             angleRef=cur_pose.rotation(),  # idk if meant to be angular velocity or current angle or end angle
         )
