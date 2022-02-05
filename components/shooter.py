@@ -49,10 +49,9 @@ class Shooter:
             motor.configFactoryDefault()
             motor.setNeutralMode(ctre.NeutralMode.Coast)
 
-            motor.configNominalOutputForward(0, 10)
-            motor.configNominalOutputReverse(0, 10)
-            motor.configPeakOutputForward(1.0, 10)
-            motor.configPeakOutputReverse(-1.0, 10)
+            motor.configVoltageCompSaturation(12, timeoutMs=10)
+            motor.enableVoltageCompensation(True)
+
             motor.config_kF(0, self.pidF, 10)
             motor.config_kP(0, self.pidP, 10)
             motor.config_kI(0, self.pidI, 10)
@@ -62,21 +61,19 @@ class Shooter:
             )
 
     def execute(self):
-        voltage = wpilib.RobotController.getInputVoltage()
         feed_forward = self.ff_calculator.calculate(self.motor_speed)
 
-        # self.motor_speed = self.joystick.getThrottle() * self.MAX_MOTOR_SPEED
         self.right_motor.set(
             ctre.ControlMode.Velocity,
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
             ctre.DemandType.ArbitraryFeedForward,
-            feed_forward / voltage,
+            feed_forward / 12,
         )
         self.left_motor.set(
             ctre.ControlMode.Velocity,
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
             ctre.DemandType.ArbitraryFeedForward,
-            feed_forward / voltage,
+            feed_forward / 12,
         )
 
     @magicbot.feedback
