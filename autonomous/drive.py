@@ -1,10 +1,5 @@
-import traceback
-import magicbot
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import trajectory, geometry, controller, kinematics
-import wpilib
-import ctre
-import wpimath
 
 from components.chassis import Chassis
 
@@ -18,33 +13,56 @@ class AutoBase(AutonomousStateMachine):
 
     def __init__(self):
         super().__init__()
-        self.max_accel = 0.5
+        self.max_accel = 0.2
         self.max_vel = 0.5
+        constraints = trajectory.TrapezoidProfileRadians.Constraints(
+            self.max_vel, self.max_accel
+        )
+        self.drive_controller = controller.HolonomicDriveController(
+            controller.PIDController(0, 0, 0),
+            controller.PIDController(0, 0, 0),
+            controller.ProfiledPIDControllerRadians(0, 0, 0, constraints),
+        )
         self.config = trajectory.TrajectoryConfig(self.max_vel, self.max_accel)
-        self.target_trajectory = None
-        constraints = trajectory.TrapezoidProfileRadians.Constraints(self.max_vel, self.max_accel)
-        self.drive_controller = controller.HolonomicDriveController(controller.PIDController(0,0,0), controller.PIDController(0,0,0), controller.ProfiledPIDControllerRadians(0,0,0, constraints))
-        #self.chassis_speeds = trajectory.ChassisSpeeds()
+        self.gen = trajectory.TrajectoryGenerator()
+        self.chassis_speeds = kinematics.ChassisSpeeds(0, 0, 0)
 
-    @state(first=True)
-    def starting(self):
-        self.start_angle = geometry.Rotation2d(0,0)
-        self.end_angle = geometry.Rotation2d(0,0)
-        self.start_position = geometry.Pose2d(geometry.Translation2d(0,0), self.start_angle)
-        self.end_position = geometry.Pose2d(geometry.Translation2d(-1,0), self.end_angle)
-        self.target_trajectory = trajectory.TrajectoryGenerator.generateTrajectory(self.start_position, [], self.end_position, self.config)
+    def setup(self):
+        self.config.setKinematics(self.chassis.kinematics)
+
+        self.start_position = geometry.Pose2d(
+            geometry.Translation2d(0, 0), geometry.Rotation2d(0)
+        )
+        self.end_position = geometry.Pose2d(
+            geometry.Translation2d(1, 1), geometry.Rotation2d()
+        )
+        self.target_trajectory = self.gen.generateTrajectory(
+            self.start_position,
+            [geometry.Translation2d(1, -0.1)],
+            self.end_position,
+            self.config,
+        )
+        print("total time: ", self.target_trajectory.totalTime())
         self.next_state("move")
 
-    @state
+    @state(first=True)
     def move(self, state_tm):
-        self.chassis_speeds = self.drive_controller.calculate(self.chassis.odometry.getPose(), self.target_trajectory.sample(state_tm), self.end_angle)
-        self.chassis._drive(chassis_speeds)
-        self.return_chassis()
+        self.chassis_speeds = self.drive_controller.calculate(
+            self.chassis.odometry.getPose(),
+            self.target_trajectory.sample(state_tm),
+            self.end_position.rotation(),
+        )
 
-    @magicbot.feedback
-    def return_chassis(self):
-        return chassis_speeds
-    
-    @state
+        self.chassis.drive_local(
+            self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega
+        )
+
+        # if state_tm > self.target_trajectory.totalTime:
+        #     self.
+
+    # @magicbot.feedback
+    # def return_chassis(self):
+    #     return f"x:{self.chassis_speeds.vx}, y:{self.chassis_speeds.vy}, a: {self.chassis_speeds.omega}"
+
     def shoot(self):
         pass
