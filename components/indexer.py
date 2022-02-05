@@ -1,43 +1,15 @@
 import magicbot
 import rev
 import ctre
-import wpilib
-import time
+
 
 class Indexer(magicbot.StateMachine):
-
-    isRed = magicbot.tunable(False)
-    indexerSpeed = magicbot.tunable(0)
-    Manual = magicbot.tunable(False)
-
-    colour_sensor:  rev.ColorSensorV3
-
-    index_motor_front: ctre.TalonSRX
-    index_motor_back: ctre.TalonSRX
-
-    PROX_THRESHOLD = magicbot.tunable(400)
-
-    clearingTime = magicbot.tunable(1) # second
-    fireTime = magicbot.tunable(0.5)
-
-    indexerToggle = False
-
-    def __init__(self) -> None:
-        self.clearing = False
-        self.clearingSince = time.monotonic() # when you began to clear
-        self.justPressed = False
 
     is_red = magicbot.tunable(False)
 
     indexer_speed = magicbot.tunable(0.8)
     feeder_speed = magicbot.tunable(1)
 
-    def setup(self):
-        self.colorValues = self.colour_sensor.getColor()
-        self.index_motor_front.setInverted(True)
-        self.index_motor_back.setInverted(True)
-        pass
-    
     colour_sensor: rev.ColorSensorV3
     indexer_motor: ctre.TalonSRX
     feed_motor: ctre.TalonSRX
