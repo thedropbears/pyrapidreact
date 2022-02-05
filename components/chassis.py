@@ -106,6 +106,9 @@ class SwerveModule:
     def zero(self):
         self.steer.setSelectedSensorPosition(0)
 
+    def get(self) -> SwerveModuleState:
+        return SwerveModuleState(self.get_speed(), self.get_rotation())
+
 
 class Chassis:
     # assumes square chassis
@@ -198,10 +201,10 @@ class Chassis:
         )
         self.odometry.update(
             self.imu.getRotation2d(),
-            self.desired_states[0],
-            self.desired_states[1],
-            self.desired_states[2],
-            self.desired_states[3],
+            self.modules[0].get(),
+            self.modules[1].get(),
+            self.modules[2].get(),
+            self.modules[3].get(),
         )
         self.field.setRobotPose(self.odometry.getPose())
 
