@@ -1,4 +1,5 @@
 import traceback
+import magicbot
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import trajectory, geometry, controller, kinematics
 import wpilib
@@ -18,11 +19,12 @@ class AutoBase(AutonomousStateMachine):
     def __init__(self):
         super().__init__()
         self.max_accel = 0.5
-        self.max_vel = 2
+        self.max_vel = 0.5
         self.config = trajectory.TrajectoryConfig(self.max_vel, self.max_accel)
         self.target_trajectory = None
         constraints = trajectory.TrapezoidProfileRadians.Constraints(self.max_vel, self.max_accel)
         self.drive_controller = controller.HolonomicDriveController(controller.PIDController(0,0,0), controller.PIDController(0,0,0), controller.ProfiledPIDControllerRadians(0,0,0, constraints))
+        #self.chassis_speeds = trajectory.ChassisSpeeds()
 
     @state(first=True)
     def starting(self):
@@ -34,9 +36,14 @@ class AutoBase(AutonomousStateMachine):
         self.next_state("move")
 
     @state
-    def move(self):
-        chassis_speeds = self.drive_controller.calculate(self.chassis.odometry.getPose(), self.target_trajectory.sample(0), self.end_angle)
+    def move(self, state_tm):
+        self.chassis_speeds = self.drive_controller.calculate(self.chassis.odometry.getPose(), self.target_trajectory.sample(state_tm), self.end_angle)
         self.chassis._drive(chassis_speeds)
+        self.return_chassis()
+
+    @magicbot.feedback
+    def return_chassis(self):
+        return chassis_speeds
     
     @state
     def shoot(self):
