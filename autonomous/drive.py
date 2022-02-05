@@ -1,9 +1,10 @@
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import geometry, controller, trajectory
 from wpimath.trajectory import TrapezoidProfile
+from wpimath.geometry import Rotation2d
 
 from components.chassis import Chassis
-from utilities.trajectory_generator import smoothPath
+from utilities import trajectory_generator
 
 
 class AutoBase(AutonomousStateMachine):
@@ -18,7 +19,7 @@ class AutoBase(AutonomousStateMachine):
     def __init__(self):
         super().__init__()
         # applies to the linear speed, not turning
-        self.linear_constraints = TrapezoidProfile.Constraints(1, 1)
+        self.linear_constraints = TrapezoidProfile.Constraints(1.5, 1)
         # since chassis speeds should be limited in trajectory generation this is high to not hold it back
         self.drive_rotation_constrants = trajectory.TrapezoidProfileRadians.Constraints(
             3, 5
@@ -33,11 +34,13 @@ class AutoBase(AutonomousStateMachine):
 
         self.waypoints = [
             geometry.Pose2d(0, 0, 0),
-            geometry.Pose2d(2, 0, 0),
-            geometry.Pose2d(4, 2, 0),
+            geometry.Pose2d(3, 0, 0),
+            geometry.Pose2d(3, 3, 0),
+            geometry.Pose2d(6, 3, 0),
         ]
         # both in meters along straight line path
-        self.stop_point = 5
+        self.stop_point = trajectory_generator.totalLength(self.waypoints)
+        print("total length", trajectory_generator.totalLength(self.waypoints))
 
         # generates initial
         self.trap_profile = TrapezoidProfile(
@@ -64,16 +67,19 @@ class AutoBase(AutonomousStateMachine):
             d, vel = self.trap_profile.calculate(
                 state_tm - self.trap_profile_start_time
             )
-
-        cur_pose = smoothPath(self.waypoints, 0.5, linear_state.position)
+        cur_pose = trajectory_generator.smoothPath(
+            self.waypoints, 2, linear_state.position
+        )
+        # print(f"d:{linear_state.position}, cur_pose:{cur_pose}")
         self.chassis_speeds = self.drive_controller.calculate(
             self.chassis.odometry.getPose(),
             poseRef=cur_pose,
             linearVelocityRef=linear_state.velocity,
-            angleRef=cur_pose.rotation(),  # idk if meant to be angular velocity or current angle or end angle
+            angleRef=Rotation2d(cur_pose.rotation().radians() + 1.5),
         )
-
-        self.chassis.drive_local(
+        # print(f"{round(linear_state.position, 1)}-chassis speeds: {self.chassis_speeds},\t goal pose: {cur_pose}")
+        self.chassis.field.setRobotPose(cur_pose)
+        self.chassis.drive_field(
             self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega
         )
 

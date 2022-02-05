@@ -17,7 +17,7 @@ def test_lerp_one(p1):
 
 @given(p1=from_type(Pose2d))
 def test_lerp_half(p1):
-    assert lerpPose(p1, Pose2d(1, 1, 1), 0.5) == Pose2d(0.5, 0.5, 0.5)
+    assert lerpPose(p1, Pose2d(1, 1, 1), 0.5) == lerpPose(Pose2d(1, 1, 1), p1, 0.5)
 
 
 # @given(x=floats)
