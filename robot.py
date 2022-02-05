@@ -87,6 +87,8 @@ class MyRobot(magicbot.MagicRobot):
         )  # TODO correct port numbers
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
+        self.climb_motor = rev.CANSparkMax(22, rev.CANSparkMax.MotorType.kBrushless)
+
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
@@ -175,6 +177,12 @@ class MyRobot(magicbot.MagicRobot):
         # Failsafe
         if self.codriver.getAButton():
             self.chassis.set_pose_failsafe()
+
+        if self.joystick.getRawButtonPressed(9):
+            self.hanger.winch()
+        
+        if self.joystick.getRawButtonPressed(10):
+            self.hanger.payout()
 
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
