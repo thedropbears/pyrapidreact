@@ -34,12 +34,10 @@ class AutoBase(AutonomousStateMachine):
             geometry.Translation2d(0, 0), geometry.Rotation2d(0)
         )
         self.end_position = geometry.Pose2d(
-            geometry.Translation2d(1, 1), geometry.Rotation2d()
+            geometry.Translation2d(1, 0), geometry.Rotation2d(0)
         )
         self.target_trajectory = self.gen.generateTrajectory(
-            self.start_position,
-            [geometry.Translation2d(1, -0.1)],
-            self.end_position,
+            [self.start_position, self.end_position],
             self.config,
         )
         print("total time: ", self.target_trajectory.totalTime())
@@ -56,13 +54,3 @@ class AutoBase(AutonomousStateMachine):
         self.chassis.drive_local(
             self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega
         )
-
-        # if state_tm > self.target_trajectory.totalTime:
-        #     self.
-
-    # @magicbot.feedback
-    # def return_chassis(self):
-    #     return f"x:{self.chassis_speeds.vx}, y:{self.chassis_speeds.vy}, a: {self.chassis_speeds.omega}"
-
-    def shoot(self):
-        pass
