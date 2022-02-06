@@ -16,6 +16,7 @@ from components.vision import Vision
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
+from utilities.ctre import TalonEncoder
 
 from utilities import git
 
@@ -61,6 +62,11 @@ class MyRobot(magicbot.MagicRobot):
 
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
+
+        self.chassis_1_encoder = TalonEncoder(self.indexer_motor)
+        self.chassis_2_encoder = TalonEncoder(ctre.TalonSRX(21))
+        self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(22))
+        self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(23))
 
     def autonomousInit(self) -> None:
         pass

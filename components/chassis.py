@@ -14,6 +14,7 @@ from wpimath.kinematics import (
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
 from utilities.functions import constrain_angle
+from utilities.ctre import TalonEncoder
 from wpimath.controller import SimpleMotorFeedforwardMeters
 
 
@@ -37,6 +38,8 @@ class SwerveModule:
         y: float,
         drive: ctre.TalonFX,
         steer: ctre.TalonFX,
+        encoder: TalonEncoder,
+        encoder_offset=0,
         steer_reversed=True,
         drive_reversed=False,
     ):
@@ -57,6 +60,9 @@ class SwerveModule:
             ctre.FeedbackDevice.IntegratedSensor, 0, 10
         )
 
+        self.encoder = encoder
+        self.encoder.setPosition(encoder_offset)
+
         self.drive = drive
         self.drive.configFactoryDefault()
         self.drive.setNeutralMode(ctre.NeutralMode.Brake)
@@ -70,8 +76,8 @@ class SwerveModule:
         self.target_angle = 0
 
     def get_angle(self) -> float:
-        # return self.hall_effect.getPosition()
-        return self.get_motor_angle() * self.STEER_SENSOR_TO_RAD
+        return self.encoder.getPosition()
+        # return self.get_motor_angle() * self.STEER_SENSOR_TO_RAD
 
     def get_motor_angle(self) -> float:
         return self.steer.getSelectedSensorPosition()
@@ -104,7 +110,7 @@ class SwerveModule:
         )
 
     def zero(self):
-        self.steer.setSelectedSensorPosition(0)
+        self.steer.setSelectedSensorPosition(self.encoder.getPosition())
 
     def get(self) -> SwerveModuleState:
         return SwerveModuleState(self.get_speed(), self.get_rotation())
@@ -128,6 +134,11 @@ class Chassis:
     chassis_4_drive: ctre.TalonFX
     chassis_4_steer: ctre.TalonFX
 
+    chassis_1_encoder: ctre.TalonSRX
+    chassis_2_encoder: ctre.TalonSRX
+    chassis_3_encoder: ctre.TalonSRX
+    chassis_4_encoder: ctre.TalonSRX
+
     imu: navx.AHRS
 
     debug_steer_pos = magicbot.tunable(0)
@@ -139,6 +150,20 @@ class Chassis:
     field: wpilib.Field2d
 
     def setup(self):
+        # mag encoder only
+        self.chassis_1_encoder.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        )
+        self.chassis_2_encoder.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        )
+        self.chassis_3_encoder.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        )
+        self.chassis_4_encoder.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        )
+
         self.modules = [
             SwerveModule(
                 self.width / 2,
