@@ -37,14 +37,14 @@ class MyRobot(magicbot.MagicRobot):
     def createObjects(self):
         self.imu = navx.AHRS.create_spi()
 
-        self.chassis_1_drive = ctre.TalonFX(1)
-        self.chassis_1_steer = ctre.TalonFX(2)
-        self.chassis_2_drive = ctre.TalonFX(3)
-        self.chassis_2_steer = ctre.TalonFX(4)
-        self.chassis_3_drive = ctre.TalonFX(5)
-        self.chassis_3_steer = ctre.TalonFX(6)
-        self.chassis_4_drive = ctre.TalonFX(7)
-        self.chassis_4_steer = ctre.TalonFX(8)
+        self.chassis_1_drive = ctre.TalonFX(7)
+        self.chassis_1_steer = ctre.TalonFX(8)
+        self.chassis_2_drive = ctre.TalonFX(1)
+        self.chassis_2_steer = ctre.TalonFX(2)
+        self.chassis_3_drive = ctre.TalonFX(3)
+        self.chassis_3_steer = ctre.TalonFX(4)
+        self.chassis_4_drive = ctre.TalonFX(5)
+        self.chassis_4_steer = ctre.TalonFX(6)
 
         self.joystick = wpilib.Joystick(0)
 
@@ -63,10 +63,10 @@ class MyRobot(magicbot.MagicRobot):
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
-        self.chassis_1_encoder = TalonEncoder(self.indexer_motor)
+        self.chassis_1_encoder = TalonEncoder(ctre.TalonSRX(20))
         self.chassis_2_encoder = TalonEncoder(ctre.TalonSRX(21))
         self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(22))
-        self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(23))
+        self.chassis_4_encoder = TalonEncoder(self.indexer_motor)
 
     def autonomousInit(self) -> None:
         pass
