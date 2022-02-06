@@ -8,37 +8,30 @@ class Indexer(magicbot.StateMachine):
     is_red = magicbot.tunable(False)
 
     indexer_speed = magicbot.tunable(0.8)
-    feeder_speed = magicbot.tunable(1)
 
     colour_sensor: rev.ColorSensorV3
     indexer_motor: ctre.TalonSRX
-    feed_motor: ctre.TalonSRX
 
     def setup(self):
         self.indexer_motor.setInverted(False)
-        self.feed_motor.setInverted(False)
 
     @magicbot.state(first=True)
     def indexing(self):
         self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
-        self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
         if self.has_ball():
             self.done()
 
     @magicbot.default_state
     def stopped(self):
         self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
-        self.feed_motor.set(ctre.ControlMode.PercentOutput, 0)
 
     @magicbot.timed_state(duration=1, must_finish=True)
     def clearing(self):
-        self.feed_motor.set(ctre.ControlMode.PercentOutput, -self.feeder_speed)
         self.indexer_motor.set(ctre.ControlMode.PercentOutput, -self.indexer_speed)
 
     @magicbot.timed_state(duration=0.5, must_finish=True)
     def firing(self):
         self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
-        self.feed_motor.set(ctre.ControlMode.PercentOutput, self.feeder_speed)
 
     @magicbot.feedback
     def has_ball(self) -> bool:
