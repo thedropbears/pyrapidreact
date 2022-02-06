@@ -2,22 +2,22 @@ from hypothesis.strategies import from_type
 from hypothesis import given
 
 from wpimath.geometry import Pose2d
-from utilities.trajectory_generator import lerpPose
+from utilities.trajectory_generator import lerp_pose
 
 
 @given(p1=from_type(Pose2d))
 def test_lerp_zero(p1):
-    assert lerpPose(p1, Pose2d(1, 1, 1), 0) == p1
+    assert lerp_pose(p1, Pose2d(1, 1, 1), 0) == p1
 
 
 @given(p1=from_type(Pose2d))
 def test_lerp_one(p1):
-    assert lerpPose(p1, Pose2d(1, 1, 1), 1) == Pose2d(1, 1, 1)
+    assert lerp_pose(p1, Pose2d(1, 1, 1), 1) == Pose2d(1, 1, 1)
 
 
 @given(p1=from_type(Pose2d))
 def test_lerp_half(p1):
-    assert lerpPose(p1, Pose2d(1, 1, 1), 0.5) == lerpPose(Pose2d(1, 1, 1), p1, 0.5)
+    assert lerp_pose(p1, Pose2d(1, 1, 1), 0.5) == lerp_pose(Pose2d(1, 1, 1), p1, 0.5)
 
 
 # @given(x=floats)
