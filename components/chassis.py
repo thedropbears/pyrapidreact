@@ -134,10 +134,10 @@ class Chassis:
     chassis_4_drive: ctre.TalonFX
     chassis_4_steer: ctre.TalonFX
 
-    chassis_1_encoder: ctre.TalonSRX
-    chassis_2_encoder: ctre.TalonSRX
-    chassis_3_encoder: ctre.TalonSRX
-    chassis_4_encoder: ctre.TalonSRX
+    chassis_1_encoder: TalonEncoder
+    chassis_2_encoder: TalonEncoder
+    chassis_3_encoder: TalonEncoder
+    chassis_4_encoder: TalonEncoder
 
     imu: navx.AHRS
 
@@ -151,17 +151,17 @@ class Chassis:
 
     def setup(self):
         # mag encoder only
-        self.chassis_1_encoder.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        self.chassis_1_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
         )
-        self.chassis_2_encoder.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        self.chassis_2_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
         )
-        self.chassis_3_encoder.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        self.chassis_3_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
         )
-        self.chassis_4_encoder.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute
+        self.chassis_4_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
         )
 
         self.modules = [
@@ -170,24 +170,28 @@ class Chassis:
                 self.width / 2,
                 self.chassis_1_drive,
                 self.chassis_1_steer,
+                self.chassis_1_encoder,
             ),
             SwerveModule(
                 -self.width / 2,
                 self.width / 2,
                 self.chassis_2_drive,
                 self.chassis_2_steer,
+                self.chassis_2_encoder,
             ),
             SwerveModule(
                 -self.width / 2,
                 -self.width / 2,
                 self.chassis_3_drive,
                 self.chassis_3_steer,
+                self.chassis_3_encoder,
             ),
             SwerveModule(
                 self.width / 2,
                 -self.width / 2,
                 self.chassis_4_drive,
                 self.chassis_4_steer,
+                self.chassis_4_encoder,
             ),
         ]
 
