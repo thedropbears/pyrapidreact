@@ -5,6 +5,7 @@ from wpimath.geometry import Rotation2d
 
 from components.chassis import Chassis
 from utilities import trajectory_generator
+import math
 
 
 class AutoBase(AutonomousStateMachine):
@@ -34,9 +35,9 @@ class AutoBase(AutonomousStateMachine):
 
         self.waypoints = [
             geometry.Pose2d(0, 0, 0),
-            geometry.Pose2d(3, 0, 0),
-            geometry.Pose2d(3, 3, 0),
-            geometry.Pose2d(6, 3, 0),
+            geometry.Pose2d(2, 0, math.tau),
+            geometry.Pose2d(4, 4, 0),
+            geometry.Pose2d(6, 0, math.tau),
         ]
         # both in meters along straight line path
         self.stop_point = trajectory_generator.totalLength(self.waypoints)
@@ -67,17 +68,20 @@ class AutoBase(AutonomousStateMachine):
             d, vel = self.trap_profile.calculate(
                 state_tm - self.trap_profile_start_time
             )
+        to_start = linear_state.position
+        to_end = self.stop_point - linear_state.position
+        look_around = min(
+            to_start, min(to_end, 1)
+        )  # make look around 0 at start and end
         cur_pose = trajectory_generator.smoothPath(
-            self.waypoints, 2, linear_state.position
+            self.waypoints, look_around, linear_state.position
         )
-        # print(f"d:{linear_state.position}, cur_pose:{cur_pose}")
         self.chassis_speeds = self.drive_controller.calculate(
             self.chassis.odometry.getPose(),
             poseRef=cur_pose,
             linearVelocityRef=linear_state.velocity,
-            angleRef=Rotation2d(cur_pose.rotation().radians() + 1.5),
+            angleRef=Rotation2d(cur_pose.rotation().radians()),
         )
-        # print(f"{round(linear_state.position, 1)}-chassis speeds: {self.chassis_speeds},\t goal pose: {cur_pose}")
         self.chassis.field.setRobotPose(cur_pose)
         self.chassis.drive_field(
             self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega

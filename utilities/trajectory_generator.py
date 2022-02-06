@@ -1,6 +1,5 @@
-from wpimath.geometry import Pose2d, Translation2d
+from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 from typing import List
-from utilities.functions import constrain_angle
 
 from utilities.scalers import scale_value
 
@@ -18,8 +17,8 @@ def lerpPose(p1: Pose2d, p2: Pose2d, n1: float) -> Pose2d:
         x=p1.translation().x * n2 + p2.translation().x * n1,
         y=p1.translation().y * n2 + p2.translation().y * n1,
     )
-    rotation = p1.rotation() * n2 + p2.rotation() * n1
-    return Pose2d(translation, rotation)
+    rotation = p1.rotation().radians() * n2 + p2.rotation().radians() * n1
+    return Pose2d(translation, Rotation2d(rotation))
 
 
 def lookupLinear(waypoints: List[Pose2d], d: float) -> Pose2d:
@@ -45,4 +44,4 @@ def smoothPath(waypoints: List[Pose2d], look_around, d, sample_count=10) -> Pose
         x += sample_pose.X()
         y += sample_pose.Y()
         o += sample_pose.rotation().radians()
-    return Pose2d(x / sample_count, y / sample_count, constrain_angle(o / sample_count))
+    return Pose2d(x / sample_count, y / sample_count, o / sample_count)
