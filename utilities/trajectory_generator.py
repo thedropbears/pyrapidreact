@@ -1,6 +1,7 @@
 from wpimath.geometry import Pose2d
 from typing import List
 
+import math
 from utilities.scalers import scale_value
 
 
@@ -36,7 +37,9 @@ def smooth_path(
     waypoints: List[Pose2d], look_around: float, dist: float, sample_count=10
 ) -> Pose2d:
     """Samples dist meters along waypoints in a way that creates smooth paths"""
-    x, y, angle = 0, 0, 0
+    x, y = 0, 0
+    # takes circular mean https://en.wikipedia.org/wiki/Circular_mean
+    angle_x, angle_y = 0, 0
     for sample in range(sample_count):
         sample_d = dist + scale_value(
             sample, 0, sample_count, -look_around, look_around
@@ -44,5 +47,6 @@ def smooth_path(
         sample_pose = lookup_linear(waypoints, sample_d)
         x += sample_pose.X()
         y += sample_pose.Y()
-        angle += sample_pose.rotation().radians()
-    return Pose2d(x / sample_count, y / sample_count, angle / sample_count)
+        angle_x += sample_pose.rotation().cos()
+        angle_y += sample_pose.rotation().sin()
+    return Pose2d(x / sample_count, y / sample_count, math.atan2(angle_y, angle_x))
