@@ -110,7 +110,9 @@ class SwerveModule:
         )
 
     def zero(self):
-        self.steer.setSelectedSensorPosition(self.encoder.getPosition())
+        self.steer.setSelectedSensorPosition(
+            self.encoder.getPosition() * self.STEER_RAD_TO_SENSOR
+        )
 
     def get(self) -> SwerveModuleState:
         return SwerveModuleState(self.get_speed(), self.get_rotation())
