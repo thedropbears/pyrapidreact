@@ -16,16 +16,16 @@ class TargetEstimator:
     """Fuses data from vision, odometry, the imu and other sources
     to estimate where the target is from the robot and where you should aim to hit it when moving"""
 
-    # https://robotpy.readthedocs.io/projects/wpimath/en/stable/wpimath.estimator.html
     vision: Vision
     imu: navx.AHRS
     chassis: Chassis
     turret: Turret
 
     control_loop_wait_time: float
+    field: wpilib.Field2d
 
     def __init__(self) -> None:
-        self.robot_pose: Pose2d = Pose2d(0, 0, 0)
+        self.robot_pose: Pose2d = Pose2d(-2, 0, 0)
         self.pose_history: deque = deque([], maxlen=100)
 
     def execute(self) -> None:
@@ -41,22 +41,25 @@ class TargetEstimator:
             vis_estimate = Translation2d(
                 distance=vis_data.distance, angle=Rotation2d(vis_angle_from_target)
             )
+            # trust vision less the more
             diff = self.robot_pose.translation().distance(vis_estimate)
-            vis_confidence = vis_data.fittness * scale_value(diff, 0, 1, 1, 0.05)
+            vis_confidence = vis_data.fittness * scale_value(diff, 0, 1, 0.5, 0.05)
         else:
             vis_estimate = Translation2d(0, 0)
             vis_confidence = 0
 
         odometry_estimate = self.chassis.odometry.getPose().translation()
-        total_accel = abs(self.imu.getRawAccelX()) + abs(self.imu.getRawAccelY())
+        total_accel = math.sqrt(
+            self.imu.getRawAccelX() ** 2 + self.imu.getRawAccelY() ** 2
+        )
         odometry_confidence = max(0.5, 2 - total_accel)
 
         imu_estimate = self.robot_pose.translation() + Translation2d(
             self.imu.getDisplacementX(), self.imu.getDisplacementY()
         )
-        imu_confidence = 0.1
+        imu_confidence = 0.5
 
-        total_confidence = sum([vis_confidence, odometry_confidence, imu_confidence])
+        total_confidence = vis_confidence + odometry_confidence + imu_confidence
         best_estimate = (
             vis_estimate * vis_confidence
             + odometry_estimate * odometry_confidence
@@ -64,11 +67,13 @@ class TargetEstimator:
         ) / total_confidence
         self.robot_pose = Pose2d(
             best_estimate,
-            Rotation2d(self.imu.getFusedHeading()),
+            self.imu.getRotation2d(),
         )
 
         self.chassis.set_odometry(self.robot_pose)
         self.imu.resetDisplacement()
+
+        self.field.setRobotPose(self.robot_pose)
 
     def to_target(self) -> Tuple[float, float]:
         """Returns angle and distance to shoot at to hit the target"""
@@ -80,9 +85,18 @@ class TargetEstimator:
         return local_angle, self.robot_pose.translation().distance(Translation2d(0, 0))
 
     def get_pose_at(self, t: float) -> Pose2d:
-        loops_ago = (wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time
-        if loops_ago >= len(self.pose_history):
-            return (
-                self.pose_history[-1] if len(self.pose_history) > 0 else self.robot_pose
-            )
-        return self.pose_history[loops_ago]
+        # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
+        # if loops_ago >= len(self.pose_history):
+        #     return (
+        #         self.pose_history[-1] if len(self.pose_history) > 0 else self.robot_pose
+        #     )
+        # if loops_ago < 0:
+        #     return self.robot_pose
+        # print(loops_ago)
+        # return self.pose_history[loops_ago]
+        return self.robot_pose
+
+    def set_pose(self, pose: Pose2d):
+        self.robot_pose = pose
+        self.chassis.set_odometry(pose)
+        self.imu.resetDisplacement()

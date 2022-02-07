@@ -55,6 +55,13 @@ class Vision:
         """
         return self.vision_data
 
+    @feedback
+    def get_ange(self):
+        # just feedback for debugging
+        if self.vision_data is None:
+            return -100
+        return self.vision_data.angle
+
     def execute(self) -> None:
         self.recive_pong()
         self.ping()
