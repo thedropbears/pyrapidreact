@@ -39,12 +39,10 @@ class SwerveModule:
         drive: ctre.TalonFX,
         steer: ctre.TalonFX,
         encoder: TalonEncoder,
-        encoder_offset=0,
         steer_reversed=True,
         drive_reversed=False,
     ):
         self.translation = Translation2d(x, y)
-
         self.steer = steer
         self.steer.configFactoryDefault()
         self.steer.setNeutralMode(ctre.NeutralMode.Brake)
@@ -61,7 +59,6 @@ class SwerveModule:
         )
 
         self.encoder = encoder
-        self.encoder.setPosition(encoder_offset)
 
         self.drive = drive
         self.drive.configFactoryDefault()
@@ -76,13 +73,16 @@ class SwerveModule:
         self.target_angle = 0
 
     def get_angle(self) -> float:
-        return self.encoder.getPosition()
-        # return self.get_motor_angle() * self.STEER_SENSOR_TO_RAD
+        """Gets steer angle from absolute encoder"""
+        # encoder returns in 0-1
+        return self.encoder.getPosition() * math.tau
 
     def get_motor_angle(self) -> float:
+        """Gets steer angle from motor's integrated relative encoder"""
         return self.steer.getSelectedSensorPosition()
 
     def get_rotation(self) -> Rotation2d:
+        """Absolute steer position as rotation2d"""
         return Rotation2d(self.get_angle())
 
     def get_speed(self):
@@ -111,7 +111,7 @@ class SwerveModule:
 
     def zero(self):
         self.steer.setSelectedSensorPosition(
-            self.encoder.getPosition() * self.STEER_RAD_TO_SENSOR
+            self.get_angle() * self.STEER_RAD_TO_SENSOR
         )
 
     def get(self) -> SwerveModuleState:
@@ -229,6 +229,10 @@ class Chassis:
         wpilib.SmartDashboard.putNumberArray(
             "swerve_steer_pos_counts",
             [module.get_motor_angle() for module in self.modules],
+        )
+        wpilib.SmartDashboard.putNumberArray(
+            "swerve_encoder",
+            [module.get_angle() for module in self.modules],
         )
         self.odometry.update(
             self.imu.getRotation2d(),
