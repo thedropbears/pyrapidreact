@@ -1,5 +1,6 @@
 from magicbot.state_machine import AutonomousStateMachine, state
-from wpimath import geometry, controller, trajectory
+from wpimath import controller, trajectory
+from wpimath.geometry import Pose2d
 from wpimath.trajectory import TrapezoidProfile
 import wpilib
 
@@ -16,7 +17,7 @@ class AutoBase(AutonomousStateMachine):
 
     chassis: Chassis
     indexer: Indexer
-    shooter_controller: ShooterController
+    shooter_control: ShooterController
 
     def __init__(self):
         super().__init__()
@@ -34,12 +35,6 @@ class AutoBase(AutonomousStateMachine):
             ),
         )
 
-        self.waypoints = [
-            geometry.Pose2d(0, 0, 0),
-            geometry.Pose2d(2, 0, math.tau),
-            geometry.Pose2d(4, 4, 0),
-            geometry.Pose2d(6, 0, math.tau),
-        ]
         # both in meters along straight line path
         self.pre_stop = 1  # how far before the next waypoint to stop if you have a ball
         self.stop_point = trajectory_generator.total_length(self.waypoints)
@@ -55,10 +50,14 @@ class AutoBase(AutonomousStateMachine):
 
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
+    def setup(self):
+        # set target estimator pose to self.waypoints[0]
+        pass
+
     @state(first=True)
     def move(self, state_tm):
         # always be trying to fire
-        self.shooter_controller.fire_input()
+        self.shooter_control.fire_input()
 
         linear_state = self.trap_profile.calculate(
             state_tm - self.trap_profile_start_time
@@ -96,9 +95,44 @@ class AutoBase(AutonomousStateMachine):
             linearVelocityRef=linear_state.velocity,
             angleRef=cur_pose.rotation(),
         )
-        # self.chassis.field.setRobotPose(cur_pose) # for debugging
+        # self.chassis.field.setRobotPose(cur_pose)  # for debugging
         self.chassis.drive_field(
             self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega
         )
 
         wpilib.SmartDashboard.putNumber("auto_vel", float(linear_state.velocity))
+
+
+# balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
+# note these are positions of the balls, not where you should go to pick them up
+# so actual auto waypoints should be chosen manually, only using these as referances
+# 1 - (-3299.01, 2116.76)
+# 2 - (-3219.33, -2176.8)
+# 3 - (-681.01, -3826.06)
+# 4 - (-7371.33, -3218.24) # terminal
+# 5 - (-7924.80, -1559.69) # cargo line
+# r1- (-3771.83, -935.86)
+start_positions = {
+    "start_1": Pose2d(0, 0, 0),
+    "start_2": Pose2d(0, 0, 0),
+    "start_3": Pose2d(0, 0, 0),
+}
+
+
+class TestAuto(AutoBase):
+    MODE_NAME = "Test"
+    DEFAULT = True
+
+    def __init__(self):
+        self.waypoints = [
+            Pose2d(0, 0, 0),
+            Pose2d(2, 0, math.tau),
+        ]
+        super().__init__()
+
+
+# class FiveBall(AutoBase):
+#     MODE_NAME = "Five Ball"
+#     def __init__(self):
+#         self.waypoints = []
+#         super().__init__()
