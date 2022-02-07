@@ -15,19 +15,18 @@ class Turret:
 
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
-    GEAR_REDUCTION = 175 / 24
+    GEAR_REDUCTION = 240 / 24
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
-    SLEW_CRUISE_VELOCITY = 0.1 * COUNTS_PER_TURRET_RADIAN / 10
+    SLEW_CRUISE_VELOCITY = 5 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
 
-    target = magicbot.tunable(0.0)
+    target = 0
     control_loop_wait_time: float
 
     # max rotation either side of zero
     MAX_ROTATION = math.radians(200)
-    soft_limit = math.radians(30)
 
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
@@ -56,18 +55,16 @@ class Turret:
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
 
-        self.motor.setSelectedSensorPosition(
-            0
-        )  # replace 0 with absolute encoder position
+        # replace 0 with absolute encoder position
+        self.motor.setSelectedSensorPosition(0)
 
     def execute(self) -> None:
+        self.target += 0.8 / 50
         # constrain in a way that allows a bit of overlap
         while self.target > self.MAX_ROTATION:
             self.target -= math.tau
         while self.target < -self.MAX_ROTATION:
             self.target += math.tau
-        # soft limits for testing
-        self.target = min(max(self.target, -self.soft_limit), self.soft_limit)
         self.angle_history.appendleft(self.get_angle())
 
         self.motor.set(

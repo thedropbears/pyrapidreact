@@ -52,6 +52,8 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
 
+        self.turret_motor = ctre.TalonSRX(15)
+
         self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
         self.indexer_motor = ctre.TalonSRX(14)
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
