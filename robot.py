@@ -34,7 +34,7 @@ class MyRobot(magicbot.MagicRobot):
     vision: Vision
 
     def createObjects(self):
-        self.imu = navx.AHRS.create_i2c()
+        self.imu = navx.AHRS.create_spi()
 
         self.chassis_1_drive = ctre.TalonFX(1)
         self.chassis_1_steer = ctre.TalonFX(2)
