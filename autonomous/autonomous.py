@@ -43,7 +43,6 @@ class AutoBase(AutonomousStateMachine):
         # all in meters along straight line path
         self.total_length = trajectory_generator.total_length(self.waypoints)
         self.pre_stop = 1  # how far before the next waypoint to stop if you have a ball
-        # self.stop_point = self.total_length
         self.goal = 1
         self.stop_point = (
             trajectory_generator.total_length(self.waypoints[: self.goal])
@@ -85,9 +84,23 @@ class AutoBase(AutonomousStateMachine):
         # calculate speed and position from current trapazoidal profile
         trap_time = state_tm - self.trap_profile_start_time
         linear_state = self.trap_profile.calculate(trap_time)
+        # check if we're done
+        if self.trap_profile.isFinished(trap_time) and (
+            linear_state.position >= self.total_length
+            or self.goal > len(self.waypoints) + 1
+        ):
+            print(f"[{self.MODE_NAME}] Done at {state_tm}")
+            self.next_state("stopped")
         # find goal waypoint index
-        # goal = trajectory_generator.next_waypoint() if self.indexer.has_ball() else trajectory_generator.next_waypoint()+1
-        goal = self.goal + self.trap_profile.isFinished(trap_time)  # for testing
+        goal = (
+            trajectory_generator.next_waypoint(self.waypoints, linear_state.position)
+            if self.indexer.has_ball()
+            else trajectory_generator.next_waypoint(
+                self.waypoints, linear_state.position
+            )
+            + 1
+        )
+        # goal = self.goal + self.trap_profile.isFinished(trap_time)  # for testing
         if not goal == self.goal:  # if we want to move stop point
             if goal > len(self.waypoints):
                 self.stop_point = trajectory_generator.total_length(self.waypoints)
@@ -97,7 +110,9 @@ class AutoBase(AutonomousStateMachine):
                     trajectory_generator.total_length(self.waypoints[:goal])
                     - self.pre_stop
                 )
-            print(f"regenerating idx {goal}, pos {self.stop_point}")
+            print(
+                f"regenerating idx:{goal}, pos:{round(self.stop_point, 2)}, t: {round(state_tm, 3)}"
+            )
             # regenerate velocity profile with initial velocity as current velocity
             self.trap_profile = TrapezoidProfile(
                 self.linear_constraints,
@@ -125,12 +140,6 @@ class AutoBase(AutonomousStateMachine):
             linearVelocityRef=linear_state.velocity,  # (cur_pose.translation().distance(self.last_pose)),
             angleRef=cur_pose.rotation(),
         )
-        if (
-            self.trap_profile.isFinished(trap_time)
-            and linear_state.position >= self.total_length
-        ):
-            print("############# DONE ############")
-            self.next_state("stopped")
         # send poses to driverstation
         display_poses = [cur_pose, self.chassis.odometry.getPose()]
         self.field.getRobotObject().setPoses(
@@ -146,10 +155,9 @@ class AutoBase(AutonomousStateMachine):
 
     @state
     def stopped(self):
-        """Finished moving but still want to be trying to fire"""
+        """Finished moving but still want to be trying to fire,
+        needed for second ball at terminal"""
         self.shooter_control.fire_input()
-        if not self.indexer.has_ball:
-            self.done()
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
@@ -169,8 +177,8 @@ red_balls = [
 ]
 start_positions = [
     Pose2d(-0.711, -2.419, math.radians(-88.5)),
-    Pose2d(0, 0, 0),
-    Pose2d(0, 0, 0),
+    Pose2d(-1.846, -1.555, math.radians(-133.5)),
+    Pose2d(-2.273, 1.090, math.radians(136.5)),
 ]
 
 
@@ -188,14 +196,45 @@ class TestAuto(AutoBase):
 
 
 class FiveBall(AutoBase):
-    MODE_NAME = "Five Ball"
+    """Auto starting middle of right tarmac, picking up balls 3, 2 and both at 4"""
+
+    MODE_NAME = "Five Ball, right far"
     DEFAULT = True
 
     def __init__(self):
         self.waypoints = [
             start_positions[0],
-            Pose2d(-0.711, -3.351, -math.pi / 2),
-            Pose2d(-2.789, -2.378, math.radians(-206)),
-            Pose2d(-6.813, -2.681, math.radians(-136)),
+            Pose2d(-0.711, -3.351, -math.pi / 2),  # 3
+            Pose2d(-2.789, -2.378, math.radians(-206)),  # 2
+            Pose2d(-6.813, -2.681, math.radians(-136)),  # 4
+        ]
+        super().__init__()
+
+
+class FourBall(AutoBase):
+    """Starting in left corner of right tarmac, picking up ball 2 and both at 4"""
+
+    MODE_NAME = "Four Ball, right close"
+
+    def __init__(self):
+        self.waypoints = [
+            start_positions[1],
+            Pose2d(-2.789, -2.378, math.radians(-155)),  # 2
+            Pose2d(-6.813, -2.681, math.radians(-136)),  # 4
+        ]
+        super().__init__()
+
+
+class StealBall4(AutoBase):
+    """Starting in middle corner of left tarmac, picking up ball 1, r2 and 5 (unloaded balls)"""
+
+    MODE_NAME = "Two ball + steal + Two ball, left"
+
+    def __init__(self):
+        self.waypoints = [
+            start_positions[2],
+            Pose2d(-2.954, 1.727, math.radians(136)),  # 1
+            Pose2d(-3.632, -0.481, math.radians(180 + 73)),  # r2
+            Pose2d(-7.602, -1.510, math.pi),
         ]
         super().__init__()

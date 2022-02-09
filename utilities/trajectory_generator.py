@@ -12,6 +12,20 @@ def total_length(waypoints: List[Pose2d]) -> float:
     )
 
 
+def next_waypoint(waypoints: List[Pose2d], dist: float) -> int:
+    """Returns the index of the next waypoint from dist"""
+    if dist < 0:
+        return 0
+    total_dist = 0
+    for last, cur, idx in zip(waypoints, waypoints[1:], range(1, len(waypoints))):
+        # distance to next waypoint
+        cur_dist = last.translation().distance(cur.translation())
+        if total_dist + cur_dist > dist:
+            return idx
+        total_dist += cur_dist
+    return len(waypoints)
+
+
 def lerp_pose(p1: Pose2d, p2: Pose2d, n1: float) -> Pose2d:
     n2 = 1 - n1
     translation = p1.translation() * n2 + p2.translation() * n1
