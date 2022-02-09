@@ -5,20 +5,6 @@ import math
 from utilities.scalers import scale_value
 
 
-def next_waypoint(waypoints: List[Pose2d], dist: float) -> int:
-    """Returns the index of the next waypoint from dist"""
-    if dist < 0:
-        return 0
-    total_dist = 0
-    for last, cur, idx in zip(waypoints, waypoints[1:], range(1, len(waypoints))):
-        # distance to next waypoint
-        cur_dist = last.translation().distance(cur.translation())
-        if total_dist + cur_dist > dist:
-            return idx
-        total_dist += cur_dist
-    return len(waypoints)
-
-
 def total_length(waypoints: List[Pose2d]) -> float:
     return sum(
         last.translation().distance(cur.translation())
@@ -64,3 +50,11 @@ def smooth_path(
         angle_x += sample_pose.rotation().cos()
         angle_y += sample_pose.rotation().sin()
     return Pose2d(x / sample_count, y / sample_count, math.atan2(angle_y, angle_x))
+
+
+def ours_to_wpi(pose: Pose2d):
+    """Converts a pose in our goal centered system to
+    the corner center that wpilib uses (e.g. for field2d display)"""
+    field_x = 324 * 0.0254  # half field x dimension
+    field_y = 162 * 0.0254  # half field y dimension
+    return Pose2d(pose.X() + field_x, pose.Y() + field_y, pose.rotation())

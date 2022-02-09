@@ -163,8 +163,6 @@ class Chassis:
 
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
 
-    field: wpilib.Field2d
-
     def setup(self):
         # mag encoder only
         self.chassis_1_encoder.talon.configSelectedFeedbackSensor(
