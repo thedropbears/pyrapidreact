@@ -226,8 +226,8 @@ class Chassis:
     def _drive(self, chassis_speeds):
         self.desired_states = self.kinematics.toSwerveModuleStates(chassis_speeds)
         for state, module in zip(self.desired_states, self.modules):
-            new_state = SwerveModuleState.optimize(state, module.get_rotation())
-            module.set(new_state)
+            state = SwerveModuleState.optimize(state, module.get_rotation())
+            module.set(state)
 
     def execute(self):
         self._drive(self.chassis_speeds)
