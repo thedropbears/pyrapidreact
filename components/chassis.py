@@ -83,7 +83,7 @@ class SwerveModule:
         return self.steer.getSelectedSensorPosition() * self.STEER_SENSOR_TO_RAD
 
     def get_rotation(self) -> Rotation2d:
-        """Relative steer position as rotation2d"""
+        """Get the angle of the module."""
         return Rotation2d(self.get_motor_angle())
 
     def get_speed(self):
