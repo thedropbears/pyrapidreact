@@ -7,7 +7,7 @@ class Hanger:
 
     climb_position = tunable(0.1)
 
-    GEAR_RATIO = 1 / 15.0
+    GEAR_RATIO = 1 / 30.0
 
     def setup(self) -> None:
         # check if motor needs to be inverted irl
