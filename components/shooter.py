@@ -39,8 +39,8 @@ class Shooter:
     MAX_MOTOR_SPEED = 6000 / 60
 
     def setup(self):
-        self.left_motor.setInverted(True)
-        self.right_motor.setInverted(False)
+        self.left_motor.setInverted(False)
+        self.right_motor.setInverted(True)
 
         for motor in (
             self.left_motor,
@@ -83,7 +83,3 @@ class Shooter:
     @magicbot.feedback
     def flywheel_error(self):
         return self.left_motor.getClosedLoopError() / self.RPS_TO_CTRE_UNITS
-
-    @magicbot.feedback
-    def get_voltage(self):
-        return wpilib.RobotController.getInputVoltage()

@@ -14,6 +14,7 @@ from wpimath.kinematics import (
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
 from utilities.functions import constrain_angle
+from utilities.ctre import TalonEncoder
 from wpimath.controller import SimpleMotorFeedforwardMeters
 
 
@@ -37,11 +38,12 @@ class SwerveModule:
         y: float,
         drive: ctre.TalonFX,
         steer: ctre.TalonFX,
+        encoder: TalonEncoder,
+        encoder_offset: float = 0,
         steer_reversed=True,
         drive_reversed=False,
     ):
         self.translation = Translation2d(x, y)
-
         self.steer = steer
         self.steer.configFactoryDefault()
         self.steer.setNeutralMode(ctre.NeutralMode.Brake)
@@ -57,6 +59,9 @@ class SwerveModule:
             ctre.FeedbackDevice.IntegratedSensor, 0, 10
         )
 
+        self.encoder = encoder
+        self.encoder_offset = constrain_angle(encoder_offset)
+
         self.drive = drive
         self.drive.configFactoryDefault()
         self.drive.setNeutralMode(ctre.NeutralMode.Brake)
@@ -70,14 +75,16 @@ class SwerveModule:
         self.target_angle = 0
 
     def get_angle(self) -> float:
-        # return self.hall_effect.getPosition()
-        return self.get_motor_angle() * self.STEER_SENSOR_TO_RAD
+        """Gets steer angle from absolute encoder"""
+        return self.encoder.getPosition() + self.encoder_offset
 
     def get_motor_angle(self) -> float:
-        return self.steer.getSelectedSensorPosition()
+        """Gets steer angle from motor's integrated relative encoder"""
+        return self.steer.getSelectedSensorPosition() * self.STEER_SENSOR_TO_RAD
 
     def get_rotation(self) -> Rotation2d:
-        return Rotation2d(self.get_angle())
+        """Get the angle of the module."""
+        return Rotation2d(self.get_motor_angle())
 
     def get_speed(self):
         return self.drive.getSelectedSensorVelocity() * self.DRIVE_SENSOR_TO_METRES * 10
@@ -104,7 +111,9 @@ class SwerveModule:
         )
 
     def zero(self):
-        self.steer.setSelectedSensorPosition(0)
+        self.steer.setSelectedSensorPosition(
+            self.get_angle() * self.STEER_RAD_TO_SENSOR
+        )
 
     def get(self) -> SwerveModuleState:
         return SwerveModuleState(self.get_speed(), self.get_rotation())
@@ -128,6 +137,11 @@ class Chassis:
     chassis_4_drive: ctre.TalonFX
     chassis_4_steer: ctre.TalonFX
 
+    chassis_1_encoder: TalonEncoder
+    chassis_2_encoder: TalonEncoder
+    chassis_3_encoder: TalonEncoder
+    chassis_4_encoder: TalonEncoder
+
     imu: navx.AHRS
 
     debug_steer_pos = magicbot.tunable(0)
@@ -139,30 +153,52 @@ class Chassis:
     field: wpilib.Field2d
 
     def setup(self):
+        # mag encoder only
+        self.chassis_1_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
+        )
+        self.chassis_2_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
+        )
+        self.chassis_3_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
+        )
+        self.chassis_4_encoder.talon.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
+        )
+
         self.modules = [
             SwerveModule(
                 self.width / 2,
                 self.width / 2,
                 self.chassis_1_drive,
                 self.chassis_1_steer,
+                self.chassis_1_encoder,
+                encoder_offset=-4.612,
             ),
             SwerveModule(
                 -self.width / 2,
                 self.width / 2,
                 self.chassis_2_drive,
                 self.chassis_2_steer,
+                self.chassis_2_encoder,
+                encoder_offset=-1.725,
             ),
             SwerveModule(
                 -self.width / 2,
                 -self.width / 2,
                 self.chassis_3_drive,
                 self.chassis_3_steer,
+                self.chassis_3_encoder,
+                encoder_offset=-5.051,
             ),
             SwerveModule(
                 self.width / 2,
                 -self.width / 2,
                 self.chassis_4_drive,
                 self.chassis_4_steer,
+                self.chassis_4_encoder,
+                encoder_offset=-0.854,
             ),
         ]
 
@@ -190,15 +226,12 @@ class Chassis:
     def _drive(self, chassis_speeds):
         self.desired_states = self.kinematics.toSwerveModuleStates(chassis_speeds)
         for state, module in zip(self.desired_states, self.modules):
-            # new_state = SwerveModuleState.optimize(state, module.get_rotation())
+            state = SwerveModuleState.optimize(state, module.get_rotation())
             module.set(state)
 
     def execute(self):
         self._drive(self.chassis_speeds)
-        wpilib.SmartDashboard.putNumberArray(
-            "swerve_steer_pos_counts",
-            [module.get_motor_angle() for module in self.modules],
-        )
+
         self.odometry.update(
             self.imu.getRotation2d(),
             self.modules[0].get(),

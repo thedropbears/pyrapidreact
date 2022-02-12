@@ -5,6 +5,7 @@ import magicbot
 import ctre
 import navx
 import rev
+import math
 
 from components.chassis import Chassis
 from components.hanger import Hanger
@@ -16,6 +17,7 @@ from components.vision import Vision
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
+from utilities.ctre import TalonEncoder
 
 from utilities import git
 
@@ -55,12 +57,17 @@ class MyRobot(magicbot.MagicRobot):
         self.turret_motor = ctre.TalonSRX(15)
 
         self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
-        self.indexer_motor = ctre.TalonSRX(14)
+        self.indexer_motor = ctre.TalonSRX(60)  # wrong, we wont be using this anyway
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
         self.intake_prox = wpilib.DigitalInput(0)
 
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
+
+        self.chassis_1_encoder = TalonEncoder(ctre.TalonSRX(13), unitsPerRev=math.tau)
+        self.chassis_2_encoder = TalonEncoder(ctre.TalonSRX(20), unitsPerRev=math.tau)
+        self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
+        self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
 
     def autonomousInit(self) -> None:
         pass
@@ -73,7 +80,15 @@ class MyRobot(magicbot.MagicRobot):
         pass
 
     def disabledPeriodic(self) -> None:
-        pass
+        wpilib.SmartDashboard.putNumberArray(
+            "swerve_encoder_adjusted",
+            [module.get_angle() for module in self.chassis.modules],
+        )
+        # absolute encoder readings without offset
+        wpilib.SmartDashboard.putNumberArray(
+            "swerve_relative_encoder",
+            [module.get_motor_angle() for module in self.chassis.modules],
+        )
 
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
