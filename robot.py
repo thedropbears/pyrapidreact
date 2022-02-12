@@ -38,14 +38,14 @@ class MyRobot(magicbot.MagicRobot):
     def createObjects(self):
         self.imu = navx.AHRS.create_spi()
 
-        self.chassis_1_drive = ctre.TalonFX(7)
-        self.chassis_1_steer = ctre.TalonFX(8)
-        self.chassis_2_drive = ctre.TalonFX(1)
-        self.chassis_2_steer = ctre.TalonFX(2)
-        self.chassis_3_drive = ctre.TalonFX(3)
-        self.chassis_3_steer = ctre.TalonFX(4)
-        self.chassis_4_drive = ctre.TalonFX(5)
-        self.chassis_4_steer = ctre.TalonFX(6)
+        self.chassis_1_drive = ctre.TalonFX(1)
+        self.chassis_1_steer = ctre.TalonFX(2)
+        self.chassis_2_drive = ctre.TalonFX(3)
+        self.chassis_2_steer = ctre.TalonFX(4)
+        self.chassis_3_drive = ctre.TalonFX(5)
+        self.chassis_3_steer = ctre.TalonFX(6)
+        self.chassis_4_drive = ctre.TalonFX(7)
+        self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
 
@@ -57,16 +57,16 @@ class MyRobot(magicbot.MagicRobot):
         self.turret_motor = ctre.TalonSRX(15)
 
         self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
-        # self.indexer_motor = ctre.TalonSRX(14)
+        self.indexer_motor = ctre.TalonSRX(60)  # wrong, we wont be using this anyway
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
         self.intake_prox = wpilib.DigitalInput(0)
 
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
-        self.chassis_1_encoder = TalonEncoder(ctre.TalonSRX(20), unitsPerRev=math.tau)
-        self.chassis_2_encoder = TalonEncoder(ctre.TalonSRX(21), unitsPerRev=math.tau)
-        self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(22), unitsPerRev=math.tau)
+        self.chassis_1_encoder = TalonEncoder(ctre.TalonSRX(13), unitsPerRev=math.tau)
+        self.chassis_2_encoder = TalonEncoder(ctre.TalonSRX(20), unitsPerRev=math.tau)
+        self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
         self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
 
     def autonomousInit(self) -> None:
@@ -81,8 +81,13 @@ class MyRobot(magicbot.MagicRobot):
 
     def disabledPeriodic(self) -> None:
         wpilib.SmartDashboard.putNumberArray(
-            "swerve_encoder",
+            "swerve_encoder_adjusted",
             [module.get_angle() for module in self.chassis.modules],
+        )
+        # absolute encoder readings without offset
+        wpilib.SmartDashboard.putNumberArray(
+            "swerve_relative_encoder",
+            [module.get_motor_angle() for module in self.chassis.modules],
         )
 
     def teleopPeriodic(self) -> None:
