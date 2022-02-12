@@ -181,7 +181,7 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getRawButtonPressed(9):
             self.hanger.winch()
         
-        if self.joystick.getRawButtonPressed(10):
+        if self.joystick.getRawButton(10):
             self.hanger.payout()
 
     def testPeriodic(self) -> None:
