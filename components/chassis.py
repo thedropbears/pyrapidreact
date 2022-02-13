@@ -250,7 +250,6 @@ class Chassis:
             self.modules[2].get(),
             self.modules[3].get(),
         )
-        self.field.setRobotPose(self.odometry.getPose())
 
     @magicbot.feedback
     def get_imu_rotation(self):
