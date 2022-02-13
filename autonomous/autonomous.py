@@ -35,15 +35,15 @@ class AutoBase(AutonomousStateMachine):
             3, 5
         )
 
-        rotation_controller = controller.ProfiledPIDControllerRadians(0.02, 0, 0, self.drive_rotation_constrants)
+        rotation_controller = controller.ProfiledPIDControllerRadians(
+            0.02, 0, 0, self.drive_rotation_constrants
+        )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
             controller.PIDController(5, 0, 0),
             controller.PIDController(5, 0, 0),
             rotation_controller,
         )
-
-        
 
         # all in meters along straight line path
         self.total_length = trajectory_generator.total_length(self.waypoints)
