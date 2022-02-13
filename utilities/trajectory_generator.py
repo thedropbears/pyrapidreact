@@ -1,9 +1,14 @@
-from wpimath.geometry import Pose2d, Rotation2d
+from matplotlib.transforms import Transform
+from wpimath.geometry import Pose2d, Rotation2d, Transform2d
 from typing import List
 
 import math
 from utilities.scalers import scale_value
 
+
+field_x = 324 * 0.0254  # half field x dimension
+field_y = 162 * 0.0254  # half field y dimension
+FIELD_TRANFORM = Transform2d(field_x, field_y, 0.0)
 
 def total_length(waypoints: List[Pose2d]) -> float:
     return sum(
@@ -69,6 +74,5 @@ def smooth_path(
 def goal_to_field(pose: Pose2d):
     """Converts a pose in our goal centered system to
     the corner center that wpilib uses (e.g. for field2d display)"""
-    field_x = 324 * 0.0254  # half field x dimension
-    field_y = 162 * 0.0254  # half field y dimension
-    return Pose2d(pose.X() + field_x, pose.Y() + field_y, pose.rotation())
+
+    return pose + FIELD_TRANFORM
