@@ -66,7 +66,7 @@ def smooth_path(
     return Pose2d(x / sample_count, y / sample_count, math.atan2(angle_y, angle_x))
 
 
-def ours_to_wpi(pose: Pose2d):
+def goal_to_field(pose: Pose2d):
     """Converts a pose in our goal centered system to
     the corner center that wpilib uses (e.g. for field2d display)"""
     field_x = 324 * 0.0254  # half field x dimension

@@ -71,12 +71,12 @@ class AutoBase(AutonomousStateMachine):
         field_rballs = self.field.getObject("rballs")
         field_goal = self.field.getObject("goal")
         field_bballs.setPoses(
-            [trajectory_generator.ours_to_wpi(Pose2d(*b, 0)) for b in blue_balls]
+            [trajectory_generator.goal_to_field(Pose2d(*b, 0)) for b in blue_balls]
         )
         field_rballs.setPoses(
-            [trajectory_generator.ours_to_wpi(Pose2d(*b, 0)) for b in red_balls]
+            [trajectory_generator.goal_to_field(Pose2d(*b, 0)) for b in red_balls]
         )
-        field_goal.setPose(trajectory_generator.ours_to_wpi(Pose2d(0, 0, 0)))
+        field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
         # set target estimator pose to self.waypoints[0]
 
@@ -159,7 +159,7 @@ class AutoBase(AutonomousStateMachine):
         # send poses to driverstation
         display_poses = [goal_pose, self.chassis.odometry.getPose()]
         self.field.getRobotObject().setPoses(
-            [trajectory_generator.ours_to_wpi(p) for p in display_poses]
+            [trajectory_generator.goal_to_field(p) for p in display_poses]
         )
         self.chassis.drive_local(
             self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega
