@@ -29,14 +29,14 @@ class AutoBase(AutonomousStateMachine):
     def __init__(self):
         super().__init__()
         # applies to the linear speed, not turning
-        self.linear_constraints = TrapezoidProfile.Constraints(1.5, 1)
+        self.linear_constraints = TrapezoidProfile.Constraints(0.5, 0.5)
         # since chassis speeds should be limited in trajectory generation this is high to not hold it back
         self.drive_rotation_constrants = trajectory.TrapezoidProfileRadians.Constraints(
-            3, 5
+            2, 2
         )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
-            0.02, 0, 0, self.drive_rotation_constrants
+            1, 0, 0, self.drive_rotation_constrants
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
@@ -49,10 +49,7 @@ class AutoBase(AutonomousStateMachine):
         self.total_length = trajectory_generator.total_length(self.waypoints)
         self.pre_stop = 1  # how far before the next waypoint to stop if you have a ball
         self.goal = 100
-        self.stop_point = (
-            trajectory_generator.total_length(self.waypoints[: self.goal])
-            - self.pre_stop
-        )
+        self.stop_point = trajectory_generator.total_length(self.waypoints)
 
         # generates initial velocity profileW
         self.trap_profile = TrapezoidProfile(
@@ -135,7 +132,7 @@ class AutoBase(AutonomousStateMachine):
         # find distance to start and end so look_around can be adjusted to not look beyond edges
         to_start = linear_state.position
         to_end = self.stop_point - linear_state.position
-        look_around = min(to_start, min(to_end, 0.5))
+        look_around = min(to_start, min(to_end, 0.3))
         # find current goal pose
         goal_pose = trajectory_generator.smooth_path(
             self.waypoints, look_around, linear_state.position
@@ -147,15 +144,14 @@ class AutoBase(AutonomousStateMachine):
         )
         target_angle = angle_displacement + self.last_pose.rotation().radians()
         goal_pose = Pose2d(goal_pose.X(), goal_pose.Y(), target_angle)
-        print(
-            f"target: {round(target_angle, 3)},\tactual: {round(cur_pose.rotation().radians(), 3)},\tgoal: {round(goal_pose.rotation().radians(), 3)}"
-        )
+        # print(
+        #     f"target: {round(target_angle, 3)},\tactual: {round(cur_pose.rotation().radians(), 3)},\tgoal: {round(goal_pose.rotation().radians(), 3)}"
+        # )
+        # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose,
-            linearVelocityRef=(
-                cur_pose.translation().distance(self.last_pose.translation())
-            ),
+            linearVelocityRef=0,  # used for feedforward
             angleRef=Rotation2d(target_angle),
         )
 
@@ -206,10 +202,9 @@ class TestAuto(AutoBase):
 
     def __init__(self):
         self.waypoints = [
-            Pose2d(2, 0, 0),
-            Pose2d(6, 0, math.tau),
-            # Pose2d(2, 2, 0),
-            # Pose2d(4, 2, math.pi),
+            Pose2d(0, 0, 0),
+            Pose2d(2, 0, math.pi),
+            Pose2d(0, 0, math.tau),
         ]
         super().__init__()
 
