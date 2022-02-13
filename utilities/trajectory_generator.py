@@ -2,13 +2,13 @@ from matplotlib.transforms import Transform
 from wpimath.geometry import Pose2d, Rotation2d, Transform2d
 from typing import List
 
-import math
 from utilities.scalers import scale_value
 
 
 field_x = 324 * 0.0254  # half field x dimension
 field_y = 162 * 0.0254  # half field y dimension
 FIELD_TRANFORM = Transform2d(field_x, field_y, 0.0)
+
 
 def total_length(waypoints: List[Pose2d]) -> float:
     return sum(
@@ -68,7 +68,7 @@ def smooth_path(
         y += sample_pose.Y()
         angle_x += sample_pose.rotation().cos()
         angle_y += sample_pose.rotation().sin()
-    return Pose2d(x / sample_count, y / sample_count, Rotation2d(angle_x,angle_y))
+    return Pose2d(x / sample_count, y / sample_count, Rotation2d(angle_x, angle_y))
 
 
 def goal_to_field(pose: Pose2d):
