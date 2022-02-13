@@ -1,4 +1,4 @@
-from wpimath.geometry import Pose2d
+from wpimath.geometry import Pose2d, Rotation2d
 from typing import List
 
 import math
@@ -63,7 +63,7 @@ def smooth_path(
         y += sample_pose.Y()
         angle_x += sample_pose.rotation().cos()
         angle_y += sample_pose.rotation().sin()
-    return Pose2d(x / sample_count, y / sample_count, math.atan2(angle_y, angle_x))
+    return Pose2d(x / sample_count, y / sample_count, Rotation2d(angle_x,angle_y))
 
 
 def goal_to_field(pose: Pose2d):
