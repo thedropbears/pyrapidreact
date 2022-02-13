@@ -120,7 +120,7 @@ class MyRobot(magicbot.MagicRobot):
 
         # Reset the heading when button 7 is pressed
         if self.joystick.getRawButtonPressed(7):
-            self.gyro.reset()
+            self.imu.reset()
 
         if self.joystick.getTriggerPressed():
             self.shooter_control.fire_input()

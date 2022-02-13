@@ -1,6 +1,6 @@
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import controller, trajectory
-from wpimath.geometry import Pose2d, Rotation2d
+from wpimath.geometry import Pose2d
 from wpimath.trajectory import TrapezoidProfile
 import wpilib
 
@@ -10,8 +10,6 @@ from controllers.shooter import ShooterController
 from utilities import trajectory_generator
 import math
 from typing import List, Tuple
-
-from utilities.functions import constrain_angle
 
 
 class AutoBase(AutonomousStateMachine):
@@ -36,7 +34,7 @@ class AutoBase(AutonomousStateMachine):
         )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
-            1, 0, 0, self.drive_rotation_constrants
+            2, 0, 0, self.drive_rotation_constrants
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
@@ -132,27 +130,19 @@ class AutoBase(AutonomousStateMachine):
         # find distance to start and end so look_around can be adjusted to not look beyond edges
         to_start = linear_state.position
         to_end = self.stop_point - linear_state.position
-        look_around = min(to_start, min(to_end, 0.3))
+        look_around = min(to_start, min(to_end, 0.5))
         # find current goal pose
         goal_pose = trajectory_generator.smooth_path(
             self.waypoints, look_around, linear_state.position
         )
+
         cur_pose = self.chassis.odometry.getPose()
-        # fixes wrapping
-        angle_displacement = constrain_angle(
-            goal_pose.rotation().radians() - self.last_pose.rotation().radians()
-        )
-        target_angle = angle_displacement + self.last_pose.rotation().radians()
-        goal_pose = Pose2d(goal_pose.X(), goal_pose.Y(), target_angle)
-        # print(
-        #     f"target: {round(target_angle, 3)},\tactual: {round(cur_pose.rotation().radians(), 3)},\tgoal: {round(goal_pose.rotation().radians(), 3)}"
-        # )
         # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose,
             linearVelocityRef=0,  # used for feedforward
-            angleRef=Rotation2d(target_angle),
+            angleRef=goal_pose.rotation(),
         )
 
         # send poses to driverstation
@@ -166,7 +156,7 @@ class AutoBase(AutonomousStateMachine):
 
         wpilib.SmartDashboard.putNumber("auto_vel", float(linear_state.velocity))
 
-        self.last_pose = Pose2d(goal_pose.X(), goal_pose.Y(), target_angle)
+        self.last_pose = goal_pose
 
     @state
     def stopped(self):
@@ -203,8 +193,8 @@ class TestAuto(AutoBase):
     def __init__(self):
         self.waypoints = [
             Pose2d(0, 0, 0),
-            Pose2d(2, 0, math.pi),
-            Pose2d(0, 0, math.tau),
+            Pose2d(2, 0, math.pi / 4),
+            Pose2d(0, 0, 7 * math.pi / 4),
         ]
         super().__init__()
 
