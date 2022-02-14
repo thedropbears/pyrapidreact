@@ -123,7 +123,7 @@ class SwerveModule:
             speed_volt / voltage,
         )
 
-    def zero(self):
+    def sync_steer_encoders(self):
         self.steer.setSelectedSensorPosition(
             self.get_angle() * self.STEER_RAD_TO_SENSOR
         )
@@ -218,7 +218,7 @@ class Chassis:
             self.modules[2].translation,
             self.modules[3].translation,
         )
-        self.zero_all()
+        self.sync_all()
         self.odometry = SwerveDrive4Odometry(self.kinematics, self.imu.getRotation2d())
         self.set_odometry(Pose2d(Translation2d(0, 0), Rotation2d(0)))
 
@@ -258,9 +258,9 @@ class Chassis:
     def get_imu_rotation(self):
         return self.imu.getRotation2d().radians()
 
-    def zero_all(self):
+    def sync_all(self):
         for m in self.modules:
-            m.zero()
+            m.sync_steer_encoders()
 
     def set_odometry(self, pose: Pose2d) -> None:
         self.odometry.resetPosition(pose, self.imu.getRotation2d())
