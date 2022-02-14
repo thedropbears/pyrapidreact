@@ -36,6 +36,8 @@ class MyRobot(magicbot.MagicRobot):
     vision: Vision
 
     def createObjects(self):
+        self.logger.info("pyrapidreact %s", GIT_INFO)
+
         self.imu = navx.AHRS.create_spi()
 
         self.chassis_1_drive = ctre.TalonFX(1)
@@ -48,8 +50,6 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
-
-        self.logger.info("pyrapidreact %s", GIT_INFO)
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
