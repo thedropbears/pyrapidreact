@@ -1,6 +1,6 @@
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import controller, trajectory
-from wpimath.geometry import Pose2d
+from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.trajectory import TrapezoidProfile
 import wpilib
 
@@ -185,9 +185,9 @@ red_balls = [
     (-0.850, -3792),  # right
 ]
 start_positions = [
-    Pose2d(-0.711, -2.419, math.radians(-88.5)),
-    Pose2d(-1.846, -1.555, math.radians(-133.5)),
-    Pose2d(-2.273, 1.090, math.radians(136.5)),
+    Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),
+    Pose2d(-1.846, -1.555, Rotation2d.fromDegrees(-133.5)),
+    Pose2d(-2.273, 1.090, Rotation2d.fromDegrees(136.5)),
 ]
 
 
@@ -213,8 +213,8 @@ class FiveBall(AutoBase):
         self.waypoints = [
             start_positions[0],
             Pose2d(-0.711, -3.5, -math.pi / 2),  # 3
-            Pose2d(-2.789, -2.378, math.radians(-206)),  # 2
-            Pose2d(-6.813, -2.681, math.radians(-136)),  # 4
+            Pose2d(-2.789, -2.378, Rotation2d.fromDegrees(-206)),  # 2
+            Pose2d(-6.813, -2.681, Rotation2d.fromDegrees(-136)),  # 4
         ]
         super().__init__()
 
@@ -227,8 +227,8 @@ class FourBall(AutoBase):
     def __init__(self):
         self.waypoints = [
             start_positions[1],
-            Pose2d(-2.789, -2.378, math.radians(-155)),  # 2
-            Pose2d(-6.813, -2.681, math.radians(-136)),  # 4
+            Pose2d(-2.789, -2.378, Rotation2d.fromDegrees(-155)),  # 2
+            Pose2d(-6.813, -2.681, Rotation2d.fromDegrees(-136)),  # 4
         ]
         super().__init__()
 
@@ -241,8 +241,8 @@ class StealBall3(AutoBase):
     def __init__(self):
         self.waypoints = [
             start_positions[2],
-            Pose2d(-2.954, 1.727, math.radians(136)),  # 1
-            Pose2d(-3.632, -0.481, math.radians(180 + 73)),  # r2
+            Pose2d(-2.954, 1.727, Rotation2d.fromDegrees(136)),  # 1
+            Pose2d(-3.632, -0.481, Rotation2d.fromDegrees(180 + 73)),  # r2
             Pose2d(-7.602, -1.510, math.pi),  # 5
         ]
         super().__init__()
