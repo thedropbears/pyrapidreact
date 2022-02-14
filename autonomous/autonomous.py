@@ -27,7 +27,7 @@ class AutoBase(AutonomousStateMachine):
     def __init__(self):
         super().__init__()
         # applies to the linear speed, not turning
-        self.linear_constraints = TrapezoidProfile.Constraints(0.5, 0.5)
+        self.linear_constraints = TrapezoidProfile.Constraints(1, 1)
         # since chassis speeds should be limited in trajectory generation this is high to not hold it back
         self.drive_rotation_constrants = trajectory.TrapezoidProfileRadians.Constraints(
             2, 2
@@ -38,22 +38,21 @@ class AutoBase(AutonomousStateMachine):
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(5, 0, 0),
-            controller.PIDController(5, 0, 0),
+            controller.PIDController(0, 0, 0),
+            controller.PIDController(0, 0, 0),
             rotation_controller,
         )
 
         # all in meters along straight line path
         self.total_length = trajectory_generator.total_length(self.waypoints)
-        self.pre_stop = 1  # how far before the next waypoint to stop if you have a ball
-        self.goal = 100
-        self.stop_point = trajectory_generator.total_length(self.waypoints)
+        self.pre_stop = (
+            0.4  # how far before the next waypoint to stop if you have a ball
+        )
+        self.goal = 0
 
-        # generates initial velocity profileW
-        self.trap_profile = TrapezoidProfile(
-            self.linear_constraints,
-            goal=TrapezoidProfile.State(self.stop_point, 0),
-            initial=TrapezoidProfile.State(0, 0),
+        # generates initial velocity profile
+        self.trap_profile, self.stop_point = self.generate_trap_profile(
+            self.goal, TrapezoidProfile.State()
         )
 
         print(
@@ -76,53 +75,57 @@ class AutoBase(AutonomousStateMachine):
         )
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
-        # set target estimator pose to self.waypoints[0]
-
     def generate_trap_profile(
-        self, goal: int, linear_state: TrapezoidProfile.State
+        self, goal: int, current_state: TrapezoidProfile.State
     ) -> Tuple[TrapezoidProfile, float]:
-        # if goal > len(self.waypoints):
-        #     stop_point = trajectory_generator.total_length(self.waypoints)
-        # else:
-        #     # stop point before next ball if we havent fired yet
-        #     stop_point = (
-        #         trajectory_generator.total_length(self.waypoints[:goal]) - self.pre_stop
-        #     )
+        """Generates a linear trapazoidal trajectory that goes from current state to self.prestop before goal"""
+        print("got into generate")
+        if goal > len(self.waypoints):
+            stop_point = trajectory_generator.total_length(self.waypoints)
+        else:
+            # stop point before next ball if we havent fired yet
+            stop_point = max(
+                trajectory_generator.total_length(self.waypoints[:goal])
+                - self.pre_stop,
+                0,
+            )
         # # regenerate velocity profile with initial velocity as current velocity
-        # return (
-        #     TrapezoidProfile(
-        #         self.linear_constraints,
-        #         goal=TrapezoidProfile.State(self.stop_point, 0),
-        #         initial=TrapezoidProfile.State(
-        #             linear_state.position, linear_state.velocity
-        #         ),
-        #     ),
-        #     stop_point,
-        # )
-        return self.trap_profile
+        return (
+            TrapezoidProfile(
+                self.linear_constraints,
+                goal=TrapezoidProfile.State(stop_point, 0),
+                initial=current_state,
+            ),
+            stop_point,
+        )
 
     @state(first=True)
-    def move(self, state_tm):
+    def move(self, tm, initial_call):
+        if initial_call:
+            self.chassis.set_odometry(self.waypoints[0])
+
         # always be trying to fire
         self.shooter_control.fire_input()
         # calculate speed and position from current trapazoidal profile
-        trap_time = state_tm - self.trap_profile_start_time
+        trap_time = tm - self.trap_profile_start_time
         linear_state = self.trap_profile.calculate(trap_time)
         # check if we're done
         is_done = self.trap_profile.isFinished(trap_time)
         if is_done and self.goal > len(self.waypoints) + 1:
-            print(f"[{self.MODE_NAME}] Done at {state_tm}")
+            print(f"[{self.MODE_NAME}] Done at {tm}")
             self.next_state("stopped")
 
         # find goal waypoint index
         # goal = self.goal + (not self.indexer.has_ball())
         goal = self.goal + is_done  # for testing
         if not goal == self.goal:  # if we want to move stop point
-            self.trap_profile = self.generate_trap_profile(goal, linear_state)
-            print(
-                f"regenerating idx:{goal}, pos:{round(self.stop_point, 2)}, t: {round(state_tm, 3)}"
+            self.trap_profile, self.stop_point = self.generate_trap_profile(
+                goal, linear_state
             )
-            self.trap_profile_start_time = state_tm
+            print(
+                f"regenerating idx:{goal}, pos:{round(self.stop_point, 2)}, t: {round(tm, 3)}"
+            )
+            self.trap_profile_start_time = tm
             # recalculate speed and position so we can use it in this loop
             linear_state = self.trap_profile.calculate(0)
             self.goal = goal
@@ -137,14 +140,15 @@ class AutoBase(AutonomousStateMachine):
         )
 
         cur_pose = self.chassis.odometry.getPose()
+        # the difference between last goal pose and this goal pose
+        goal_pose_diff = goal_pose.translation().distance(self.last_pose.translation())
         # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose,
-            linearVelocityRef=0,  # used for feedforward
+            linearVelocityRef=goal_pose_diff,  # used for feedforward
             angleRef=goal_pose.rotation(),
         )
-
         # send poses to driverstation
         display_poses = [goal_pose, self.chassis.odometry.getPose()]
         self.field.getRobotObject().setPoses(
@@ -192,7 +196,7 @@ class TestAuto(AutoBase):
 
     def __init__(self):
         self.waypoints = [
-            Pose2d(0, 0, 0),
+            Pose2d(2, 0, 0),
             Pose2d(2, 0, math.pi / 4),
             Pose2d(0, 0, 7 * math.pi / 4),
         ]
@@ -208,7 +212,7 @@ class FiveBall(AutoBase):
     def __init__(self):
         self.waypoints = [
             start_positions[0],
-            Pose2d(-0.711, -3.351, -math.pi / 2),  # 3
+            Pose2d(-0.711, -3.5, -math.pi / 2),  # 3
             Pose2d(-2.789, -2.378, math.radians(-206)),  # 2
             Pose2d(-6.813, -2.681, math.radians(-136)),  # 4
         ]
