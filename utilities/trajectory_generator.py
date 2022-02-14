@@ -6,7 +6,7 @@ from utilities.scalers import scale_value
 
 field_x = 324 * 0.0254  # half field x dimension
 field_y = 162 * 0.0254  # half field y dimension
-FIELD_TRANFORM = Translation2d(field_x, field_y)
+GOAL_POSITION = Translation2d(field_x, field_y)
 
 
 def total_length(waypoints: List[Pose2d]) -> float:
@@ -75,4 +75,4 @@ def goal_to_field(pose: Pose2d):
     """Converts a pose in our goal centered system to
     the corner center that wpilib uses (e.g. for field2d display)"""
 
-    return Pose2d(pose.translation() + FIELD_TRANFORM, pose.rotation())
+    return Pose2d(pose.translation() + GOAL_POSITION, pose.rotation())
