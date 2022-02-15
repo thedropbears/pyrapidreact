@@ -94,7 +94,6 @@ class SwerveModule:
         if abs(desired_state.speed) < 1e-3:
             self.drive.set(ctre.ControlMode.Velocity, 0)
             self.steer.set(ctre.ControlMode.Velocity, 0)
-            self.last_speed = 0
             return
 
         current_angle = self.get_angle()
