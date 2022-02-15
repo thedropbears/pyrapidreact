@@ -237,15 +237,6 @@ class Chassis:
             state = SwerveModuleState.optimize(state, module.get_rotation())
             module.set(state)
 
-        wpilib.SmartDashboard.putNumber(
-            "drive_1_target",
-            self.modules[0].get_speed(),
-        )
-        wpilib.SmartDashboard.putNumber(
-            "drive_1_actual",
-            self.desired_states[0].speed,
-        )
-
         self.odometry.update(
             self.imu.getRotation2d(),
             self.modules[0].get(),
