@@ -92,8 +92,7 @@ class SwerveModule:
         return self.drive.getSelectedSensorVelocity() * self.DRIVE_SENSOR_TO_METRES * 10
 
     def set(self, desired_state: SwerveModuleState):
-        
-        
+
         if abs(desired_state.speed) < 1e-3:
             if abs(self.last_speed) > 1e-13:
                 self.drive.setIntegralAccumulator(0, 0, 0)
@@ -103,7 +102,7 @@ class SwerveModule:
             return
 
         self.last_speed = desired_state.speed
-        
+
         current_angle = self.get_angle()
         target_displacement = constrain_angle(
             desired_state.angle.radians() - current_angle
