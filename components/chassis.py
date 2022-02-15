@@ -96,8 +96,8 @@ class SwerveModule:
         if abs(desired_state.speed) < 1e-3:
             if abs(self.last_speed) > 1e-13:
                 self.drive.setIntegralAccumulator(0, 0, 0)
-                self.drive.neutralOutput()
-                self.steer.neutralOutput()
+                self.drive.set(ctre.ControlMode.Velocity, 0)
+                self.steer.set(ctre.ControlMode.Velocity, 0)
                 self.last_speed = 0
             return
 
