@@ -74,6 +74,8 @@ class SwerveModule:
 
         self.target_angle = 0
 
+        self.last_speed = 0
+
     def get_angle(self) -> float:
         """Gets steer angle from absolute encoder"""
         return self.encoder.getPosition() + self.encoder_offset
@@ -90,6 +92,18 @@ class SwerveModule:
         return self.drive.getSelectedSensorVelocity() * self.DRIVE_SENSOR_TO_METRES * 10
 
     def set(self, desired_state: SwerveModuleState):
+        
+        
+        if abs(desired_state.speed) < 1e-3:
+            if abs(self.last_speed) > 1e-13:
+                self.drive.setIntegralAccumulator(0, 0, 0)
+                self.drive.neutralOutput()
+                self.steer.neutralOutput()
+                self.last_speed = 0
+            return
+
+        self.last_speed = desired_state.speed
+        
         current_angle = self.get_angle()
         target_displacement = constrain_angle(
             desired_state.angle.radians() - current_angle
