@@ -66,9 +66,9 @@ class SwerveModule:
         self.drive.configFactoryDefault()
         self.drive.setNeutralMode(ctre.NeutralMode.Brake)
         self.drive.setInverted(drive_reversed)
-        self.drive_ff = SimpleMotorFeedforwardMeters(kS=0.52933, kV=2.7409, kA=0.056869)
+        self.drive_ff = SimpleMotorFeedforwardMeters(kS=0.65599, kV=2.8309, kA=0.15238)
 
-        self.drive.config_kP(0, 0.00012288, 10)
+        self.drive.config_kP(0, 0.00064721, 10)
         self.drive.config_kI(0, 0, 10)
         self.drive.config_kD(0, 0, 10)
 
@@ -123,7 +123,7 @@ class SwerveModule:
             speed_volt / voltage,
         )
 
-    def zero(self):
+    def sync_steer_encoders(self):
         self.steer.setSelectedSensorPosition(
             self.get_angle() * self.STEER_RAD_TO_SENSOR
         )
@@ -135,7 +135,6 @@ class SwerveModule:
 class Chassis:
     # assumes square chassis
     width = 0.6167  # meters between modules from CAD
-    spin_rate = 1.5
 
     vx = magicbot.will_reset_to(0.0)
     vy = magicbot.will_reset_to(0.0)
@@ -162,8 +161,6 @@ class Chassis:
     desired_states = None
 
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
-
-    field: wpilib.Field2d
 
     def setup(self):
         # mag encoder only
@@ -221,29 +218,24 @@ class Chassis:
             self.modules[2].translation,
             self.modules[3].translation,
         )
-        self.zero_all()
+        self.sync_all()
         self.odometry = SwerveDrive4Odometry(self.kinematics, self.imu.getRotation2d())
         self.set_odometry(Pose2d(Translation2d(0, 0), Rotation2d(0)))
 
     def drive_field(self, x, y, z):
         """Field oriented drive commands"""
         rotation = self.imu.getRotation2d()
-        self.chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-            x, y, z * self.spin_rate, rotation
-        )
+        self.chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(x, y, z, rotation)
 
     def drive_local(self, x, y, z):
         """Field oriented drive commands"""
-        self.chassis_speeds = ChassisSpeeds(x, y, z * self.spin_rate)
+        self.chassis_speeds = ChassisSpeeds(x, y, z)
 
-    def _drive(self, chassis_speeds):
-        self.desired_states = self.kinematics.toSwerveModuleStates(chassis_speeds)
+    def execute(self):
+        self.desired_states = self.kinematics.toSwerveModuleStates(self.chassis_speeds)
         for state, module in zip(self.desired_states, self.modules):
             state = SwerveModuleState.optimize(state, module.get_rotation())
             module.set(state)
-
-    def execute(self):
-        self._drive(self.chassis_speeds)
 
         self.odometry.update(
             self.imu.getRotation2d(),
@@ -252,15 +244,14 @@ class Chassis:
             self.modules[2].get(),
             self.modules[3].get(),
         )
-        self.field.setRobotPose(self.odometry.getPose())
 
     @magicbot.feedback
     def get_imu_rotation(self):
         return self.imu.getRotation2d().radians()
 
-    def zero_all(self):
+    def sync_all(self):
         for m in self.modules:
-            m.zero()
+            m.sync_steer_encoders()
 
     def set_odometry(self, pose: Pose2d) -> None:
         self.odometry.resetPosition(pose, self.imu.getRotation2d())
