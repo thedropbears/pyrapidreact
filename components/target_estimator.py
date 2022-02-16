@@ -14,7 +14,8 @@ from utilities.scalers import scale_value
 
 class TargetEstimator:
     """Fuses data from vision, odometry, the imu and other sources
-    to estimate where the target is from the robot and where you should aim to hit it when moving"""
+    to estimate where the robot is on the field and where you should aim to hit the target when moving
+    """
 
     vision: Vision
     imu: navx.AHRS
@@ -29,29 +30,43 @@ class TargetEstimator:
         self.pose_history: deque = deque([], maxlen=100)
 
     def execute(self) -> None:
+        # create time compensated pose estimate from vision
         vis_data = self.vision.get_data()
         if vis_data is not None:
-            # vis_angle, vis_dist, vis_fit, vis_time = vision_data
+            vis_angle, vis_dist, vis_fit, vis_time = vis_data
             # work out where the vision data was taken from based on histories
-            vis_taken_at_angle = self.get_pose_at(
-                vis_data.timestamp
-            ).rotation().radians() + self.turret.get_angle_at(vis_data.timestamp)
+            vis_taken_at = self.get_vis_pose_at(vis_time)
             # angle from target to robot in world space
-            vis_angle_from_target = constrain_angle(vis_taken_at_angle - +math.pi)
-            vis_estimate = Translation2d(
-                distance=vis_data.distance, angle=Rotation2d(vis_angle_from_target)
+            vis_angle_from_target = constrain_angle(
+                vis_taken_at.rotation() - vis_angle + math.pi
             )
-            # trust vision less the more
-            diff = self.robot_pose.translation().distance(vis_estimate)
-            vis_confidence = vis_data.fittness * scale_value(diff, 0, 1, 0.5, 0.05)
+            # work out where vision though it was when the image was taken
+            vis_old_estimate = Translation2d(
+                distance=vis_dist, angle=Rotation2d(vis_angle_from_target)
+            )
+            # the difference between where we though we were and where vision though we
+            # were at the point in time when the image was taken
+            error = vis_old_estimate - vis_taken_at.translation()
+            # assume error has remained constant since vision data
+            vis_estimate = error + self.robot_pose.translation()
+            # trust vision less the more outdated it is
+            vis_age = wpilib.Timer.getFPGATimestamp - vis_time
+            age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
+            # trust vision less the more it thinks we've moved (to reduce impact of false positives)
+            diff = vis_estimate.distance(self.robot_pose.translation)
+            diff_fit = max(0, scale_value(diff, 0.25, 1.5, 1, 0.1))
+            # combined vision confidence is 0-1
+            vis_confidence = vis_fit * diff_fit * age_fit
         else:
             vis_estimate = Translation2d(0, 0)
             vis_confidence = 0
 
+        # gets how far odometry thinks we have moved since last control loop
         odometry_estimate = self.chassis.odometry.getPose().translation()
         total_accel = math.sqrt(
             self.imu.getRawAccelX() ** 2 + self.imu.getRawAccelY() ** 2
         )
+        self.imu.getAccelFullScaleRangeG
         odometry_confidence = max(0.5, 2 - total_accel)
 
         imu_estimate = self.robot_pose.translation() + Translation2d(
@@ -84,7 +99,12 @@ class TargetEstimator:
         local_angle = field_angle - self.robot_pose.rotation().radians()
         return local_angle, self.robot_pose.translation().distance(Translation2d(0, 0))
 
+    def to_x(self) -> Tuple[float, float]:
+        """Returns the positive x direction on the field to test turret"""
+        return -self.robot_pose.rotation().radians(), 2
+
     def get_pose_at(self, t: float) -> Pose2d:
+        """Gets where the robot was at t"""
         # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
         # if loops_ago >= len(self.pose_history):
         #     return (
@@ -95,6 +115,16 @@ class TargetEstimator:
         # print(loops_ago)
         # return self.pose_history[loops_ago]
         return self.robot_pose
+
+    def get_vis_pose_at(self, t: float) -> Pose2d:
+        """Gets where the camera was at t"""
+        vis_taken_at_pose = self.get_pose_at(t)
+        vis_taken_at_angle = (
+            vis_taken_at_pose.rotation().radians() + self.turret.get_angle_at(t)
+        )
+        # TODO: currently uses center of robot, could offset by turret position on robot and
+        # calculate exactly where the camera is based on turret angle
+        return Pose2d(vis_taken_at_pose.translation(), vis_taken_at_angle)
 
     def set_pose(self, pose: Pose2d):
         self.robot_pose = pose
