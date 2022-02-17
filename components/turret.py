@@ -10,19 +10,20 @@ class Turret:
     motor: ctre.TalonSRX
     absolute_encoder: DutyCycleEncoder
 
-    pidF = 0.2
-    pidP = 1.0
-    pidI = 0.005
-    pidIZone = 200
-    pidD = 4.0
-
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
     GEAR_REDUCTION = 240 / 60
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
-    SLEW_CRUISE_VELOCITY = 5 * COUNTS_PER_TURRET_RADIAN / 10
+    # pidF = 0.71901 / 12 * 1023 / 10 * math.tau / COUNTS_PER_MOTOR_REV
+    pidF = 0.2
+    pidP = 1
+    pidI = 0.0
+    pidIZone = 200
+    pidD = 1.109
+
+    SLEW_CRUISE_VELOCITY = 2 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
 
     target = 0

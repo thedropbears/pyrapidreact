@@ -57,7 +57,6 @@ class MyRobot(magicbot.MagicRobot):
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
-        self.turret_motor = ctre.TalonSRX(10)
 
         self.turret_motor = ctre.TalonSRX(15)
         self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)

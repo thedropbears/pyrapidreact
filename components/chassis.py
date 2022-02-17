@@ -215,8 +215,9 @@ class Chassis:
             self.modules[3].translation,
         )
         self.sync_all()
+        self.imu.zeroYaw()
         self.odometry = SwerveDrive4Odometry(self.kinematics, self.imu.getRotation2d())
-        self.set_odometry(Pose2d(Translation2d(0, 0), Rotation2d(0)))
+        self.set_odometry(Pose2d(Translation2d(-2, 0), Rotation2d(math.pi)))
 
     def drive_field(self, x, y, z):
         """Field oriented drive commands"""
