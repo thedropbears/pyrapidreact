@@ -1,56 +1,48 @@
-import magicbot
 import rev
 import ctre
+import wpilib
+from typing import List, Tuple, Optional
+from magicbot import tunable, feedback
 
 
-class Indexer(magicbot.StateMachine):
-
-    is_red = magicbot.tunable(False)
-
-    indexer_speed = magicbot.tunable(0.8)
-
+class Indexer:
+    indexer_front_motor: rev.CANSparkMax
+    indexer_mid_motor: rev.CANSparkMax
+    indexer_back_motor: rev.CANSparkMax
     colour_sensor: rev.ColorSensorV3
-    indexer_motor: ctre.TalonSRX
+    breakbeam_sensor: wpilib.DigitalInput
+    indexer_piston: wpilib.Solenoid
 
-    def setup(self):
-        self.indexer_motor.setInverted(False)
+    is_firing = tunable(False)
+    is_red = tunable(False)
+    indexer_speed = tunable(0.5)
+    # Front, mid, back
+    speeds = (0.0, 0.0, 0.0)
 
-    @magicbot.state(first=True)
-    def indexing(self):
-        self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
-        if self.has_ball():
-            self.done()
+    def setup(self) -> None:
+        self.indexer_front_motor.setInverted(False)
+        self.indexer_mid_motor.setInverted(False)
+        self.indexer_back_motor.setInverted(False)
 
-    @magicbot.default_state
-    def stopped(self):
-        self.indexer_motor.set(ctre.ControlMode.PercentOutput, 0)
+    def execute(self) -> None:
+        self.indexer_front_motor.set(self.speeds[0])
+        self.indexer_mid_motor.set(self.speeds[1])
+        self.indexer_back_motor.set(self.speeds[2])
 
-    @magicbot.timed_state(duration=1, must_finish=True)
-    def clearing(self):
-        self.indexer_motor.set(ctre.ControlMode.PercentOutput, -self.indexer_speed)
+    @feedback
+    def has_back(self) -> bool:
+        return self.breakbeam_sensor.get()
 
-    @magicbot.timed_state(duration=0.5, must_finish=True)
-    def firing(self):
-        self.indexer_motor.set(ctre.ControlMode.PercentOutput, self.indexer_speed)
-
-    @magicbot.feedback
-    def has_ball(self) -> bool:
+    def has_front(self) -> bool:
         return self.colour_sensor.getProximity() > 400
 
-    def can_read(self) -> bool:
-        return self.colour_sensor.getProximity() > 500
+    def is_front_ours(self) -> bool:
+        raw = self.colour_sensor.getRawColor()
+        return (raw.red > raw.blue) == self.is_red
 
-    @magicbot.feedback
-    def is_ball_ours(self) -> bool:
-        """Assumes we have a ball we can read"""
-        values = self.colour_sensor.getRawColor()
-        return (values.red > values.blue) == self.is_red
+    def set(self, front: int, mid: int, back: int) -> None:
+        self.speeds = tuple(self.indexer_speed * s for s in (front, mid, back))
 
-    @magicbot.feedback
-    def colour_values(self):
-        values = self.colour_sensor.getRawColor()
-        return f"R: {values.red}, G: {values.green}, B: {values.green}"
+    def set_piston(self, on: bool) -> None:
+        self.indexer_piston.set(on)
 
-    @magicbot.feedback
-    def colour_prox(self):
-        return self.colour_sensor.getProximity()

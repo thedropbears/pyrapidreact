@@ -4,30 +4,21 @@ import wpilib
 
 
 class Intake(magicbot.StateMachine):
-    intake_speed = magicbot.tunable(0.9)
-
     intake_prox: wpilib.DigitalInput
     intake_motor: rev.CANSparkMax
+    intake_piston: wpilib.Solenoid
 
-    def setup(self):
+    intake_speed = tunable(0.5)
+    speed = 0.0
+
+    def setup(self) -> None:
         self.intake_motor.setInverted(False)
 
-    @magicbot.state(first=True)
-    def intaking(self):
-        # lower intake
-        self.intake_motor.set(self.intake_speed)
-        if self.has_ball():
-            self.next_state("stopped")
+    def execute(self) -> None:
+        self.intake_motor.set(self.speed)
 
-    @magicbot.default_state
-    def stopped(self):
-        # raise intake
-        self.intake_motor.set(0)
-
-    @magicbot.timed_state(duration=1, must_finish=True)
-    def clearing(self):
-        self.intake_motor.set(-self.intake_speed)
-
-    @magicbot.feedback
-    def has_ball(self) -> bool:
-        return not self.intake_prox.get()
+    def set(self, direction: int) -> None:
+        if direction == 1:
+            self.speed = direction * self.intake_speed
+            self.intake_piston.set(True)
+        else: self.intake_piston.set(False)

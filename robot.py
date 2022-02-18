@@ -26,6 +26,7 @@ GIT_INFO = git.describe()
 
 class MyRobot(magicbot.MagicRobot):
     shooter_control: ShooterController
+    indexer_control: IndexerController
 
     chassis: Chassis
     hanger: Hanger
@@ -57,7 +58,10 @@ class MyRobot(magicbot.MagicRobot):
         self.turret_motor = ctre.TalonSRX(15)
 
         self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
-        self.indexer_motor = ctre.TalonSRX(60)  # wrong, we wont be using this anyway
+        self.indexer_front_motor = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
+        self.indexer_mid_motor = rev.CANSparkMax(2, rev.CANSparkMax.MotorType.kBrushless)
+        self.indexer_back_motor = rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless)
+        self.breakbeam_sensor = wpilib.DigitalInput(1)
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
         self.intake_prox = wpilib.DigitalInput(0)
 
@@ -73,8 +77,7 @@ class MyRobot(magicbot.MagicRobot):
         pass
 
     def teleopInit(self) -> None:
-        self.indexer.engage()
-        self.intake.engage()
+        pass
 
     def testInit(self) -> None:
         pass
