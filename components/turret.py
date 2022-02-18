@@ -2,10 +2,12 @@ from collections import deque
 import ctre
 import magicbot
 import math
+from wpilib import DutyCycleEncoder
 
 
 class Turret:
     motor: ctre.TalonSRX
+    turret_absolute_encoder: DutyCycleEncoder
 
     pidF = 0.2
     pidP = 1.0
@@ -55,8 +57,7 @@ class Turret:
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
 
-        # replace 0 with absolute encoder position
-        self.motor.setSelectedSensorPosition(0)
+        self.motor.setSelectedSensorPosition(self.turret_absolute_encoder.get() * self.COUNTS_PER_TURRET_REV)
 
     def execute(self) -> None:
         self.target += 0.8 / 50
@@ -83,6 +84,10 @@ class Turret:
     @magicbot.feedback
     def get_angle(self):
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
+
+    @magicbot.feedback
+    def absolue_encoder_reading(self):
+        return self.turret_absolute_encoder.get()
 
     def get_angle_at(self, t: float) -> float:
         # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
