@@ -1,7 +1,5 @@
 import rev
-import ctre
 import wpilib
-from typing import List, Tuple, Optional
 from magicbot import tunable, feedback
 
 
@@ -45,4 +43,3 @@ class Indexer:
 
     def set_piston(self, on: bool) -> None:
         self.indexer_piston.set(on)
-

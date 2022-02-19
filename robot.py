@@ -14,6 +14,7 @@ from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
 from components.vision import Vision
+from controllers.indexer import IndexerController
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
@@ -58,9 +59,15 @@ class MyRobot(magicbot.MagicRobot):
         self.turret_motor = ctre.TalonSRX(15)
 
         self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
-        self.indexer_front_motor = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
-        self.indexer_mid_motor = rev.CANSparkMax(2, rev.CANSparkMax.MotorType.kBrushless)
-        self.indexer_back_motor = rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless)
+        self.indexer_front_motor = rev.CANSparkMax(
+            1, rev.CANSparkMax.MotorType.kBrushless
+        )
+        self.indexer_mid_motor = rev.CANSparkMax(
+            2, rev.CANSparkMax.MotorType.kBrushless
+        )
+        self.indexer_back_motor = rev.CANSparkMax(
+            3, rev.CANSparkMax.MotorType.kBrushless
+        )
         self.breakbeam_sensor = wpilib.DigitalInput(1)
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
         self.intake_prox = wpilib.DigitalInput(0)
@@ -118,18 +125,18 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_field(joystick_x, joystick_y, joystick_z)
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
-        # else:
-        #     self.chassis.stop()
 
         # Reset the heading when button 7 is pressed
         if self.joystick.getRawButtonPressed(7):
             self.imu.reset()
 
         if self.joystick.getTriggerPressed():
-            self.shooter_control.fire_input()
+            self.indexer_control.wants_to_fire = True
 
         if self.joystick.getRawButtonPressed(2):
-            self.shooter_control.toggle_intaking()
+            self.indexer_control.wants_to_intake = (
+                not self.indexer_control.wants_to_intake
+            )
 
         # manually clear ball
         if self.joystick.getRawButtonPressed(11):

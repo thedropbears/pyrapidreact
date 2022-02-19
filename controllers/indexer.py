@@ -1,14 +1,21 @@
-from components.indexer import indexer
+from components.indexer import Indexer
 from components.intake import Intake
-from magicbot import StateMachine, default_state, state, timed_state, tunable
+from magicbot import (
+    StateMachine,
+    default_state,
+    state,
+    timed_state,
+    tunable,
+    will_reset_to,
+)
 
 
 class IndexerController(StateMachine):
-    intake: Intake,
-    indexer: Indexer,
+    intake: Intake
+    indexer: Indexer
 
     wants_to_intake = tunable(False)
-    wants_to_fire = tunable(False)
+    wants_to_fire = will_reset_to(False)
     trapped = tunable(False)
 
     @default_state
@@ -18,9 +25,11 @@ class IndexerController(StateMachine):
         self.intake.set(0)
         if self.check_firing():
             self.next_state("firing")
-        elif self.wants_to_intake or (self.indexer.has_back() and not self.indexer.has_front):
+        elif self.wants_to_intake or (
+            self.indexer.has_back() and not self.indexer.has_front
+        ):
             self.next_state("intaking")
-        
+
     @state
     def intaking(self) -> None:
         self.indexer.set(1, 0, 0)
@@ -60,9 +69,8 @@ class IndexerController(StateMachine):
     @timed_state(duration=0.5, next_state="stopped")
     def trapping(self, state_tm) -> None:
         self.indexer.set_piston(True)
-        if (state_tm > 0.1):
+        if state_tm > 0.1:
             self.indexer.set(1, 1, 0)
 
     def check_firing(self) -> bool:
         return self.wants_to_fire and self.indexer.has_back()
-
