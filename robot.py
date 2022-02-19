@@ -69,9 +69,8 @@ class MyRobot(magicbot.MagicRobot):
         self.indexer_back_motor = rev.CANSparkMax(
             3, rev.CANSparkMax.MotorType.kBrushless
         )
-        self.breakbeam_sensor = wpilib.DigitalInput(1)
-        self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port(1))
-        self.intake_prox = wpilib.DigitalInput(0)
+        self.breakbeam_sensor = wpilib.DigitalInput(8)
+        self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)

@@ -31,9 +31,11 @@ class Indexer:
     def has_back(self) -> bool:
         return self.breakbeam_sensor.get()
 
+    @feedback
     def has_front(self) -> bool:
         return self.colour_sensor.getProximity() > 400
 
+    @feedback
     def is_front_ours(self) -> bool:
         raw = self.colour_sensor.getRawColor()
         return (raw.red > raw.blue) == self.is_red
