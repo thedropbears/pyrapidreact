@@ -7,7 +7,8 @@ class Indexer:
     indexer_front_motor: rev.CANSparkMax
     indexer_back_motor: rev.CANSparkMax
     colour_sensor: rev.ColorSensorV3
-    breakbeam_sensor: wpilib.DigitalInput
+    prox_sensor1: wpilib.DigitalInput
+    prox_sensor2: wpilib.DigitalInput
     # indexer_piston: wpilib.Solenoid
 
     is_firing = tunable(False)
@@ -27,7 +28,7 @@ class Indexer:
 
     @feedback
     def has_back(self) -> bool:
-        return not self.breakbeam_sensor.get()
+        return not self.prox_sensor1.get() or not self.prox_sensor2.get()
 
     @feedback
     def has_front(self) -> bool:
