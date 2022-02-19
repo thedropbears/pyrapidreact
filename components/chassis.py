@@ -1,7 +1,6 @@
 import math
 
 import ctre
-import wpilib
 import magicbot
 import navx
 
@@ -66,6 +65,8 @@ class SwerveModule:
         self.drive.configFactoryDefault()
         self.drive.setNeutralMode(ctre.NeutralMode.Brake)
         self.drive.setInverted(drive_reversed)
+        self.drive.configVoltageCompSaturation(12, timeoutMs=10)
+        self.drive.enableVoltageCompensation(True)
         self.drive_ff = SimpleMotorFeedforwardMeters(kS=0.65599, kV=2.8309, kA=0.15238)
 
         self.drive.config_kP(0, 0.00064721, 10)
@@ -115,12 +116,11 @@ class SwerveModule:
         # rescale the speed target based on how close we are to being correctly aligned
         target_speed = desired_state.speed * math.cos(target_displacement) ** 2
         speed_volt = self.drive_ff.calculate(target_speed)
-        voltage = wpilib.RobotController.getInputVoltage()
         self.drive.set(
             ctre.ControlMode.Velocity,
             target_speed * self.METRES_TO_DRIVE_UNITS / 10,
             ctre.DemandType.ArbitraryFeedForward,
-            speed_volt / voltage,
+            speed_volt / 12,
         )
 
     def sync_steer_encoders(self):
