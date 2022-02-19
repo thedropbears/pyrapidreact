@@ -16,7 +16,6 @@ class Intake:
         self.intake_limit = self.intake_motor.getForwardLimitSwitch(
             rev.SparkMaxLimitSwitch.Type.kNormallyOpen
         )
-        self.intake_limit.enableLimitSwitch(True)
 
     def execute(self) -> None:
         self.intake_motor.set(self.speed)
@@ -27,3 +26,6 @@ class Intake:
         #     self.intake_piston.set(True)
         # else:
         #     self.intake_piston.set(False)
+    @magicbot.feedback
+    def has_ball(self) -> bool:
+        return self.intake_limit.get()
