@@ -31,8 +31,6 @@ class Shooter:
     COUNTS_PER_SHOOTER_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_SHOOTER_RADIAN = int(COUNTS_PER_SHOOTER_REV / math.tau)
 
-    feeder_speed = 0.7
-
     COUNTS_PER_REV = 2048
     RPS_TO_CTRE_UNITS = COUNTS_PER_REV / 10  # counts per 100ms
 
