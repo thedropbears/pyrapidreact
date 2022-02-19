@@ -72,6 +72,10 @@ class SwerveModule:
         self.drive.config_kI(0, 0, 10)
         self.drive.config_kD(0, 0, 10)
 
+        # Reduce CAN status frame rates
+        steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
+        drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
+
         self.target_angle = 0
 
         self.last_speed = 0
