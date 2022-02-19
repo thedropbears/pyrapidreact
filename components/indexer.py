@@ -5,7 +5,6 @@ from magicbot import tunable, feedback
 
 class Indexer:
     indexer_front_motor: rev.CANSparkMax
-    indexer_mid_motor: rev.CANSparkMax
     indexer_back_motor: rev.CANSparkMax
     colour_sensor: rev.ColorSensorV3
     breakbeam_sensor: wpilib.DigitalInput
@@ -15,21 +14,20 @@ class Indexer:
     is_red = tunable(False)
     indexer_speed = tunable(0.5)
     # Front, mid, back
-    speeds = (0.0, 0.0, 0.0)
+    speeds = (0.0, 0.0)
 
     def setup(self) -> None:
-        self.indexer_front_motor.setInverted(False)
-        self.indexer_mid_motor.setInverted(False)
+        self.indexer_front_motor.setInverted(True)
         self.indexer_back_motor.setInverted(False)
 
     def execute(self) -> None:
+        # print(self.speeds)
         self.indexer_front_motor.set(self.speeds[0])
-        self.indexer_mid_motor.set(self.speeds[1])
-        self.indexer_back_motor.set(self.speeds[2])
+        self.indexer_back_motor.set(self.speeds[1])
 
     @feedback
     def has_back(self) -> bool:
-        return self.breakbeam_sensor.get()
+        return not self.breakbeam_sensor.get()
 
     @feedback
     def has_front(self) -> bool:
@@ -40,8 +38,17 @@ class Indexer:
         raw = self.colour_sensor.getRawColor()
         return (raw.red > raw.blue) == self.is_red
 
-    def set(self, front: int, mid: int, back: int) -> None:
-        self.speeds = tuple(self.indexer_speed * s for s in (front, mid, back))
+    @feedback
+    def get_colours(self) -> str:
+        raw = self.colour_sensor.getRawColor()
+        return f"r{raw.red:.3f}, g{raw.green:.3f}, b{raw.blue:.3f}"
+
+    @feedback
+    def get_speeds(self) -> str:
+        return f"{self.speeds[0]}, {self.speeds[1]}"
+
+    def set(self, front: int, back: int) -> None:
+        self.speeds = tuple(self.indexer_speed * s for s in (front, back))
 
     def set_piston(self, on: bool) -> None:
         # self.indexer_piston.set(on)

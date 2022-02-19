@@ -1,25 +1,24 @@
 import magicbot
 import rev
-import wpilib
 
 
 class Intake:
-    intake_prox: wpilib.DigitalInput
+    # intake_prox: wpilib.DigitalInput
     intake_motor: rev.CANSparkMax
     # intake_piston: wpilib.Solenoid
 
-    intake_speed = magicbot.tunable(0.5)
+    intake_speed = magicbot.tunable(1)
     speed = 0.0
 
     def setup(self) -> None:
-        self.intake_motor.setInverted(False)
+        self.intake_motor.setInverted(True)
 
     def execute(self) -> None:
         self.intake_motor.set(self.speed)
 
     def set(self, direction: int) -> None:
-        if direction == 1:
-            self.speed = direction * self.intake_speed
+        self.speed = direction * self.intake_speed
+        # if direction == 1:
         #     self.intake_piston.set(True)
         # else:
         #     self.intake_piston.set(False)
