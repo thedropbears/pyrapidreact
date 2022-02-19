@@ -45,7 +45,7 @@ class TargetEstimator:
             vis_taken_at = self.get_vis_pose_at(vis_data.timestamp)
             # angle from target to robot in world space
             vis_angle_from_target = constrain_angle(
-                vis_taken_at.rotation() - vis_data.angle + math.pi
+                vis_taken_at.rotation().radians() - vis_data.angle + math.pi
             )
             # work out where vision though it was when the image was taken
             vis_old_estimate = Translation2d(
@@ -57,13 +57,13 @@ class TargetEstimator:
             # assume error has remained constant since vision data
             vis_estimate = error + self.robot_pose.translation()
             # trust vision less the more outdated it is
-            vis_age = wpilib.Timer.getFPGATimestamp - vis_data.timestamp
+            vis_age = wpilib.Timer.getFPGATimestamp() - vis_data.timestamp
             age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
             # trust vision less the more it thinks we've moved (to reduce impact of false positives)
-            diff = vis_estimate.distance(self.robot_pose.translation)
+            diff = vis_estimate.distance(self.robot_pose.translation())
             diff_fit = max(0, scale_value(diff, 0.25, 1.5, 1, 0.1))
             # combined vision confidence is 0-1
-            vis_confidence = 0 * vis_data.fittnessfit * diff_fit * age_fit
+            vis_confidence = 0 * vis_data.fittness * diff_fit * age_fit
         else:
             vis_estimate = Translation2d(0, 0)
             vis_confidence = 0
@@ -152,7 +152,7 @@ class TargetEstimator:
         )
         # TODO: currently uses center of robot, could offset by turret position on robot and
         # calculate exactly where the camera is based on turret angle
-        return Pose2d(vis_taken_at_pose.translation(), vis_taken_at_angle)
+        return Pose2d(vis_taken_at_pose.translation(), Rotation2d(vis_taken_at_angle))
 
     def set_pose(self, pose: Pose2d):
         self.robot_pose = pose
