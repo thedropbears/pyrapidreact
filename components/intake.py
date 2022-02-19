@@ -2,6 +2,7 @@ import magicbot
 import rev
 
 
+
 class Intake:
     # intake_prox: wpilib.DigitalInput
     intake_motor: rev.CANSparkMax
@@ -12,6 +13,9 @@ class Intake:
 
     def setup(self) -> None:
         self.intake_motor.setInverted(True)
+
+        self.intake_limit = self.intake_motor.getForwardLimitSwitch(rev.SparkMaxLimitSwitch.Type.kNormallyOpen)
+        self.intake_limit.enableLimitSwitch(True)
 
     def execute(self) -> None:
         self.intake_motor.set(self.speed)
