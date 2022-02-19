@@ -5,6 +5,7 @@ from components.vision import Vision
 from typing import Tuple
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 from utilities.functions import constrain_angle
+from utilities.trajectory_generator import goal_to_field
 import navx
 import wpilib
 import math
@@ -26,7 +27,7 @@ class TargetEstimator:
     field: wpilib.Field2d
 
     def __init__(self) -> None:
-        self.robot_pose: Pose2d = Pose2d(0, 0, 0)
+        self.robot_pose: Pose2d = Pose2d(-2, -1, -math.pi / 2)
         self.pose_history: deque = deque([], maxlen=100)
         # last total displacement
         self.last_imu = Translation2d()
@@ -40,16 +41,15 @@ class TargetEstimator:
         # create time compensated pose estimate from vision
         vis_data = self.vision.get_data()
         if vis_data is not None:
-            vis_angle, vis_dist, vis_fit, vis_time = vis_data
             # work out where the vision data was taken from based on histories
-            vis_taken_at = self.get_vis_pose_at(vis_time)
+            vis_taken_at = self.get_vis_pose_at(vis_data.timestamp)
             # angle from target to robot in world space
             vis_angle_from_target = constrain_angle(
-                vis_taken_at.rotation() - vis_angle + math.pi
+                vis_taken_at.rotation() - vis_data.angle + math.pi
             )
             # work out where vision though it was when the image was taken
             vis_old_estimate = Translation2d(
-                distance=vis_dist, angle=Rotation2d(vis_angle_from_target)
+                distance=vis_data.distance, angle=Rotation2d(vis_angle_from_target)
             )
             # the difference between where we though we were and where vision though we
             # were at the point in time when the image was taken
@@ -57,13 +57,13 @@ class TargetEstimator:
             # assume error has remained constant since vision data
             vis_estimate = error + self.robot_pose.translation()
             # trust vision less the more outdated it is
-            vis_age = wpilib.Timer.getFPGATimestamp - vis_time
+            vis_age = wpilib.Timer.getFPGATimestamp - vis_data.timestamp
             age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
             # trust vision less the more it thinks we've moved (to reduce impact of false positives)
             diff = vis_estimate.distance(self.robot_pose.translation)
             diff_fit = max(0, scale_value(diff, 0.25, 1.5, 1, 0.1))
             # combined vision confidence is 0-1
-            vis_confidence = 0 * vis_fit * diff_fit * age_fit
+            vis_confidence = 0 * vis_data.fittnessfit * diff_fit * age_fit
         else:
             vis_estimate = Translation2d(0, 0)
             vis_confidence = 0
@@ -97,18 +97,21 @@ class TargetEstimator:
 
         self.field_robot.setPoses(
             [
-                Pose2d(
-                    imu_displacement,
-                    self.imu.getRotation2d(),
-                ),
-                Pose2d(
-                    odometry_displacement,
-                    self.imu.getRotation2d(),
-                ),
-                Pose2d(
-                    vis_estimate,
-                    self.imu.getRotation2d(),
-                ),
+                goal_to_field(x)
+                for x in [
+                    Pose2d(
+                        imu_displacement,
+                        self.imu.getRotation2d(),
+                    ),
+                    Pose2d(
+                        odometry_displacement,
+                        self.imu.getRotation2d(),
+                    ),
+                    Pose2d(
+                        vis_estimate,
+                        self.imu.getRotation2d(),
+                    ),
+                ]
             ]
         )
 

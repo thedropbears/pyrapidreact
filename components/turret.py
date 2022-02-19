@@ -77,7 +77,6 @@ class Turret:
             self.has_synced = True
 
     def execute(self) -> None:
-        self.target += 0.8 / 50
         # constrain in a way that allows a bit of overlap
         while self.target > self.MAX_ROTATION:
             self.target -= math.tau
