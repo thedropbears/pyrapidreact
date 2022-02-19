@@ -14,7 +14,7 @@ class Indexer:
     is_firing = tunable(False)
     is_red = tunable(False)
     indexer_speed = tunable(0.5)
-    # Front, mid, back
+    # Front, back
     speeds = (0.0, 0.0)
 
     def setup(self) -> None:
@@ -22,7 +22,6 @@ class Indexer:
         self.indexer_back_motor.setInverted(False)
 
     def execute(self) -> None:
-        # print(self.speeds)
         self.indexer_front_motor.set(self.speeds[0])
         self.indexer_back_motor.set(self.speeds[1])
 
@@ -46,11 +45,11 @@ class Indexer:
 
     @feedback
     def get_speeds(self) -> str:
-        return f"{self.speeds[0]}, {self.speeds[1]}"
+        return self.speeds
 
     def set(self, front: int, back: int) -> None:
-        self.speeds = tuple(self.indexer_speed * s for s in (front, back))
+        self.speeds = (self.indexer_speed * front, self.indexer_speed * back)
 
-    def set_piston(self, on: bool) -> None:
+    def set_chute(self, on: bool) -> None:
         # self.indexer_piston.set(on)
         pass

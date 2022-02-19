@@ -22,7 +22,7 @@ class IndexerController(StateMachine):
 
     @default_state
     def stopped(self) -> None:
-        self.indexer.set_piston(False)
+        self.indexer.set_chute(False)
         self.indexer.set(0, 0)
         self.intake.set(0)
         if self.check_firing():
@@ -84,7 +84,7 @@ class IndexerController(StateMachine):
 
     @timed_state(duration=0.5, next_state="stopped", must_finish=True)
     def trapping(self, state_tm) -> None:
-        self.indexer.set_piston(True)
+        self.indexer.set_chute(True)
         if state_tm > 0.1:
             self.indexer.set(1, 1)
 
