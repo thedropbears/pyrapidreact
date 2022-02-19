@@ -9,7 +9,7 @@ class Indexer:
     indexer_back_motor: rev.CANSparkMax
     colour_sensor: rev.ColorSensorV3
     breakbeam_sensor: wpilib.DigitalInput
-    indexer_piston: wpilib.Solenoid
+    # indexer_piston: wpilib.Solenoid
 
     is_firing = tunable(False)
     is_red = tunable(False)
@@ -42,4 +42,5 @@ class Indexer:
         self.speeds = tuple(self.indexer_speed * s for s in (front, mid, back))
 
     def set_piston(self, on: bool) -> None:
-        self.indexer_piston.set(on)
+        # self.indexer_piston.set(on)
+        pass

@@ -3,10 +3,10 @@ import rev
 import wpilib
 
 
-class Intake(magicbot.StateMachine):
+class Intake:
     intake_prox: wpilib.DigitalInput
     intake_motor: rev.CANSparkMax
-    intake_piston: wpilib.Solenoid
+    # intake_piston: wpilib.Solenoid
 
     intake_speed = magicbot.tunable(0.5)
     speed = 0.0
@@ -20,6 +20,6 @@ class Intake(magicbot.StateMachine):
     def set(self, direction: int) -> None:
         if direction == 1:
             self.speed = direction * self.intake_speed
-            self.intake_piston.set(True)
-        else:
-            self.intake_piston.set(False)
+        #     self.intake_piston.set(True)
+        # else:
+        #     self.intake_piston.set(False)

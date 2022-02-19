@@ -30,7 +30,7 @@ class IndexerController(StateMachine):
         ):
             self.next_state("intaking")
 
-    @state
+    @state(first=True)
     def intaking(self) -> None:
         self.indexer.set(1, 0, 0)
         self.intake.set(1)

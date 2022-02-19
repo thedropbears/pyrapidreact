@@ -59,6 +59,7 @@ class MyRobot(magicbot.MagicRobot):
         self.turret_motor = ctre.TalonSRX(15)
 
         self.intake_motor = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
+        # self.intake_piston = wpilib.Solenoid(0, )
         self.indexer_front_motor = rev.CANSparkMax(
             1, rev.CANSparkMax.MotorType.kBrushless
         )
