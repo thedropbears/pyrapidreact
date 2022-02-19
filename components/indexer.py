@@ -1,6 +1,7 @@
 import rev
 import wpilib
 from magicbot import tunable, feedback
+from typing import Tuple
 
 
 class Indexer:
@@ -44,7 +45,7 @@ class Indexer:
         return f"r{raw.red:.3f}, g{raw.green:.3f}, b{raw.blue:.3f}"
 
     @feedback
-    def get_speeds(self) -> str:
+    def get_speeds(self) -> Tuple[float, float]:
         return self.speeds
 
     def set(self, front: int, back: int) -> None:

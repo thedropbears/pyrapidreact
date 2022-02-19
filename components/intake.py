@@ -7,8 +7,8 @@ class Intake:
     intake_motor: rev.CANSparkMax
     # intake_piston: wpilib.Solenoid
 
-    intake_speed = magicbot.tunable(1)
-    speed = 0.0
+    speed_mult = magicbot.tunable(1)
+    speed = magicbot.will_reset_to(0.0)
 
     def setup(self) -> None:
         self.intake_motor.setInverted(True)
@@ -17,7 +17,7 @@ class Intake:
         self.intake_motor.set(self.speed)
 
     def set(self, direction: int) -> None:
-        self.speed = direction * self.intake_speed
+        self.speed = direction * self.speed_mult
         # if direction == 1:
         #     self.intake_piston.set(True)
         # else:
