@@ -148,7 +148,6 @@ class AutoBase(AutonomousStateMachine):
         """Finished moving but still want to be trying to fire,
         needed for second ball at terminal"""
         # self.shooter_control.fire_input()
-        pass
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
