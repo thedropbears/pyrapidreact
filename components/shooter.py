@@ -14,9 +14,9 @@ class Shooter:
 
     motor_speed = 0.0
 
-    ff_calculator = SimpleMotorFeedforwardMeters(kS=0.79889, kV=0.12424, kA=0.010881)
+    ff_calculator = SimpleMotorFeedforwardMeters(kS=0.3, kV=0.123, kA=0.0159598)
     pidF = 0
-    pidP = 9.8959e-14  # 9.2104e-5
+    pidP = 0.04
     pidI = 0.0
     pidIZone = 200
     pidD = 0
