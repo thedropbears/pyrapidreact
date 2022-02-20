@@ -34,4 +34,3 @@ class ShooterController:
     @magicbot.feedback
     def distance_to_goal(self) -> float:
         return self.distance
-        
