@@ -56,9 +56,9 @@ def smooth_path(
     waypoints: List[Pose2d], look_around: float, dist: float, sample_count=10
 ) -> Pose2d:
     """Samples dist meters along waypoints in a way that creates smooth paths"""
-    x, y = 0, 0
+    x = y = 0.0
     # takes circular mean https://en.wikipedia.org/wiki/Circular_mean
-    angle_x, angle_y = 0, 0
+    angle_x = angle_y = 0.0
     for sample in range(sample_count):
         sample_d = dist + scale_value(
             sample, 0, sample_count, -look_around, look_around
