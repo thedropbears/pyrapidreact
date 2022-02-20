@@ -102,7 +102,7 @@ class Turret:
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
     @magicbot.feedback
-    def absolue_encoder_reading(self):
+    def absolute_encoder_reading(self):
         return constrain_angle(
             -self.turret_absolute_encoder.getDistance() + self.abs_offset
         )
