@@ -118,7 +118,7 @@ class MyRobot(magicbot.MagicRobot):
             * throttle
         )
         joystick_z = (
-            -rescale_js(self.joystick.getZ(), deadzone=0.2, exponential=20.0)
+            -rescale_js(self.joystick.getZ(), deadzone=0.4, exponential=25.0)
             * spin_rate
         )
 
