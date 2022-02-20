@@ -28,6 +28,7 @@ class ShooterController:
 
     def execute(self):
         angle, self.distance = self.target_estimator.to_target()
+        self.distance -= 0.3  # TODO: calculate properly based on robot heading
         if angle is not None:
             self.turret.slew_local(angle)
 
@@ -38,7 +39,11 @@ class ShooterController:
                 self.distance, self.ranges_lookup, self.flywheel_speed_lookup
             )
 
-        if self.wants_to_fire and abs(self.shooter.flywheel_error()) < self.allowed_flywheel_error and abs(self.turret.get_error()) < self.allowed_bearing_error:
+        if (
+            self.wants_to_fire
+            and abs(self.shooter.flywheel_error()) < self.allowed_flywheel_error
+            and abs(self.turret.get_error()) < self.allowed_bearing_error
+        ):
             self.indexer_control.wants_to_fire = True
 
     @feedback

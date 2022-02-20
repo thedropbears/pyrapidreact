@@ -29,7 +29,7 @@ class AutoBase(AutonomousStateMachine):
     def __init__(self):
         super().__init__()
         # applies to the linear speed, not turning
-        self.linear_constraints = TrapezoidProfile.Constraints(0.5, 0.5)
+        self.linear_constraints = TrapezoidProfile.Constraints(1, 1)
 
         self.drive_rotation_constrants = trajectory.TrapezoidProfileRadians.Constraints(
             2, 2
@@ -83,7 +83,7 @@ class AutoBase(AutonomousStateMachine):
     ) -> Tuple[TrapezoidProfile, float]:
         """Generates a linear trapazoidal trajectory that goes from current state to goal"""
         stop_point = trajectory_generator.total_length(self.waypoints[:goal])
-        return (
+        ret = (
             TrapezoidProfile(
                 self.linear_constraints,
                 goal=TrapezoidProfile.State(stop_point, 0),
@@ -91,20 +91,25 @@ class AutoBase(AutonomousStateMachine):
             ),
             stop_point,
         )
+        print(f"[{self.MODE_NAME}] generated {ret[0].totalTime()}s")
+        return ret
 
     @state(first=True)
     def move(self, tm):
-        # always be trying to fire
+        # indexer controller will hanle it self raising and lowering
         self.indexer_control.wants_to_intake = True
+        # always be trying to fire
         self.shooter_control.wants_to_fire = True
         # calculate speed and position from current trapazoidal profile
         trap_time = tm
         linear_state = self.trap_profile.calculate(trap_time)
-        is_done = self.trap_profile.isFinished(trap_time)
+        is_done = self.trap_profile.isFinished(
+            trap_time
+        )  # TODO: change to our error is below value
 
         if is_done:
             print(f"[{self.MODE_NAME}] Done at {tm}")
-            self.done()
+            self.next_state("stopped")
 
         # find distance to start and end so look_around can be adjusted to not look beyond edges
         to_start = linear_state.position - self.trap_profile.calculate(0).position
