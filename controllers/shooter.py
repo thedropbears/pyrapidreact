@@ -22,5 +22,6 @@ class ShooterController:
         if self.interpolation_override:
             self.shooter.motor_speed = self.flywheel_speed
         else:
-            self.shooter.motor_speed = interp(self.dist, self.ranges_xp, self.flywheel_speed_fp)
-
+            self.shooter.motor_speed = interp(
+                self.dist, self.ranges_xp, self.flywheel_speed_fp
+            )
