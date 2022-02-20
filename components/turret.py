@@ -17,14 +17,14 @@ class Turret:
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
     # pidF = 0.71901 / 12 * 1023 / 10 * math.tau / COUNTS_PER_MOTOR_REV
-    pidF = 0.6
-    pidP = 1
+    pidF = 1
+    pidP = 3
     pidI = 0.0
     pidIZone = 200
-    pidD = 1.109
+    pidD = 3  # 1.109
 
-    SLEW_CRUISE_VELOCITY = 1 * COUNTS_PER_TURRET_RADIAN / 10
-    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.5)
+    SLEW_CRUISE_VELOCITY = 2 * COUNTS_PER_TURRET_RADIAN / 10
+    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.2)
 
     target = magicbot.tunable(0.0)
     control_loop_wait_time: float
@@ -35,7 +35,7 @@ class Turret:
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
         self.has_synced = False
-        self.abs_offset = 2.6
+        self.abs_offset = 2.68
 
     def setup(self):
         self.motor.configFactoryDefault()
@@ -102,10 +102,14 @@ class Turret:
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
     @magicbot.feedback
-    def absolute_encoder_reading(self):
+    def absolute_encoder_reading(self) -> float:
         return constrain_angle(
             self.absolute_encoder.getDistance() + self.abs_offset
         )
+
+    @magicbot.feedback
+    def raw_absolue_encoder_reading(self) -> float:
+        return self.turret_absolute_encoder.getDistance()
 
     def get_angle_at(self, t: float) -> float:
         # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)

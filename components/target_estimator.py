@@ -128,7 +128,7 @@ class TargetEstimator:
         """Returns angle and distance to shoot at to hit the target"""
         # TODO: adjust for leading shots
         field_angle = math.atan2(
-            self.robot_pose.Y(), self.robot_pose.X()
+            -self.robot_pose.Y(), -self.robot_pose.X()
         )  # may need to flip / convert
         local_angle = field_angle - self.robot_pose.rotation().radians()
         return local_angle, self.robot_pose.translation().distance(Translation2d(0, 0))
