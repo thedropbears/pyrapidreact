@@ -17,7 +17,7 @@ class Turret:
 
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
-    GEAR_REDUCTION = 240 / 24
+    GEAR_REDUCTION = 240 / 60
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
@@ -56,8 +56,15 @@ class Turret:
         self.motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
+        self.turret_absolute_encoder.setDistancePerRotation(math.tau)
+        self.motor.setSelectedSensorPosition(
+            self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
+        )
 
-        self.motor.setSelectedSensorPosition(self.turret_absolute_encoder.get() * self.COUNTS_PER_TURRET_REV)
+    def on_disable(self):
+        self.motor.setSelectedSensorPosition(
+            self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
+        )
 
     def execute(self) -> None:
         self.target += 0.8 / 50
@@ -87,7 +94,7 @@ class Turret:
 
     @magicbot.feedback
     def absolue_encoder_reading(self):
-        return self.turret_absolute_encoder.get()
+        return self.turret_absolute_encoder.getDistance()
 
     def get_angle_at(self, t: float) -> float:
         # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
