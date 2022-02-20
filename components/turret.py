@@ -72,7 +72,6 @@ class Turret:
             self.motor.setSelectedSensorPosition(
                 self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
             )
-            print(f"synced turret encoders: {self.absolue_encoder_reading()}")
             self.has_synced = True
 
     def execute(self) -> None:
