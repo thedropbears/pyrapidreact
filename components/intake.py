@@ -11,6 +11,7 @@ class Intake:
     speed = magicbot.will_reset_to(0.0)
 
     def setup(self) -> None:
+        self.intake_motor.restoreFactoryDefaults()
         self.intake_motor.setInverted(True)
 
     def execute(self) -> None:

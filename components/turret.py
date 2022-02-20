@@ -102,7 +102,7 @@ class Turret:
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
     def get_error(self):
-        return self.motor.getClosedLoopError()
+        return self.get_angle() - self.target
 
     @magicbot.feedback
     def absolute_encoder_reading(self) -> float:

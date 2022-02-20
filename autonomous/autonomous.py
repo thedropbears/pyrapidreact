@@ -5,9 +5,9 @@ from wpimath.trajectory import TrapezoidProfile
 import wpilib
 
 from components.chassis import Chassis
-from components.indexer import Indexer
 from components.target_estimator import TargetEstimator
 from controllers.shooter import ShooterController
+from controllers.indexer import IndexerController
 from utilities import trajectory_generator
 import math
 from typing import List, Tuple
@@ -19,7 +19,7 @@ class AutoBase(AutonomousStateMachine):
 
     chassis: Chassis
     target_estimator: TargetEstimator
-    indexer: Indexer
+    indexer_control: IndexerController
     shooter_control: ShooterController
 
     field: wpilib.Field2d
@@ -95,6 +95,7 @@ class AutoBase(AutonomousStateMachine):
     @state(first=True)
     def move(self, tm):
         # always be trying to fire
+        self.indexer_control.wants_to_intake = True
         self.shooter_control.wants_to_fire = True
         # calculate speed and position from current trapazoidal profile
         trap_time = tm
@@ -147,7 +148,7 @@ class AutoBase(AutonomousStateMachine):
     def stopped(self):
         """Finished moving but still want to be trying to fire,
         needed for second ball at terminal"""
-        # self.shooter_control.fire_input()
+        self.shooter_control.wants_to_fire = True
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
@@ -166,7 +167,7 @@ red_balls = [
     (-0.850, -3792),  # right
 ]
 # start positions
-right_mid_start = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
+right_mid_start = Pose2d(-0.611, -2.319, Rotation2d.fromDegrees(-88.5))
 right_left_start = Pose2d(-1.846, -1.555, Rotation2d.fromDegrees(-133.5))
 left_mid_start = Pose2d(-2.273, 1.090, Rotation2d.fromDegrees(136.5))
 
@@ -196,7 +197,7 @@ class FiveBall(AutoBase):
             right_mid_start,
             Pose2d(-0.711, -3.5, -math.pi / 2),  # 3
             Pose2d(-2.789, -2.378, Rotation2d.fromDegrees(-206)),  # 2
-            Pose2d(-6.813, -2.681, Rotation2d.fromDegrees(-136)),  # 4
+            Pose2d(-6.85, -2.681, Rotation2d.fromDegrees(-136)),  # 4
         ]
         super().__init__()
 

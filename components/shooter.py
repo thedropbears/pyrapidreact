@@ -79,4 +79,4 @@ class Shooter:
 
     @magicbot.feedback
     def flywheel_error(self):
-        return self.left_motor.getClosedLoopError() / self.RPS_TO_CTRE_UNITS
+        return self.motor_speed - self.actual_velocity()

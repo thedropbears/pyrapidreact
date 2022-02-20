@@ -38,9 +38,11 @@ class IndexerController(StateMachine):
     def intaking(self) -> None:
         self.indexer.set(1, 0)
         self.intake.set(1)
-        if self.indexer.has_front():
+        if self.check_firing():
+            self.next_state("firing")
+        elif self.indexer.has_front():
             self.next_state("reading")
-        if not self.wants_to_intake:
+        elif not self.wants_to_intake:
             self.next_state("stopped")
 
     @state(must_finish=True)
