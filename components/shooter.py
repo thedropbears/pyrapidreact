@@ -1,4 +1,3 @@
-from magicbot import tunable
 import ctre
 import wpilib
 from wpimath.controller import SimpleMotorFeedforwardMeters
@@ -13,11 +12,11 @@ class Shooter:
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
-    motor_speed = tunable(0.0)
+    motor_speed = 0.0
 
-    ff_calculator = SimpleMotorFeedforwardMeters(kS=0.77895, kV=0.12573, kA=0.011205)
+    ff_calculator = SimpleMotorFeedforwardMeters(kS=0.77852, kV=0.12324, kA=0.010329)
     pidF = 0
-    pidP = 0.000187  # 9.2104e-5
+    pidP = 2.2173e-4  # 9.2104e-5
     pidI = 0.0
     pidIZone = 200
     pidD = 0
