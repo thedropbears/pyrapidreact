@@ -71,7 +71,7 @@ class Turret:
     def try_sync(self):
         if not self.has_synced and self.absolute_encoder.isConnected():
             self.motor.setSelectedSensorPosition(
-                self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
+                self.absolute_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
             )
             self.has_synced = True
 
@@ -108,7 +108,7 @@ class Turret:
         )
 
     @magicbot.feedback
-    def raw_absolue_encoder_reading(self):
+    def raw_absolute_encoder_reading(self):
         return self.absolute_encoder.getDistance()
 
     def get_angle_at(self, t: float) -> float:
