@@ -27,13 +27,18 @@ class TargetEstimator:
     field: wpilib.Field2d
 
     def __init__(self) -> None:
-        self.robot_pose: Pose2d = Pose2d(-2, -1, -math.pi / 2)
+        # self.robot_pose: Pose2d = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
         self.pose_history: deque = deque([], maxlen=100)
         # last total displacement
         self.last_imu = Translation2d()
         self.last_odometry = Translation2d()
+        self.yaw_offset = Rotation2d(0)
 
     def setup(self):
+        self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
+        self.last_imu = Translation2d()
+        self.last_odometry = self.chassis.odometry.getPose().translation()
+        # for driversation field display
         self.field_robot = self.field.getRobotObject()
         self.field_robot.setPoses([self.robot_pose, self.robot_pose])
 
@@ -92,25 +97,26 @@ class TargetEstimator:
         ) / total_confidence
         self.robot_pose = Pose2d(
             best_estimate,
-            self.imu.getRotation2d(),
+            self.imu.getRotation2d() + self.yaw_offset,
         )
 
         self.field_robot.setPoses(
             [
                 goal_to_field(x)
                 for x in [
-                    Pose2d(
-                        imu_displacement,
-                        self.imu.getRotation2d(),
-                    ),
-                    Pose2d(
-                        odometry_displacement,
-                        self.imu.getRotation2d(),
-                    ),
-                    Pose2d(
-                        vis_estimate,
-                        self.imu.getRotation2d(),
-                    ),
+                    # Pose2d(
+                    #     imu_displacement,
+                    #     self.imu.getRotation2d(),
+                    # ),
+                    # Pose2d(
+                    #     odometry_displacement,
+                    #     self.imu.getRotation2d(),
+                    # ),
+                    # Pose2d(
+                    #     vis_estimate,
+                    #     self.imu.getRotation2d(),
+                    # ),
+                    self.robot_pose
                 ]
             ]
         )
@@ -156,5 +162,7 @@ class TargetEstimator:
 
     def set_pose(self, pose: Pose2d):
         self.robot_pose = pose
-        self.chassis.set_odometry(pose)
         self.imu.resetDisplacement()
+        self.imu.zeroYaw()
+        self.chassis.set_odometry(pose)
+        self.yaw_offset = pose.rotation()

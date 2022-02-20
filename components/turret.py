@@ -17,7 +17,7 @@ class Turret:
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
     # pidF = 0.71901 / 12 * 1023 / 10 * math.tau / COUNTS_PER_MOTOR_REV
-    pidF = 0.2
+    pidF = 0.6
     pidP = 1
     pidI = 0.0
     pidIZone = 200
