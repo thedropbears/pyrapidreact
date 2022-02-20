@@ -8,7 +8,7 @@ from utilities.functions import constrain_angle
 
 class Turret:
     motor: ctre.TalonSRX
-    turret_absolute_encoder: DutyCycleEncoder
+    absolute_encoder: DutyCycleEncoder
 
     pidF = 0.2
     pidP = 1.0
@@ -59,7 +59,7 @@ class Turret:
         self.motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
-        self.turret_absolute_encoder.setDistancePerRotation(math.tau)
+        self.absolute_encoder.setDistancePerRotation(math.tau)
 
     def on_disable(self):
         self.has_synced = False
@@ -68,7 +68,7 @@ class Turret:
         self.has_synced = False
 
     def try_sync(self):
-        if not self.has_synced and self.turret_absolute_encoder.isConnected():
+        if not self.has_synced and self.absolute_encoder.isConnected():
             self.motor.setSelectedSensorPosition(
                 self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
             )
@@ -104,12 +104,12 @@ class Turret:
     @magicbot.feedback
     def absolute_encoder_reading(self):
         return constrain_angle(
-            -self.turret_absolute_encoder.getDistance() + self.abs_offset
+            -self.absolute_encoder.getDistance() + self.abs_offset
         )
 
     @magicbot.feedback
     def raw_absolue_encoder_reading(self):
-        return self.turret_absolute_encoder.getDistance()
+        return self.absolute_encoder.getDistance()
 
     def get_angle_at(self, t: float) -> float:
         # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
