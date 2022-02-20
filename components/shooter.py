@@ -1,4 +1,3 @@
-from magicbot import tunable
 import ctre
 import wpilib
 from wpimath.controller import SimpleMotorFeedforwardMeters

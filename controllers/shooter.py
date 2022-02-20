@@ -1,5 +1,3 @@
-from components.indexer import Indexer
-from components.intake import Intake
 from components.shooter import Shooter
 import magicbot
 from numpy import interp
