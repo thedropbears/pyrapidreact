@@ -13,8 +13,9 @@ from components.indexer import Indexer
 from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
-from components.vision import Vision
 from controllers.indexer import IndexerController
+from components.vision import Vision
+from components.target_estimator import TargetEstimator
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
@@ -36,6 +37,7 @@ class MyRobot(magicbot.MagicRobot):
     shooter: Shooter
     turret: Turret
     vision: Vision
+    target_estimator: TargetEstimator
 
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
@@ -57,6 +59,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_right_motor = ctre.TalonFX(10)
 
         self.turret_motor = ctre.TalonSRX(15)
+        self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)
 
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
         # self.intake_piston = wpilib.Solenoid(0, )
@@ -98,6 +101,8 @@ class MyRobot(magicbot.MagicRobot):
             [module.get_motor_angle() for module in self.chassis.modules],
         )
 
+        self.turret.try_sync()
+
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
@@ -123,10 +128,6 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_field(joystick_x, joystick_y, joystick_z)
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
-
-        # Reset the heading when button 7 is pressed
-        if self.joystick.getRawButtonPressed(7):
-            self.imu.reset()
 
         if self.joystick.getTriggerPressed():
             self.indexer_control.wants_to_fire = True

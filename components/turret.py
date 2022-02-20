@@ -2,27 +2,31 @@ from collections import deque
 import ctre
 import magicbot
 import math
+from wpilib import DutyCycleEncoder
+from utilities.functions import constrain_angle
 
 
 class Turret:
     motor: ctre.TalonSRX
-
-    pidF = 0.2
-    pidP = 1.0
-    pidI = 0.005
-    pidIZone = 200
-    pidD = 4.0
+    absolute_encoder: DutyCycleEncoder
 
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
-    GEAR_REDUCTION = 240 / 24
+    GEAR_REDUCTION = 240 / 60
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
-    SLEW_CRUISE_VELOCITY = 5 * COUNTS_PER_TURRET_RADIAN / 10
-    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
+    # pidF = 0.71901 / 12 * 1023 / 10 * math.tau / COUNTS_PER_MOTOR_REV
+    pidF = 1
+    pidP = 3
+    pidI = 0.0
+    pidIZone = 200
+    pidD = 3  # 1.109
 
-    target = 0
+    SLEW_CRUISE_VELOCITY = 2 * COUNTS_PER_TURRET_RADIAN / 10
+    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.2)
+
+    target = magicbot.tunable(0.0)
     control_loop_wait_time: float
 
     # max rotation either side of zero
@@ -30,12 +34,14 @@ class Turret:
 
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
+        self.has_synced = False
+        self.abs_offset = 2.68
 
     def setup(self):
         self.motor.configFactoryDefault()
 
         # Positive motion is counterclockwise from above.
-        self.motor.setInverted(True)
+        self.motor.setInverted(False)
         # set the peak and nominal outputs
         self.motor.configNominalOutputForward(0, 10)
         self.motor.configNominalOutputReverse(0, 10)
@@ -54,12 +60,23 @@ class Turret:
         self.motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
+        self.absolute_encoder.setDistancePerRotation(-math.tau)
 
-        # replace 0 with absolute encoder position
-        self.motor.setSelectedSensorPosition(0)
+    def on_disable(self):
+        self.has_synced = False
+
+    def on_enable(self):
+        self.has_synced = False
+        self.try_sync()
+
+    def try_sync(self):
+        if not self.has_synced and self.absolute_encoder.isConnected():
+            self.motor.setSelectedSensorPosition(
+                self.absolute_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
+            )
+            self.has_synced = True
 
     def execute(self) -> None:
-        self.target += 0.8 / 50
         # constrain in a way that allows a bit of overlap
         while self.target > self.MAX_ROTATION:
             self.target -= math.tau
@@ -83,6 +100,10 @@ class Turret:
     @magicbot.feedback
     def get_angle(self):
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
+
+    @magicbot.feedback
+    def absolute_encoder_reading(self) -> float:
+        return constrain_angle(self.absolute_encoder.getDistance() + self.abs_offset)
 
     def get_angle_at(self, t: float) -> float:
         # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)

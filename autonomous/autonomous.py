@@ -6,6 +6,7 @@ import wpilib
 
 from components.chassis import Chassis
 from components.indexer import Indexer
+from components.target_estimator import TargetEstimator
 from controllers.shooter import ShooterController
 from utilities import trajectory_generator
 import math
@@ -17,6 +18,7 @@ class AutoBase(AutonomousStateMachine):
     if it has a ball it stops before the next waypoint to fire it, otherwise dosent stop"""
 
     chassis: Chassis
+    target_estimator: TargetEstimator
     indexer: Indexer
     shooter_control: ShooterController
 
@@ -67,8 +69,7 @@ class AutoBase(AutonomousStateMachine):
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
     def on_enable(self):
-        print("on enable")
-        self.chassis.set_odometry(self.waypoints[0])
+        self.target_estimator.set_pose(self.waypoints[0])
 
         self.last_pose = self.waypoints[0]
         # generates initial velocity profile
