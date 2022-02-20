@@ -12,8 +12,8 @@ class ShooterController:
     flywheel_speed = magicbot.tunable(0.0)
 
     dist = magicbot.tunable(2.0)
-    ranges_xp = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
-    flywheel_speed_fp = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
+    ranges_lookup = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
+    flywheel_speed_lookup = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
 
     def execute(self):
 
@@ -21,5 +21,5 @@ class ShooterController:
             self.shooter.motor_speed = self.flywheel_speed
         else:
             self.shooter.motor_speed = interp(
-                self.dist, self.ranges_xp, self.flywheel_speed_fp
+                self.dist, self.ranges_lookup, self.flywheel_speed_lookup
             )
