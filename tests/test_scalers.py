@@ -34,8 +34,8 @@ real_halves = floats(allow_nan=False, allow_infinity=False, width=16)
     value=real_halves,
     input_range=tuples(real_halves, real_halves).filter(lambda x: x[0] != x[1]),
     output_range=tuples(real_halves, real_halves)
-    .map(sorted)
-    .filter(lambda x: x[0] < x[1]),
+    .filter(lambda x: x[0] != x[1])
+    .map(sorted),
 )
 def test_scale_value(
     value: float,
