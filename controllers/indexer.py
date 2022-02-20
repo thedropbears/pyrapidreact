@@ -61,7 +61,7 @@ class IndexerController(StateMachine):
     @timed_state(duration=1, next_state="stopped", must_finish=True)
     def clearing(self) -> None:
         self.indexer.set(-1, 0)
-        self.intake.set(-1)  # TODO: and/or raise intake
+        self.intake.set(-1)
         self.wants_to_intake = False
 
     @timed_state(duration=10.0, next_state="stopped", must_finish=True)
@@ -88,6 +88,7 @@ class IndexerController(StateMachine):
             self.indexer.set(1, 1)
 
     def check_firing(self) -> bool:
+        """Checks if we want to be firing right now"""
         return self.wants_to_fire and (self.indexer.has_back() or self.remembers_back)
 
     def is_full(self) -> bool:
