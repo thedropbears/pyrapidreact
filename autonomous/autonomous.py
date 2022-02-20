@@ -95,7 +95,7 @@ class AutoBase(AutonomousStateMachine):
     @state(first=True)
     def move(self, tm):
         # always be trying to fire
-        self.shooter_control.fire_input()
+        # self.shooter_control.fire_input()
         # calculate speed and position from current trapazoidal profile
         trap_time = tm
         linear_state = self.trap_profile.calculate(trap_time)
@@ -147,7 +147,7 @@ class AutoBase(AutonomousStateMachine):
     def stopped(self):
         """Finished moving but still want to be trying to fire,
         needed for second ball at terminal"""
-        self.shooter_control.fire_input()
+        # self.shooter_control.fire_input()
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
