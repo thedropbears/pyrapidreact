@@ -50,7 +50,7 @@ class AutoBase(AutonomousStateMachine):
         # how far around the current position is used to smooth the path
         self.look_around = 0.3
 
-        print(f"[{self.MODE_NAME}] total length {self.total_length}s")
+        self.logger.info(f"[{self.MODE_NAME}] total length {self.total_length}s")
         self.last_pose = self.waypoints[0]
         self.trap_profile_start_time = 0
 
@@ -91,7 +91,7 @@ class AutoBase(AutonomousStateMachine):
             ),
             stop_point,
         )
-        print(f"[{self.MODE_NAME}] generated {ret[0].totalTime()}s")
+        self.logger.info(f"[{self.MODE_NAME}] generated {ret[0].totalTime()}s")
         return ret
 
     @state(first=True)
@@ -108,7 +108,7 @@ class AutoBase(AutonomousStateMachine):
         )  # TODO: change to our error is below value
 
         if is_done:
-            print(f"[{self.MODE_NAME}] Done at {tm}")
+            self.logger.info(f"[{self.MODE_NAME}] Done at {tm}")
             self.next_state("stopped")
 
         # find distance to start and end so look_around can be adjusted to not look beyond edges

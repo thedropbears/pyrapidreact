@@ -49,7 +49,6 @@ class IndexerController(StateMachine):
         self.intake.set(0)
         if state_tm > 0.1:
             if self.indexer.is_front_ours() or self.ignore_colour:
-                print("moving to back")
                 self.next_state("indexing")
             elif not self.trapped:
                 self.trapped = True
@@ -71,7 +70,6 @@ class IndexerController(StateMachine):
             self.wants_to_intake = False
             self.remembers_back = True
             self.next_state("stopped")
-            print("finished indexing")
             return
         self.intake.set(0)
         self.indexer.set(1, 1)
