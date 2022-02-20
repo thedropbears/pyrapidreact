@@ -26,6 +26,7 @@ class Intake:
         #     self.intake_piston.set(True)
         # else:
         #     self.intake_piston.set(False)
+
     @magicbot.feedback
     def has_ball(self) -> bool:
         return self.intake_limit.get()
