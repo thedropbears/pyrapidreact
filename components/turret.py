@@ -66,6 +66,7 @@ class Turret:
 
     def on_enable(self):
         self.has_synced = False
+        self.try_sync()
 
     def try_sync(self):
         if not self.has_synced and self.absolute_encoder.isConnected():
