@@ -3,6 +3,7 @@ import ctre
 import magicbot
 import math
 from wpilib import DutyCycleEncoder
+from utilities.functions import constrain_angle
 
 
 class Turret:
@@ -32,12 +33,14 @@ class Turret:
 
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
+        self.has_synced = False
+        self.abs_offset = 2.6
 
     def setup(self):
         self.motor.configFactoryDefault()
 
         # Positive motion is counterclockwise from above.
-        self.motor.setInverted(True)
+        self.motor.setInverted(False)
         # set the peak and nominal outputs
         self.motor.configNominalOutputForward(0, 10)
         self.motor.configNominalOutputReverse(0, 10)
@@ -57,14 +60,20 @@ class Turret:
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
         self.turret_absolute_encoder.setDistancePerRotation(math.tau)
-        self.motor.setSelectedSensorPosition(
-            self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
-        )
 
     def on_disable(self):
-        self.motor.setSelectedSensorPosition(
-            self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
-        )
+        self.has_synced = False
+
+    def on_enable(self):
+        self.has_synced = False
+
+    def try_sync(self):
+        if not self.has_synced and self.turret_absolute_encoder.isConnected():
+            self.motor.setSelectedSensorPosition(
+                self.absolue_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
+            )
+            print(f"synced turret encoders: {self.absolue_encoder_reading()}")
+            self.has_synced = True
 
     def execute(self) -> None:
         self.target += 0.8 / 50
@@ -94,6 +103,12 @@ class Turret:
 
     @magicbot.feedback
     def absolue_encoder_reading(self):
+        return constrain_angle(
+            -self.turret_absolute_encoder.getDistance() + self.abs_offset
+        )
+
+    @magicbot.feedback
+    def raw_absolue_encoder_reading(self):
         return self.turret_absolute_encoder.getDistance()
 
     def get_angle_at(self, t: float) -> float:

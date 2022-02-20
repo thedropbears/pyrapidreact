@@ -57,7 +57,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_right_motor = ctre.TalonFX(10)
 
         self.turret_motor = ctre.TalonSRX(15)
-        self.turret_absolute_encoder = wpilib.DutyCycleEncoder(2)
+        self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)
 
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
         # self.intake_piston = wpilib.Solenoid(0, )
@@ -98,6 +98,8 @@ class MyRobot(magicbot.MagicRobot):
             "swerve_relative_encoder",
             [module.get_motor_angle() for module in self.chassis.modules],
         )
+
+        self.turret.try_sync()
 
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
@@ -140,9 +142,6 @@ class MyRobot(magicbot.MagicRobot):
         # manually clear ball
         if self.joystick.getRawButtonPressed(11):
             self.shooter_control.clear_input()
-
-        if self.joystick.getRawButtonPressed(10):
-            self.turret_absolute_encoder.reset()
 
     def testPeriodic(self) -> None:
         pass
