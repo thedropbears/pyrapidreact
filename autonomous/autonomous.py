@@ -95,7 +95,7 @@ class AutoBase(AutonomousStateMachine):
     @state(first=True)
     def move(self, tm):
         # always be trying to fire
-        # self.shooter_control.fire_input()
+        self.shooter_control.wants_to_fire = True
         # calculate speed and position from current trapazoidal profile
         trap_time = tm
         linear_state = self.trap_profile.calculate(trap_time)
