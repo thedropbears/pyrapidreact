@@ -59,7 +59,7 @@ class Turret:
         self.motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
-        self.absolute_encoder.setDistancePerRotation(math.tau)
+        self.absolute_encoder.setDistancePerRotation(-math.tau)
 
     def on_disable(self):
         self.has_synced = False
@@ -104,7 +104,7 @@ class Turret:
     @magicbot.feedback
     def absolute_encoder_reading(self):
         return constrain_angle(
-            -self.absolute_encoder.getDistance() + self.abs_offset
+            self.absolute_encoder.getDistance() + self.abs_offset
         )
 
     @magicbot.feedback
