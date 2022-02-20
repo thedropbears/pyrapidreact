@@ -107,10 +107,6 @@ class Turret:
             self.absolute_encoder.getDistance() + self.abs_offset
         )
 
-    @magicbot.feedback
-    def raw_absolute_encoder_reading(self):
-        return self.absolute_encoder.getDistance()
-
     def get_angle_at(self, t: float) -> float:
         # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
         # if loops_ago >= len(self.angle_history):
