@@ -2,13 +2,14 @@ from collections import deque
 from components.chassis import Chassis
 from components.turret import Turret
 from components.vision import Vision
-from typing import Tuple
+from typing import Tuple, Deque
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 from utilities.functions import constrain_angle
 from utilities.trajectory_generator import goal_to_field
 import navx
 import wpilib
 import math
+from numpy import interp
 
 from utilities.scalers import scale_value
 
@@ -26,9 +27,17 @@ class TargetEstimator:
     control_loop_wait_time: float
     field: wpilib.Field2d
 
+    ranges_lookup = [3, 4, 5, 6, 7, 8, 9]
+    # TODO: fill out with real values
+    # flight times of ball from leaving leaving shooter to entering goal
+    times_lookup = [1, 1.5, 2, 2.5, 3, 3.5, 4]
+
+    # number of control loops to use to estimate the velocity
+    velocity_window = 2
+
     def __init__(self) -> None:
         # self.robot_pose: Pose2d = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
-        self.pose_history: deque = deque([], maxlen=100)
+        self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
         # last total displacement
         self.last_imu = Translation2d()
         self.last_odometry = Translation2d()
@@ -123,15 +132,23 @@ class TargetEstimator:
 
         self.last_imu = imu_displacement
         self.last_odometry = odometry_displacement
+        self.pose_history.appendleft(self.robot_pose)
 
     def to_target(self) -> Tuple[float, float]:
         """Returns angle and distance to shoot at to hit the target"""
-        # TODO: adjust for leading shots
-        field_angle = math.atan2(
-            -self.robot_pose.Y(), -self.robot_pose.X()
-        )  # may need to flip / convert
+        cur_velocity = (
+            self.robot_pose.translation()
+            - self.pose_history[self.velocity_window].translation()
+        ) / self.control_loop_wait_time
+        effective_pose = self.robot_pose.translation()
+        for _ in range(3):
+            distance = effective_pose.translation().distance(Translation2d(0, 0))
+            flight_time = interp(distance, self.ranges_lookup, self.times_lookup)
+            effective_pose = self.robot_pose.translation() + flight_time * cur_velocity
+        field_angle = math.atan2(-effective_pose.x, -effective_pose.y)
         local_angle = field_angle - self.robot_pose.rotation().radians()
-        return local_angle, self.robot_pose.translation().distance(Translation2d(0, 0))
+        distance = effective_pose.translation().distance(Translation2d(0, 0))
+        return local_angle, distance
 
     def to_x(self) -> Tuple[float, float]:
         """Returns the positive x direction on the field to test turret"""
@@ -162,6 +179,7 @@ class TargetEstimator:
 
     def set_pose(self, pose: Pose2d):
         self.robot_pose = pose
+        self.pose_history = deque([pose], maxlen=100)
         self.imu.resetDisplacement()
         self.imu.zeroYaw()
         self.chassis.set_odometry(pose)
