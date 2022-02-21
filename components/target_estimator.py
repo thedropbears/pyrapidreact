@@ -33,6 +33,7 @@ class TargetEstimator:
         self.last_imu = Translation2d()
         self.last_odometry = Translation2d()
         self.yaw_offset = Rotation2d(0)
+        self.robot_pose = Pose2d()  # position of the middle of the robot
 
     def setup(self):
         self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
@@ -159,6 +160,14 @@ class TargetEstimator:
         # TODO: currently uses center of robot, could offset by turret position on robot and
         # calculate exactly where the camera is based on turret angle
         return Pose2d(vis_taken_at_pose.translation(), Rotation2d(vis_taken_at_angle))
+
+    def robot_to_world(self, offset: Translation2d) -> Pose2d:
+        """Transforms a translation from robot space to world space (e.g. turret position)"""
+        return Pose2d(
+            self.robot_pose.translation()
+            + offset.translation().rotateBy(self.robot_pose.rotation()),
+            self.robot_pose.rotation(),
+        )
 
     def set_pose(self, pose: Pose2d):
         self.robot_pose = pose
