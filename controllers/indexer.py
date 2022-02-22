@@ -25,7 +25,7 @@ class IndexerController(StateMachine):
         self.indexer.set_chute(False)
         self.indexer.set(0, 0)
         self.intake.set(0)
-        if self.check_firing():
+        if self.should_fire():
             self.next_state("firing")
         elif self.wants_to_intake and not self.is_full():
             self.next_state("intaking")
@@ -36,7 +36,7 @@ class IndexerController(StateMachine):
     def intaking(self) -> None:
         self.indexer.set(1, 0)
         self.intake.set(1)
-        if self.check_firing():
+        if self.should_fire():
             self.next_state("firing")
         elif self.indexer.has_front():
             self.next_state("reading")
@@ -85,7 +85,7 @@ class IndexerController(StateMachine):
         if state_tm > 0.1:
             self.indexer.set(1, 1)
 
-    def check_firing(self) -> bool:
+    def should_fire(self) -> bool:
         """Checks if we want to be firing right now"""
         return self.wants_to_fire and (self.indexer.has_back() or self.remembers_back)
 
