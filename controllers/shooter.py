@@ -28,7 +28,6 @@ class ShooterController:
 
     def execute(self):
         angle, self.distance = self.target_estimator.to_target()
-        self.distance -= 0.3  # TODO: calculate properly based on robot heading
         if angle is not None:
             self.turret.slew_local(angle)
 

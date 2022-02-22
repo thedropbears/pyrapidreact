@@ -172,7 +172,7 @@ red_balls = [
     (-0.850, -3792),  # right
 ]
 # start positions
-right_mid_start = Pose2d(-0.611, -2.319, Rotation2d.fromDegrees(-88.5))
+right_mid_start = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
 right_left_start = Pose2d(-1.846, -1.555, Rotation2d.fromDegrees(-133.5))
 left_mid_start = Pose2d(-2.273, 1.090, Rotation2d.fromDegrees(136.5))
 
@@ -202,7 +202,7 @@ class FiveBall(AutoBase):
             right_mid_start,
             Pose2d(-0.711, -3.5, -math.pi / 2),  # 3
             Pose2d(-2.789, -2.378, Rotation2d.fromDegrees(-206)),  # 2
-            Pose2d(-6.85, -2.681, Rotation2d.fromDegrees(-136)),  # 4
+            Pose2d(-6.813, -2.681, Rotation2d.fromDegrees(-136)),  # 4
         ]
         super().__init__()
 

@@ -130,12 +130,7 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
         if self.joystick.getTriggerPressed():
-            if self.joystick.getRawButton(6):
-                # force fire
-                self.indexer_control.wants_to_fire = True
-            else:
-                # only fires if aimed and ready
-                self.shooter_control.wants_to_fire = True
+            self.shooter_control.wants_to_fire = True
 
         if self.joystick.getRawButtonPressed(2):  # thumb button
             self.indexer_control.wants_to_intake = (
