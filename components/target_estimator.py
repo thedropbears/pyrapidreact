@@ -2,7 +2,7 @@ from collections import deque
 from components.chassis import Chassis
 from components.turret import Turret
 from components.vision import Vision
-from typing import Tuple
+from typing import Optional, Tuple
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 from utilities.functions import constrain_angle
 from utilities.trajectory_generator import goal_to_field
@@ -26,6 +26,11 @@ class TargetEstimator:
     control_loop_wait_time: float
     field: wpilib.Field2d
 
+    turret_offset = Translation2d(-0.148, 0)  # From CAD
+    imu_offset = Translation2d(0, 0)
+    # camera offset in front of turret
+    camera_offset = 0.316
+
     def __init__(self) -> None:
         # self.robot_pose: Pose2d = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
         self.pose_history: deque = deque([], maxlen=100)
@@ -33,6 +38,7 @@ class TargetEstimator:
         self.last_imu = Translation2d()
         self.last_odometry = Translation2d()
         self.yaw_offset = Rotation2d(0)
+        self.robot_pose = Pose2d()  # position of the middle of the robot
 
     def setup(self):
         self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
@@ -127,8 +133,9 @@ class TargetEstimator:
     def to_target(self) -> Tuple[float, float]:
         """Returns angle and distance to shoot at to hit the target"""
         # TODO: adjust for leading shots
+        turret_pose = self.robot_to_world(self.turret_offset)
         field_angle = math.atan2(
-            -self.robot_pose.Y(), -self.robot_pose.X()
+            -turret_pose.Y(), -turret_pose.X()
         )  # may need to flip / convert
         local_angle = field_angle - self.robot_pose.rotation().radians()
         return local_angle, self.robot_pose.translation().distance(Translation2d(0, 0))
@@ -152,13 +159,31 @@ class TargetEstimator:
 
     def get_vis_pose_at(self, t: float) -> Pose2d:
         """Gets where the camera was at t"""
-        vis_taken_at_pose = self.get_pose_at(t)
-        vis_taken_at_angle = (
-            vis_taken_at_pose.rotation().radians() + self.turret.get_angle_at(t)
+        robot_pose = self.get_pose_at(t)
+        turret_translation = self.robot_to_world(
+            self.turret_offset, robot_pose
+        ).translation()
+        taken_at_angle = Rotation2d(
+            robot_pose.rotation().radians() + self.turret.get_angle_at(t)
         )
-        # TODO: currently uses center of robot, could offset by turret position on robot and
-        # calculate exactly where the camera is based on turret angle
-        return Pose2d(vis_taken_at_pose.translation(), Rotation2d(vis_taken_at_angle))
+        camera_translation = turret_translation + Translation2d(
+            distance=self.camera_offset, angle=taken_at_angle
+        )
+        return Pose2d(
+            camera_translation,
+            taken_at_angle,
+        )
+
+    def robot_to_world(
+        self, offset: Translation2d, robot: Optional[Pose2d] = None
+    ) -> Pose2d:
+        """Transforms a translation from robot space to world space (e.g. turret position)"""
+        if robot is None:
+            robot = self.robot_pose
+        return Pose2d(
+            self.robot_pose.translation() + offset.rotateBy(self.robot_pose.rotation()),
+            self.robot_pose.rotation(),
+        )
 
     def set_pose(self, pose: Pose2d):
         self.robot_pose = pose
