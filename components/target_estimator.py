@@ -26,7 +26,7 @@ class TargetEstimator:
     control_loop_wait_time: float
     field: wpilib.Field2d
 
-    turret_offset: Translation2d(-0.3, 0)
+    turret_offset: Translation2d(-0.148, 0)  # From CAD
     imu_offset: Translation2d(0, 0)
     # camera sits 20 in front of turret
     # beacuse the turret points at the target we can just take this off dist
