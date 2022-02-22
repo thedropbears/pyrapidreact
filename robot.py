@@ -130,16 +130,12 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
         if self.joystick.getTriggerPressed():
-            self.indexer_control.wants_to_fire = True
+            self.shooter_control.wants_to_fire = True
 
-        if self.joystick.getRawButtonPressed(2):
+        if self.joystick.getRawButtonPressed(2):  # thumb button
             self.indexer_control.wants_to_intake = (
                 not self.indexer_control.wants_to_intake
             )
-
-        # manually clear ball
-        if self.joystick.getRawButtonPressed(11):
-            self.shooter_control.clear_input()
 
     def testPeriodic(self) -> None:
         pass

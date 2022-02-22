@@ -5,9 +5,9 @@ from wpimath.trajectory import TrapezoidProfile
 import wpilib
 
 from components.chassis import Chassis
-from components.indexer import Indexer
 from components.target_estimator import TargetEstimator
 from controllers.shooter import ShooterController
+from controllers.indexer import IndexerController
 from utilities import trajectory_generator
 import math
 from typing import List, Tuple
@@ -19,7 +19,7 @@ class AutoBase(AutonomousStateMachine):
 
     chassis: Chassis
     target_estimator: TargetEstimator
-    indexer: Indexer
+    indexer_control: IndexerController
     shooter_control: ShooterController
 
     field: wpilib.Field2d
@@ -29,7 +29,7 @@ class AutoBase(AutonomousStateMachine):
     def __init__(self):
         super().__init__()
         # applies to the linear speed, not turning
-        self.linear_constraints = TrapezoidProfile.Constraints(0.5, 0.5)
+        self.linear_constraints = TrapezoidProfile.Constraints(1, 1)
 
         self.drive_rotation_constrants = trajectory.TrapezoidProfileRadians.Constraints(
             2, 2
@@ -50,7 +50,6 @@ class AutoBase(AutonomousStateMachine):
         # how far around the current position is used to smooth the path
         self.look_around = 0.3
 
-        print(f"[{self.MODE_NAME}] total length {self.total_length}s")
         self.last_pose = self.waypoints[0]
         self.trap_profile_start_time = 0
 
@@ -83,7 +82,7 @@ class AutoBase(AutonomousStateMachine):
     ) -> Tuple[TrapezoidProfile, float]:
         """Generates a linear trapazoidal trajectory that goes from current state to goal"""
         stop_point = trajectory_generator.total_length(self.waypoints[:goal])
-        return (
+        ret = (
             TrapezoidProfile(
                 self.linear_constraints,
                 goal=TrapezoidProfile.State(stop_point, 0),
@@ -91,19 +90,24 @@ class AutoBase(AutonomousStateMachine):
             ),
             stop_point,
         )
+        self.logger.info(f"generated {ret[0].totalTime()}s")
+        return ret
 
     @state(first=True)
     def move(self, tm):
+        # indexer controller will hanle it self raising and lowering
+        self.indexer_control.wants_to_intake = True
         # always be trying to fire
-        # self.shooter_control.fire_input()
+        self.shooter_control.wants_to_fire = True
         # calculate speed and position from current trapazoidal profile
         trap_time = tm
         linear_state = self.trap_profile.calculate(trap_time)
+        # TODO: change to our error from final position is below value
         is_done = self.trap_profile.isFinished(trap_time)
 
         if is_done:
-            print(f"[{self.MODE_NAME}] Done at {tm}")
-            self.done()
+            self.logger.info(f"Done at {tm}")
+            self.next_state("stopped")
 
         # find distance to start and end so look_around can be adjusted to not look beyond edges
         to_start = linear_state.position - self.trap_profile.calculate(0).position
@@ -147,7 +151,7 @@ class AutoBase(AutonomousStateMachine):
     def stopped(self):
         """Finished moving but still want to be trying to fire,
         needed for second ball at terminal"""
-        # self.shooter_control.fire_input()
+        self.shooter_control.wants_to_fire = True
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
