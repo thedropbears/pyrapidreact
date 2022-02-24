@@ -77,8 +77,6 @@ class SwerveModule:
         steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
         drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
 
-        self.target_angle = 0
-
     def get_angle(self) -> float:
         """Gets steer angle from absolute encoder"""
         return self.encoder.getPosition() + self.encoder_offset
@@ -105,9 +103,9 @@ class SwerveModule:
         target_displacement = constrain_angle(
             desired_state.angle.radians() - current_angle
         )
-        self.target_angle = target_displacement + current_angle
+        target_angle = target_displacement + current_angle
         self.steer.set(
-            ctre.ControlMode.Position, self.target_angle * self.STEER_RAD_TO_SENSOR
+            ctre.ControlMode.Position, target_angle * self.STEER_RAD_TO_SENSOR
         )
 
         # rescale the speed target based on how close we are to being correctly aligned
