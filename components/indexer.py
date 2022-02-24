@@ -16,8 +16,8 @@ class Indexer:
     indexer_tunnel_motor: rev.CANSparkMax
     indexer_chimney_motor: rev.CANSparkMax
     colour_sensor: rev.ColorSensorV3
-    tunnel_prox_sensor: wpilib.DigitalInput
-    chimney_prox_sensor: wpilib.DigitalInput
+    lower_chimney_prox_sensor: wpilib.DigitalInput
+    upper_chimney_prox_sensor: wpilib.DigitalInput
     cat_flap_piston: wpilib.DoubleSolenoid
 
     is_firing = tunable(False)
@@ -52,7 +52,7 @@ class Indexer:
 
     @feedback
     def has_cargo_in_chimney(self) -> bool:
-        return not self.tunnel_prox_sensor.get() or not self.chimney_prox_sensor.get()
+        return not self.lower_chimney_prox_sensor.get() or not self.upper_chimney_prox_sensor.get()
 
     @feedback
     def has_cargo_in_tunnel(self) -> bool:
