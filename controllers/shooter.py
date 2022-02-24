@@ -17,9 +17,6 @@ class ShooterController(StateMachine):
     interpolation_override = tunable(False)
     flywheel_speed = tunable(0.0)
 
-    allowed_flywheel_error = tunable(20.0)
-    allowed_bearing_error = tunable(0.2)
-
     distance = 0.0
     ranges_lookup = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     flywheel_speed_lookup = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
@@ -42,8 +39,8 @@ class ShooterController(StateMachine):
         if (
             self._wants_to_fire
             and self.indexer.has_cargo_in_chimney()
-            and abs(self.shooter.flywheel_error()) < self.allowed_flywheel_error
-            and abs(self.turret.get_error()) < self.allowed_bearing_error
+            and self.shooter.is_at_speed()
+            and self.turret.is_on_target()
         ):
             self.next_state("firing")
             # Reset each loop so that the call has to be made each control loop

@@ -13,6 +13,7 @@ class Shooter:
     right_motor: ctre.TalonFX
 
     motor_speed = 0.0
+    allowable_error = magicbot.tunable(20.0)
 
     ff_calculator = SimpleMotorFeedforwardMeters(kS=0.3, kV=0.123, kA=0.0159598)
     pidF = 0
@@ -80,3 +81,6 @@ class Shooter:
     @magicbot.feedback
     def flywheel_error(self):
         return self.motor_speed - self.actual_velocity()
+
+    def is_at_speed(self) -> bool:
+        return abs(self.flywheel_error()) < self.allowable_error
