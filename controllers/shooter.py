@@ -38,8 +38,13 @@ class ShooterController(StateMachine):
             self.shooter.motor_speed = interp(
                 self.distance, self.ranges_lookup, self.flywheel_speed_lookup
             )
-        
-        if self._wants_to_fire and self.indexer.has_cargo_in_chimney() and abs(self.shooter.flywheel_error()) < self.allowed_flywheel_error and abs(self.turret.get_error()) < self.allowed_bearing_error:
+
+        if (
+            self._wants_to_fire
+            and self.indexer.has_cargo_in_chimney()
+            and abs(self.shooter.flywheel_error()) < self.allowed_flywheel_error
+            and abs(self.turret.get_error()) < self.allowed_bearing_error
+        ):
             self.next_state("firing")
             # Reset each loop so that the call has to be made each control loop
             self._wants_to_fire = False

@@ -1,4 +1,3 @@
-from turtle import backward
 import rev
 import wpilib
 from enum import Enum
@@ -39,14 +38,17 @@ class Indexer:
         self.indexer_tunnel_motor.set(self.indexer_speed * self._tunnel_direction)
         self.indexer_chimney_motor.set(self.indexer_speed * self._chimney_direction)
         if self._cat_flap_is_open:
-            self.cat_flap_piston.set(wpilib.DoubleSolenoid.Value.kForward)  # TODO check direction
+            self.cat_flap_piston.set(
+                wpilib.DoubleSolenoid.Value.kForward
+            )  # TODO check direction
         else:
-            self.cat_flap_piston.set(wpilib.DoubleSolenoid.Value.kReverse)  # TODO check direction
+            self.cat_flap_piston.set(
+                wpilib.DoubleSolenoid.Value.kReverse
+            )  # TODO check direction
 
         # Default state is for nothing to be moving and for the cat flap to be down
         self._tunnel_direction = self._chimney_direction = Indexer.Direction.OFF
         self._cat_flap_is_open = False
-
 
     @feedback
     def has_cargo_in_chimney(self) -> bool:
@@ -64,7 +66,9 @@ class Indexer:
     @feedback
     def ready_to_intake(self) -> bool:
         # We cannot have a cargo in the tunnel, and we can't already have two cargo (one in chimney and one trapped)
-        return not self.has_cargo_in_tunnel() and not (self.has_cargo_in_chimney() and self.has_trapped_cargo)
+        return not self.has_cargo_in_tunnel() and not (
+            self.has_cargo_in_chimney() and self.has_trapped_cargo
+        )
 
     @feedback
     def get_colours(self) -> str:

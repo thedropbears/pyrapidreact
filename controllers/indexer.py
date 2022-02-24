@@ -1,5 +1,3 @@
-from ast import Index
-from re import I
 from components.indexer import Indexer
 from magicbot import (
     StateMachine,
@@ -23,8 +21,11 @@ class IndexerController(StateMachine):
     def stopped(self) -> None:
         # By default the indexer does nothing and has the cat flap closed, so we can do nothing too!
 
-         # We need to check if we should be moving a ball from the tunnel to the chimney
-        if self.indexer.has_cargo_in_tunnel() and not self.indexer.has_cargo_in_chimney():
+        # We need to check if we should be moving a ball from the tunnel to the chimney
+        if (
+            self.indexer.has_cargo_in_tunnel()
+            and not self.indexer.has_cargo_in_chimney()
+        ):
             # We can just check the indexer prox sensors, because opposition cargo is rejected before
             # returning to the "stopped" state, so it is guaranteed to be our cargo
             self.next_state("transferring_to_chimney")
@@ -54,7 +55,7 @@ class IndexerController(StateMachine):
     @timed_state(duration=1, next_state="stopped", must_finish=True)
     def clearing(self) -> None:
         self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
-        
+
     @timed_state(duration=10.0, next_state="stopped", must_finish=True)
     def transferring_to_chimney(self) -> None:
         if self.indexer.has_cargo_in_chimney():
