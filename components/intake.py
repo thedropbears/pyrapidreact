@@ -1,4 +1,3 @@
-import magicbot
 import rev
 import wpilib
 
