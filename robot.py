@@ -62,15 +62,16 @@ class MyRobot(magicbot.MagicRobot):
         self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)
 
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
-        # self.intake_piston = wpilib.Solenoid(0, )
-        self.indexer_front_motor = rev.CANSparkMax(
+        self.intake_piston = wpilib.DoubleSolenoid(2, 3)  # TODO check port numbers
+        self.indexer_tunnel_motor = rev.CANSparkMax(
             2, rev.CANSparkMax.MotorType.kBrushless
         )
-        self.indexer_back_motor = rev.CANSparkMax(
+        self.indexer_chimney_motor = rev.CANSparkMax(
             3, rev.CANSparkMax.MotorType.kBrushless
         )
-        self.indexer_prox_sensor2 = wpilib.DigitalInput(8)
-        self.indexer_prox_sensor1 = wpilib.DigitalInput(6)
+        self.chimney_prox_sensor = wpilib.DigitalInput(8)
+        self.tunnel_prox_sensor = wpilib.DigitalInput(6)
+        self.cat_flap_piston = wpilib.DoubleSolenoid(0, 1)  # TODO correct port numbers
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
         self.field = wpilib.Field2d()
@@ -130,12 +131,16 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
         if self.joystick.getTriggerPressed():
-            self.shooter_control.wants_to_fire = True
+            self.shooter_control.fire()
 
-        if self.joystick.getRawButtonPressed(2):  # thumb button
-            self.indexer_control.wants_to_intake = (
-                not self.indexer_control.wants_to_intake
-            )
+        if self.joystick.getRawButtonPressed(2):
+            if self.intake.deployed:
+                self.intake.deployed = False
+                if self.indexer_control.current_state == "intaking":
+                    self.indexer_control.stop()
+            elif self.indexer.ready_to_intake():
+                self.indexer_control.wants_to_intake = True
+                self.intake.deployed = True
 
     def testPeriodic(self) -> None:
         pass
