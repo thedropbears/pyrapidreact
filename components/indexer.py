@@ -52,7 +52,10 @@ class Indexer:
 
     @feedback
     def has_cargo_in_chimney(self) -> bool:
-        return not self.lower_chimney_prox_sensor.get() or not self.upper_chimney_prox_sensor.get()
+        return (
+            not self.lower_chimney_prox_sensor.get()
+            or not self.upper_chimney_prox_sensor.get()
+        )
 
     @feedback
     def has_cargo_in_tunnel(self) -> bool:

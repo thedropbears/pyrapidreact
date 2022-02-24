@@ -73,7 +73,9 @@ class MyRobot(magicbot.MagicRobot):
         )
         self.upper_chimney_prox_sensor = wpilib.DigitalInput(8)
         self.lower_chimney_prox_sensor = wpilib.DigitalInput(6)
-        self.cat_flap_piston = wpilib.DoubleSolenoid(wpilib.PneumaticsModuleType.CTREPCM, 0, 1)  # TODO correct port numbers
+        self.cat_flap_piston = wpilib.DoubleSolenoid(
+            wpilib.PneumaticsModuleType.CTREPCM, 0, 1
+        )  # TODO correct port numbers
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
         self.field = wpilib.Field2d()
