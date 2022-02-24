@@ -36,6 +36,8 @@ class Shooter:
 
     MAX_MOTOR_SPEED = 6000 / 60
 
+    COMPENSATED_VOLTAGE = 11.0
+
     def setup(self):
         self.left_motor.setInverted(False)
         self.right_motor.setInverted(True)
@@ -47,7 +49,7 @@ class Shooter:
             motor.configFactoryDefault()
             motor.setNeutralMode(ctre.NeutralMode.Coast)
 
-            motor.configVoltageCompSaturation(12, timeoutMs=10)
+            motor.configVoltageCompSaturation(self.COMPENSATED_VOLTAGE, timeoutMs=10)
             motor.enableVoltageCompensation(True)
 
             motor.config_kF(0, self.pidF, 10)
@@ -65,13 +67,13 @@ class Shooter:
             ctre.ControlMode.Velocity,
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
             ctre.DemandType.ArbitraryFeedForward,
-            feed_forward / 12,
+            feed_forward / self.COMPENSATED_VOLTAGE,
         )
         self.left_motor.set(
             ctre.ControlMode.Velocity,
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
             ctre.DemandType.ArbitraryFeedForward,
-            feed_forward / 12,
+            feed_forward / self.COMPENSATED_VOLTAGE,
         )
 
     @magicbot.feedback
