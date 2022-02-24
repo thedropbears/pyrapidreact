@@ -62,7 +62,7 @@ class MyRobot(magicbot.MagicRobot):
         self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)
 
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
-        self.intake_piston = wpilib.DoubleSolenoid(2, 3)  # TODO check port numbers
+        self.intake_piston = wpilib.DoubleSolenoid(wpilib.PneumaticsModuleType.CTREPCM, 2, 3)  # TODO check port numbers
         self.indexer_tunnel_motor = rev.CANSparkMax(
             2, rev.CANSparkMax.MotorType.kBrushless
         )
