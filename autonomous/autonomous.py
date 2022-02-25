@@ -60,12 +60,12 @@ class AutoBase(AutonomousStateMachine):
             self.max_speed, self.max_accel
         )
 
-        self.drive_rotation_constrants = trajectory.TrapezoidProfileRadians.Constraints(
+        self.drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(
             2, 2
         )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
-            2, 0, 0, self.drive_rotation_constrants
+            2, 0, 0, self.drive_rotation_constraints
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
