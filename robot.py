@@ -63,7 +63,7 @@ class MyRobot(magicbot.MagicRobot):
 
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
         self.intake_piston = wpilib.DoubleSolenoid(
-            wpilib.PneumaticsModuleType.CTREPCM, 2, 3
+            wpilib.PneumaticsModuleType.CTREPCM, 1, 3
         )  # TODO check port numbers
         self.indexer_tunnel_motor = rev.CANSparkMax(
             2, rev.CANSparkMax.MotorType.kBrushless
@@ -74,7 +74,7 @@ class MyRobot(magicbot.MagicRobot):
         self.upper_chimney_prox_sensor = wpilib.DigitalInput(8)
         self.lower_chimney_prox_sensor = wpilib.DigitalInput(6)
         self.cat_flap_piston = wpilib.DoubleSolenoid(
-            wpilib.PneumaticsModuleType.CTREPCM, 0, 1
+            wpilib.PneumaticsModuleType.CTREPCM, 0, 2
         )  # TODO correct port numbers
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
