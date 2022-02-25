@@ -103,7 +103,7 @@ class Turret:
     def get_angle(self):
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
-    def get_error(self):
+    def get_error(self) -> float:
         return self.get_angle() - self.target
 
     def is_on_target(self) -> bool:

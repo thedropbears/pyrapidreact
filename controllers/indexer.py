@@ -44,7 +44,10 @@ class IndexerController(StateMachine):
     def reading(self, state_tm) -> None:
         if state_tm > 0.1:
             if self.indexer.has_opposition_cargo_in_tunnel() and not self.ignore_colour:
-                if self.indexer.has_trapped_cargo or self.indexer.has_cargo_in_chimney():
+                if (
+                    self.indexer.has_trapped_cargo
+                    or self.indexer.has_cargo_in_chimney()
+                ):
                     self.next_state("clearing")
                 else:
                     self.next_state("trapping")

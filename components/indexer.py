@@ -36,7 +36,9 @@ class Indexer:
 
     def execute(self) -> None:
         self.indexer_tunnel_motor.set(self.indexer_speed * self._tunnel_direction.value)
-        self.indexer_chimney_motor.set(self.indexer_speed * self._chimney_direction.value)
+        self.indexer_chimney_motor.set(
+            self.indexer_speed * self._chimney_direction.value
+        )
         if self._cat_flap_is_open:
             self.cat_flap_piston.set(
                 wpilib.DoubleSolenoid.Value.kForward
