@@ -75,9 +75,10 @@ class Indexer:
     @feedback
     def ready_to_intake(self) -> bool:
         # We cannot have a cargo in the tunnel, and we can't already have two cargo (one in chimney and one trapped)
-        return not self.has_cargo_in_tunnel() and not (
-            self.has_cargo_in_chimney() and self.has_trapped_cargo
-        )
+        if self.has_cargo_in_tunnel() or  (self.has_cargo_in_chimney() and self.has_trapped_cargo):
+             return false
+
+        return true
 
     @feedback
     def get_colours(self) -> str:
