@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 import math
 
@@ -11,7 +12,7 @@ from components.chassis import Chassis
 from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
 from utilities import trajectory_generator
-from typing import List, Union
+from typing import List
 from enum import Enum
 
 
@@ -21,16 +22,19 @@ class WaypointType(Enum):
     WAYPOINT = 2
 
 
-class Waypoint(Pose2d):
+@dataclass
+class Waypoint:
     def __init__(
         self,
         x: float,
         y: float,
-        angle: Union[float, Rotation2d],
+        angle: float,
         waypoint_type: WaypointType = WaypointType.WAYPOINT,
     ):
+        """x, y: field position in meters
+        angle: robot angle in degrees"""
+        self.pose = Pose2d(x, y, Rotation2d.fromDegrees(angle))
         self.type = waypoint_type
-        super().__init__(x, y, angle)
 
 
 class AutoBase(AutonomousStateMachine):
@@ -43,12 +47,14 @@ class AutoBase(AutonomousStateMachine):
     logger: logging.Logger
 
     waypoints: List[Waypoint]
+    waypoints_poses: List[Pose2d]
 
-    max_speed = 1
+    max_speed = 2.5
     max_accel = 1.5
 
     def __init__(self):
         super().__init__()
+        self.waypoints_poses = [w.pose for w in self.waypoints]
         # applies to the linear speed, not turning
         self.linear_constraints = TrapezoidProfile.Constraints(
             self.max_speed, self.max_accel
@@ -63,18 +69,18 @@ class AutoBase(AutonomousStateMachine):
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(0.5, 0, 0),
-            controller.PIDController(0.5, 0, 0),
+            controller.PIDController(1, 0, 0.2),
+            controller.PIDController(1, 0, 0.2),
             rotation_controller,
         )
 
         # all in meters along straight line path
-        self.total_length = trajectory_generator.total_length(self.waypoints)
+        self.total_length = trajectory_generator.total_length(self.waypoints_poses)
         # how far around the current position is used to smooth the path
         self.look_around = 0.3
         self.cur_waypoint = 0
 
-        self.last_pose = self.waypoints[0]
+        self.last_pose = self.waypoints[0].pose
         self.trap_profile_start_time = 0
 
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
@@ -86,7 +92,7 @@ class AutoBase(AutonomousStateMachine):
     def on_enable(self):
         self.chassis.set_pose(self.waypoints[0])
 
-        self.last_pose = self.waypoints[0]
+        self.last_pose = self.waypoints[0].pose
         # generates initial velocity profile
         self.cur_waypoint = 0
         self.trap_profile = self._generate_trap_profile(TrapezoidProfile.State(0, 0))
@@ -116,7 +122,7 @@ class AutoBase(AutonomousStateMachine):
 
         # find current goal pose
         goal_pose = trajectory_generator.smooth_path(
-            self.waypoints,
+            self.waypoints_poses,
             self.look_around,
             linear_state.position,
         )
@@ -169,6 +175,7 @@ class AutoBase(AutonomousStateMachine):
     def move_next_waypoint(self, cur_time):
         """Creates the trapazoidal profile to move to the next waypoint"""
         if self.cur_waypoint >= len(self.waypoints) - 1:
+            self.done()
             return
         # last state in the current profile
         last_end = self.trap_profile.calculate(self.trap_profile.totalTime())
@@ -181,7 +188,7 @@ class AutoBase(AutonomousStateMachine):
     ) -> TrapezoidProfile:
         """Generates a linear trapazoidal trajectory that goes from current state to goal waypoint"""
         end_point = trajectory_generator.total_length(
-            self.waypoints[: self.cur_waypoint + 1]
+            self.waypoints_poses[: self.cur_waypoint + 1]
         )
         waypoint_type = self.waypoints[self.cur_waypoint].type
         if (
@@ -215,9 +222,9 @@ red_balls = [
     (-0.850, -3792),  # right
 ]
 # start positions
-right_mid_start = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
-right_left_start = Pose2d(-1.846, -1.555, Rotation2d.fromDegrees(-133.5))
-left_mid_start = Pose2d(-2.273, 1.090, Rotation2d.fromDegrees(136.5))
+right_mid_start = Pose2d(-0.711, -2.419, -88.5)
+right_left_start = Pose2d(-1.846, -1.555, -133.5)
+left_mid_start = Pose2d(-2.273, 1.090, 136.5)
 
 
 class TestAuto(AutoBase):
@@ -225,11 +232,11 @@ class TestAuto(AutoBase):
 
     def __init__(self):
         self.waypoints = [
-            Pose2d(0, 0, 0),
-            Pose2d(2, 0, math.pi / 2),
-            Pose2d(2, 2, math.pi),
-            Pose2d(0, 2, 3 * math.pi / 2),
-            Pose2d(0, 0, 0),
+            Waypoint(0, 0, 0),
+            Waypoint(2, 0, 90),
+            Waypoint(2, 2, 180),
+            Waypoint(0, 2, 270),
+            Waypoint(0, 0, 0),
         ]
         super().__init__()
 
@@ -242,16 +249,10 @@ class FiveBall(AutoBase):
 
     def __init__(self):
         self.waypoints = [
-            Waypoint(
-                -0.711, -2.419, Rotation2d.fromDegrees(-88.5), WaypointType.SHOOT
-            ),  # start
-            Waypoint(-0.711, -3.5, Rotation2d.fromDegrees(-110)),  # 3
-            Waypoint(
-                -2.789, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
-            ),  # 2
-            Waypoint(
-                -6.813, -2.681, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
-            ),  # 4
-            Waypoint(-4.5, 0, Rotation2d.fromDegrees(100), WaypointType.SHOOT),  # shoot
+            Waypoint(-0.711, -2.419, -88.5),  # start
+            Waypoint(-0.711, -3.5, -110, WaypointType.SHOOT),  # 3
+            Waypoint(-2.789, -2.378, -206, WaypointType.SHOOT),  # 2
+            Waypoint(-6.813, -2.681, -136, WaypointType.PICKUP),  # 4
+            Waypoint(-4.8, 0, 143, WaypointType.SHOOT),  # shoot
         ]
         super().__init__()
