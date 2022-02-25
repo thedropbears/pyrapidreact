@@ -196,7 +196,7 @@ class AutoBase(AutonomousStateMachine):
             or waypoint_type == WaypointType.PICKUP
             or self.cur_waypoint >= len(self.waypoints)
         ):
-            end_speed = 0
+            end_speed = 0.0
         else:
             end_speed = self.max_speed
         return TrapezoidProfile(
