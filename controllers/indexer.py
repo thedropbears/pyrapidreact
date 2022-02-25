@@ -16,6 +16,7 @@ class IndexerController(StateMachine):
 
     def stop(self) -> None:
         self.next_state("stopped")
+        self.wants_to_intake = False
 
     @default_state
     def stopped(self) -> None:
@@ -50,7 +51,7 @@ class IndexerController(StateMachine):
             else:
                 # It is our ball so we have finished this process
                 # The "stopped" state will work out if it needs to move the ball into the chimney
-                self.next_state("stopped")
+                self.stop()
 
     @timed_state(duration=1, next_state="stopped", must_finish=True)
     def clearing(self) -> None:
@@ -59,7 +60,7 @@ class IndexerController(StateMachine):
     @timed_state(duration=10.0, next_state="stopped", must_finish=True)
     def transferring_to_chimney(self) -> None:
         if self.indexer.has_cargo_in_chimney():
-            self.next_state("stopped")
+            self.stop()
             return
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
