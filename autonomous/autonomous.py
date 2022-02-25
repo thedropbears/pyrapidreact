@@ -60,8 +60,8 @@ class AutoBase(AutonomousStateMachine):
             self.max_speed, self.max_accel
         )
 
-        self.drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(
-            2, 2
+        self.drive_rotation_constraints = (
+            trajectory.TrapezoidProfileRadians.Constraints(2, 2)
         )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
