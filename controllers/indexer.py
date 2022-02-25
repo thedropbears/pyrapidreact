@@ -44,7 +44,7 @@ class IndexerController(StateMachine):
     def reading(self, state_tm) -> None:
         if state_tm > 0.1:
             if self.indexer.has_opposition_cargo_in_tunnel() and not self.ignore_colour:
-                if self.indexer.has_trapped_cargo:
+                if self.indexer.has_trapped_cargo or self.indexer.has_cargo_in_chimney():
                     self.next_state("clearing")
                 else:
                     self.next_state("trapping")
@@ -71,4 +71,5 @@ class IndexerController(StateMachine):
         if state_tm > 0.5:
             # Give some time for the piston to move the flap
             self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
+            self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
             self.indexer.has_trapped_cargo = True
