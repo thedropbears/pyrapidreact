@@ -11,7 +11,7 @@ from components.chassis import Chassis
 from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
 from utilities import trajectory_generator
-from typing import List, Tuple, Union
+from typing import List, Union
 from enum import Enum
 
 
@@ -166,13 +166,6 @@ class AutoBase(AutonomousStateMachine):
             self.move_next_waypoint(tm)
             self.next_state("move")
 
-    def get_look_around(self, pos):
-        """Gets the allowed look around at position"""
-        # find distance to start and end so look_around can be adjusted to not look beyond edges
-        to_start = pos
-        to_end = self.total_length - pos
-        return min(to_start, min(to_end, self.look_around))
-
     def move_next_waypoint(self, cur_time):
         """Creates the trapazoidal profile to move to the next waypoint"""
         if self.cur_waypoint >= len(self.waypoints) - 1:
@@ -185,7 +178,7 @@ class AutoBase(AutonomousStateMachine):
 
     def _generate_trap_profile(
         self, current_state: TrapezoidProfile.State
-    ) -> Tuple[TrapezoidProfile, float]:
+    ) -> TrapezoidProfile:
         """Generates a linear trapazoidal trajectory that goes from current state to goal waypoint"""
         end_point = trajectory_generator.total_length(
             self.waypoints[: self.cur_waypoint + 1]
