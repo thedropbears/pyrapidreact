@@ -32,7 +32,7 @@ class IndexerController(StateMachine):
         elif self.wants_to_intake and self.indexer.ready_to_intake():
             self.next_state("intaking")
 
-    @state(must_finish=True)
+    @state(first=True, must_finish=True)
     def intaking(self) -> None:
         if self.indexer.has_cargo_in_tunnel():
             self.next_state("reading")

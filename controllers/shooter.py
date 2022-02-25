@@ -46,7 +46,7 @@ class ShooterController(StateMachine):
             # Reset each loop so that the call has to be made each control loop
             self._wants_to_fire = False
 
-    @timed_state(duration=0.5, next_state="tracking", must_finish=True)
+    @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self) -> None:
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
 
