@@ -21,7 +21,6 @@ class Indexer:
     cat_flap_piston: wpilib.DoubleSolenoid
 
     is_firing = tunable(False)
-    is_red = tunable(False)
     indexer_speed = tunable(0.5)
 
     _tunnel_direction = Direction.OFF
@@ -64,9 +63,14 @@ class Indexer:
         return self.colour_sensor.getProximity() > 400
 
     @feedback
+    def are_we_red(self) -> bool:
+        return wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed
+
+    @feedback
     def has_opposition_cargo_in_tunnel(self) -> bool:
         raw = self.colour_sensor.getRawColor()
-        return self.has_cargo_in_tunnel() and (raw.red > raw.blue) == self.is_red
+        is_red_cargo = raw.red > raw.blue
+        return self.has_cargo_in_tunnel() and is_red_cargo == self.are_we_red()
 
     @feedback
     def ready_to_intake(self) -> bool:
