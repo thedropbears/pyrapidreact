@@ -78,9 +78,9 @@ class Indexer:
         if self.has_cargo_in_tunnel() or (
             self.has_cargo_in_chimney() and self.has_trapped_cargo
         ):
-            return false
+            return False
 
-        return true
+        return True
 
     @feedback
     def get_colours(self) -> str:
