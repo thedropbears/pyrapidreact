@@ -107,7 +107,7 @@ class Turret:
         return self.get_angle() - self.target
 
     def is_on_target(self) -> bool:
-        return abs(self.get_error) < self.allowable_error
+        return abs(self.get_error()) < self.allowable_error
 
     @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
