@@ -89,9 +89,7 @@ class AutoBase(AutonomousStateMachine):
         self.last_pose = self.waypoints[0]
         # generates initial velocity profile
         self.cur_waypoint = 0
-        self.trap_profile, self.stop_point = self._generate_trap_profile(
-            TrapezoidProfile.State(0, 0)
-        )
+        self.trap_profile = self._generate_trap_profile(TrapezoidProfile.State(0, 0))
         return super().on_enable()
 
     @state
@@ -101,7 +99,7 @@ class AutoBase(AutonomousStateMachine):
         # always be trying to fire
         self.shooter_control.wants_to_fire = True
         # calculate speed and position from current trapazoidal profile
-        trap_time = tm
+        trap_time = tm - self.trap_profile_start_time
         linear_state = self.trap_profile.calculate(trap_time)
         # TODO: change to our error from final position is below value
         is_done = self.trap_profile.isFinished(trap_time)
@@ -114,15 +112,12 @@ class AutoBase(AutonomousStateMachine):
             elif waypoint_type == WaypointType.PICKUP:
                 self.next_state("pickup")
             else:
-                self.cur_waypoint += 1
-                self.trap_profile, self.stop_point = self._generate_trap_profile(
-                    linear_state
-                )
+                self.move_next_waypoint(tm)
 
         # find current goal pose
         goal_pose = trajectory_generator.smooth_path(
             self.waypoints,
-            self.get_look_around(linear_state.position),
+            self.look_around,
             linear_state.position,
         )
         goal_rotation = goal_pose.rotation()
@@ -154,46 +149,46 @@ class AutoBase(AutonomousStateMachine):
 
         self.last_pose = goal_pose
 
-    @timed_state(duration=2, next_state="move")
-    def pickup(self):
+    @state
+    def pickup(self, state_tm, tm):
         """Waits until full"""
-        self.shooter_control.wants_to_fire = True  # ?
+        self.shooter_control.wants_to_fire = True
         self.indexer_control.wants_to_intake = True
-        if self.indexer_control.is_full():
-
+        if False or state_tm > 2:  # self.indexer_control.is_full():
+            self.move_next_waypoint(tm)
             self.next_state("move")
 
     @state(first=True)
-    def firing(self, state_tm):
+    def firing(self, state_tm, tm):
         """Waits until empty"""
         self.shooter_control.wants_to_fire = True
         if state_tm > 1:  # TODO: replace with indexer is empty and finished firing
-            self.cur_waypoint += 1
-            self.trap_profile, self.stop_point = self._generate_trap_profile(
-                TrapezoidProfile.State(0, 0)
-            )
+            self.move_next_waypoint(tm)
             self.next_state("move")
 
     def get_look_around(self, pos):
         """Gets the allowed look around at position"""
         # find distance to start and end so look_around can be adjusted to not look beyond edges
-        to_start = pos - self.trap_profile.calculate(0).position
-        to_end = self.stop_point - pos
+        to_start = pos
+        to_end = self.total_length - pos
         return min(to_start, min(to_end, self.look_around))
 
-    def move_next_waypoint(self):
+    def move_next_waypoint(self, cur_time):
         """Creates the trapazoidal profile to move to the next waypoint"""
+        if self.cur_waypoint >= len(self.waypoints) - 1:
+            return
         # last state in the current profile
         last_end = self.trap_profile.calculate(self.trap_profile.totalTime())
         self.cur_waypoint += 1
-        self.trap_profile, self.stop_point = self._generate_trap_profile(last_end)
+        self.trap_profile = self._generate_trap_profile(last_end)
+        self.trap_profile_start_time = cur_time
 
     def _generate_trap_profile(
         self, current_state: TrapezoidProfile.State
     ) -> Tuple[TrapezoidProfile, float]:
-        """Generates a linear trapazoidal trajectory that goes from current state to goal waypoint index"""
+        """Generates a linear trapazoidal trajectory that goes from current state to goal waypoint"""
         end_point = trajectory_generator.total_length(
-            self.waypoints[: self.cur_waypoint]
+            self.waypoints[: self.cur_waypoint + 1]
         )
         waypoint_type = self.waypoints[self.cur_waypoint].type
         if (
@@ -204,16 +199,11 @@ class AutoBase(AutonomousStateMachine):
             end_speed = 0
         else:
             end_speed = self.max_speed
-        ret = (
-            TrapezoidProfile(
-                self.linear_constraints,
-                goal=TrapezoidProfile.State(end_point, end_speed),
-                initial=current_state,
-            ),
-            end_point,
+        return TrapezoidProfile(
+            self.linear_constraints,
+            goal=TrapezoidProfile.State(end_point, end_speed),
+            initial=current_state,
         )
-        self.logger.info(f"generated {ret[0].totalTime()}s")
-        return ret
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
