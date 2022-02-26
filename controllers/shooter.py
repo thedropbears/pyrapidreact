@@ -18,6 +18,8 @@ class ShooterController(StateMachine):
     interpolation_override = tunable(False)
     flywheel_speed = tunable(0.0)
 
+    angle_override = tunable(False)
+
     distance = 0.0
     ranges_lookup = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     flywheel_speed_lookup = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
@@ -26,14 +28,17 @@ class ShooterController(StateMachine):
 
     @default_state
     def tracking(self) -> None:
-        # calculate angle and dist to target
-        turret_pose = self.chassis.robot_to_world(self.shooter.turret_offset)
-        field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
-        cur_pose = self.chassis.estimator.getEstimatedPosition()
-        angle = field_angle - cur_pose.rotation().radians()
-        self.distance = cur_pose.translation().norm()
+        if angle_override:
+            self.turret.slew_local(0.0)
+        else:
+            # calculate angle and dist to target
+            turret_pose = self.chassis.robot_to_world(self.shooter.turret_offset)
+            field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
+            cur_pose = self.chassis.estimator.getEstimatedPosition()
+            angle = field_angle - cur_pose.rotation().radians()
+            self.distance = cur_pose.translation().norm()
 
-        self.turret.slew_local(angle)
+            self.turret.slew_local(angle)
 
         if self.interpolation_override:
             self.shooter.motor_speed = self.flywheel_speed
