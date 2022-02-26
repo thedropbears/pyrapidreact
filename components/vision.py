@@ -7,6 +7,7 @@ from magicbot import feedback
 from wpilib import Timer
 from components.turret import Turret
 from components.chassis import Chassis
+from components.shooter import Shooter
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 import navx
 import wpilib
@@ -40,6 +41,7 @@ class Vision:
     SYSTEM_LAG_THRESHOLD = 0.200
     turret: Turret
     chassis: Chassis
+    shooter: Shooter
     imu: navx.AHRS
 
     camera_offset = 0.316
