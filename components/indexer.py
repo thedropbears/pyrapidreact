@@ -26,7 +26,7 @@ class Indexer:
     cat_flap_piston: wpilib.DoubleSolenoid
 
     is_firing = tunable(False)
-    tunnel_speed = tunable(0.6)
+    tunnel_speed = tunable(0.4)
     chimney_speed = tunable(1.0)
 
     _tunnel_direction = Direction.OFF
