@@ -1,3 +1,7 @@
+import logging
+import math
+from typing import List, Tuple
+
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import controller, trajectory
 from wpimath.geometry import Pose2d, Rotation2d
@@ -9,8 +13,6 @@ from components.target_estimator import TargetEstimator
 from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
 from utilities import trajectory_generator
-import math
-from typing import List, Tuple
 
 
 class AutoBase(AutonomousStateMachine):
@@ -23,6 +25,8 @@ class AutoBase(AutonomousStateMachine):
     shooter_control: ShooterController
 
     field: wpilib.Field2d
+
+    logger: logging.Logger
 
     waypoints: List[Pose2d]
 
