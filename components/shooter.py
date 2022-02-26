@@ -42,6 +42,11 @@ class Shooter:
             motor.configVoltageCompSaturation(self.COMPENSATED_VOLTAGE, timeoutMs=10)
             motor.enableVoltageCompensation(True)
 
+            motor.configVelocityMeasurementPeriod(
+                ctre.SensorVelocityMeasPeriod.Period_1Ms, timeoutMs=10
+            )
+            motor.configVelocityMeasurementWindow(8, timeoutMs=10)
+
             motor.config_kF(0, self.pidF, 10)
             motor.config_kP(0, self.pidP, 10)
             motor.config_kI(0, self.pidI, 10)
