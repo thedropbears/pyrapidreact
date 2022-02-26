@@ -91,7 +91,7 @@ class AutoBase(AutonomousStateMachine):
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
     def on_enable(self):
-        self.chassis.set_pose(self.waypoints[0])
+        self.chassis.set_pose(self.waypoints_poses[0])
 
         self.last_pose = self.waypoints[0].pose
         # generates initial velocity profile
@@ -277,7 +277,7 @@ class FiveBall(AutoBase):
                 -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
             ),  # 2
             Waypoint(
-                -6.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                -6.5, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
             ),  # 4
             Waypoint(-4.8, 0, 143, WaypointType.SHOOT),  # shoot
         ]

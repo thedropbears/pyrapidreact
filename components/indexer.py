@@ -39,8 +39,10 @@ class Indexer:
     has_trapped_cargo = tunable(False)
 
     def setup(self) -> None:
+        self.indexer_tunnel_motor.restoreFactoryDefaults()
         self.indexer_tunnel_motor.setInverted(True)
         self.indexer_tunnel_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.indexer_chimney_motor.restoreFactoryDefaults()
         self.indexer_chimney_motor.setInverted(False)
         self.indexer_chimney_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
