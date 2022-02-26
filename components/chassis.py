@@ -313,4 +313,4 @@ class Chassis:
         )
 
     def getVelocity(self):
-        return Pose2d(self.estimator.getEstimatedPosition().translation())
+        return Pose2d(self.translation_velocity, self.rotation_velocity)

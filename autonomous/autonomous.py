@@ -279,6 +279,6 @@ class FiveBall(AutoBase):
             Waypoint(
                 -6.5, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
             ),  # 4
-            Waypoint(-4.8, 0, 143, WaypointType.SHOOT),  # shoot
+            Waypoint(-5.0, 0, 143, WaypointType.SHOOT),  # shoot
         ]
         super().__init__()
