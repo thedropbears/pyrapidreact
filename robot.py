@@ -89,7 +89,7 @@ class MyRobot(magicbot.MagicRobot):
         pass
 
     def teleopInit(self) -> None:
-        pass
+        self.indexer_control.ignore_colour = False
 
     def testInit(self) -> None:
         pass

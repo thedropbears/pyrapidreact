@@ -53,11 +53,11 @@ class AutoBase(AutonomousStateMachine):
 
     waypoints: List[Waypoint]
 
-    max_speed = 2.0
-    max_accel = 1.0
+    max_speed = 2.5
+    max_accel = 1.75
 
-    ALLOWED_TRANS_ERROR = 0.1
-    ALLOWED_ROT_ERROR = math.radians(10)
+    ALLOWED_TRANS_ERROR = 0.2
+    ALLOWED_ROT_ERROR = math.radians(20)
 
     def __init__(self):
         super().__init__()
@@ -104,6 +104,7 @@ class AutoBase(AutonomousStateMachine):
         # generates initial velocity profile
         self.cur_waypoint = 0
         self.trap_profile = self._generate_trap_profile(TrapezoidProfile.State(0, 0))
+        self.indexer_control.ignore_colour = True
         super().on_enable()
 
     @state(first=True)
@@ -140,10 +141,9 @@ class AutoBase(AutonomousStateMachine):
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # check if we're done current waypoint
-        next_wp = self.waypoints[self.cur_waypoint]
-        translation_error = cur_pose.translation().distance(next_wp.pose.translation())
+        translation_error = cur_pose.translation().distance(goal_pose.translation())
         rotation_error = constrain_angle(
-            cur_pose.rotation().radians() - next_wp.pose.rotation().radians()
+            cur_pose.rotation().radians() - goal_pose.rotation().radians()
         )
         is_close = (
             abs(translation_error) < self.ALLOWED_TRANS_ERROR
@@ -301,10 +301,10 @@ class FiveBall(AutoBase):
                 -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
             ),  # 2
             Waypoint(
-                -6.95, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                -7.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
             ),  # 4
             Waypoint(
-                -5.0, 0, Rotation2d.fromDegrees(-200), WaypointType.SHOOT
+                -5.0, 0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
             ),  # shoot
         ]
         super().__init__()

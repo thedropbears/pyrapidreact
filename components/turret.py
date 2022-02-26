@@ -24,7 +24,7 @@ class Turret:
     pidIZone = 200
     pidD = 3  # 1.109
 
-    SLEW_CRUISE_VELOCITY = 2 * COUNTS_PER_TURRET_RADIAN / 10
+    SLEW_CRUISE_VELOCITY = 4 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.2)
 
     target = magicbot.tunable(0.0)
