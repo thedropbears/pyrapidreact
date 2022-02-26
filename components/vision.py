@@ -58,7 +58,7 @@ class Vision:
         self.latency_entry = self.table.getEntry("clock_offset")
 
         self.last_pong = Timer.getFPGATimestamp()
-        self.last_data_timestamp = 0  # timestamp of last data
+        self.last_data_timestamp = Timer.getFPGATimestamp()  # timestamp of last data
 
         self.vision_data: Optional[VisionData] = None
 
@@ -91,7 +91,7 @@ class Vision:
                 camera_pose = self.get_vis_pose_at(self.vision_data.timestamp)
                 # angle from target to robot in world space
                 angle_from_target = constrain_angle(
-                    camera_pose - self.vision_data.angle + math.pi
+                    camera_pose.rotation().radians() - self.vision_data.angle + math.pi
                 )
                 # work out where vision though it was when the image was taken
                 vis_estimate = Translation2d(
@@ -153,7 +153,7 @@ class Vision:
         """Gets where the camera was at t"""
         robot_pose = self.chassis.get_pose_at(t)
         turret_translation = self.chassis.robot_to_world(
-            self.turret_offset, robot_pose
+            self.shooter.turret_offset, robot_pose
         ).translation()
         taken_at_angle = Rotation2d(
             robot_pose.rotation().radians() + self.turret.get_angle_at(t)

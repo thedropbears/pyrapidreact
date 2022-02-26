@@ -283,11 +283,10 @@ class Chassis:
         loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / 0.02)
         if loops_ago >= len(self.pose_history):
             return (
-                self.pose_history[-1] if len(self.pose_history) > 0 else self.robot_pose
+                self.pose_history[-1]
+                if len(self.pose_history) > 0
+                else self.estimator.getEstimatedPosition()
             )
-        if loops_ago < 0:
-            return self.robot_pose
-        print(loops_ago)
         return self.pose_history[loops_ago]
 
     def robot_to_world(
