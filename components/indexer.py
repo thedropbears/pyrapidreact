@@ -58,9 +58,9 @@ class Indexer:
         else:
             self.cat_flap_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
-        if self.has_red():
+        if self.tunnel_has_red():
             self.last_colour = Indexer.CargoColour.RED
-        elif self.has_blue():
+        elif self.tunnel_has_blue():
             self.last_colour = Indexer.CargoColour.BLUE
 
         # Default state is for nothing to be moving and for the cat flap to be down
@@ -126,8 +126,8 @@ class Indexer:
     def run_chimney_motor(self, direction: Direction) -> None:
         self._chimney_direction = direction
 
-    def has_red(self) -> bool:
+    def tunnel_has_red(self) -> bool:
         return self.colour_sensor.getRawColor().red > 900
 
-    def has_blue(self) -> bool:
+    def tunnel_has_blue(self) -> bool:
         return self.colour_sensor.getRawColor().blue > 900
