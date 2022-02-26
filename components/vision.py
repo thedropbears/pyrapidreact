@@ -79,49 +79,50 @@ class Vision:
     def execute(self) -> None:
         self.recive_pong()
         self.ping()
-        data = self.vision_data_entry.getDoubleArray(None)
-        if data is not None:
-            # add clock offset to vision timestamp
-            self.vision_data = VisionData(
-                data[0], data[1], data[2], data[3] + self.get_clocks_offset()
-            )
-            if not self.vision_data.timestamp == self.last_data_timestamp:
-                # Get vision pose estimate
-                # work out where the vision data was taken from based on histories
-                camera_pose = self.get_vis_pose_at(self.vision_data.timestamp)
-                # angle from target to robot in world space
-                angle_from_target = constrain_angle(
-                    camera_pose.rotation().radians() - self.vision_data.angle + math.pi
-                )
-                # work out where vision though it was when the image was taken
-                vis_estimate = Translation2d(
-                    distance=self.vision_data.distance,
-                    angle=Rotation2d(angle_from_target),
-                )
-                # calcualte vision std dev
-                # trust vision less the more outdated it is
-                vis_age = wpilib.Timer.getFPGATimestamp() - self.vision_data.timestamp
-                age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
-                # trust vision less the more it thinks we've moved (to reduce impact of false positives)
-                innovation = vis_estimate.distance(
-                    self.chassis.estimator.getEstimatedPosition().translation()
-                )
-                # will be 0 if innovation is over 1.5m
-                innovation_fit = min(
-                    1, max(0, scale_value(innovation, 0.25, 1.5, 1, 0))
-                )
-                # combined vision confidence is 0-1
-                vis_confidence = self.vision_data.fittness * innovation_fit * age_fit
-                if vis_confidence > 0.4:
-                    vis_std_dev = 0.5 / vis_confidence
-                    # pass vision pose estimate to chassis kalman filter
-                    self.chassis.estimator.addVisionMeasurement(
-                        Pose2d(vis_estimate, self.imu.getRotation2d()),
-                        self.vision_data.timestamp,
-                        vis_std_dev,
-                    )
-                self.last_data_timestamp = self.vision_data.timestamp
         self.nt.flush()
+        data = self.vision_data_entry.getDoubleArray(None)
+        if data is None:
+            return
+
+        # add clock offset to vision timestamp
+        self.vision_data = VisionData(
+            data[0], data[1], data[2], data[3] + self.get_clocks_offset()
+        )
+        if self.vision_data.timestamp == self.last_data_timestamp:
+            return
+        # Get vision pose estimate
+        # work out where the vision data was taken from based on histories
+        camera_pose = self.get_vis_pose_at(self.vision_data.timestamp)
+        # angle from target to robot in world space
+        angle_from_target = constrain_angle(
+            camera_pose.rotation().radians() - self.vision_data.angle + math.pi
+        )
+        # work out where vision though it was when the image was taken
+        vis_estimate = Translation2d(
+            distance=self.vision_data.distance,
+            angle=Rotation2d(angle_from_target),
+        )
+        # calcualte vision std dev
+        # trust vision less the more outdated it is
+        vis_age = wpilib.Timer.getFPGATimestamp() - self.vision_data.timestamp
+        age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
+        # trust vision less the more it thinks we've moved (to reduce impact of false positives)
+        innovation = vis_estimate.distance(
+            self.chassis.estimator.getEstimatedPosition().translation()
+        )
+        # will be 0 if innovation is over 1.5m
+        innovation_fit = min(1, max(0, scale_value(innovation, 0.25, 1.5, 1, 0)))
+        # combined vision confidence is 0-1
+        vis_confidence = self.vision_data.fittness * innovation_fit * age_fit
+        if vis_confidence > 0.4:
+            vis_std_dev = 0.5 / vis_confidence
+            # pass vision pose estimate to chassis kalman filter
+            self.chassis.estimator.addVisionMeasurement(
+                Pose2d(vis_estimate, self.imu.getRotation2d()),
+                self.vision_data.timestamp,
+                vis_std_dev,
+            )
+        self.last_data_timestamp = self.vision_data.timestamp
 
     @feedback
     def is_ready(self) -> bool:

@@ -232,6 +232,8 @@ class Chassis:
         )
         self.set_pose(Pose2d(Translation2d(-2, 0), Rotation2d(math.pi)))
 
+        self.control_rate = 1 / self.control_loop_wait_time
+
     def drive_field(self, x, y, z):
         """Field oriented drive commands"""
         rotation = self.imu.getRotation2d()
@@ -258,11 +260,11 @@ class Chassis:
         self.translation_velocity = (
             self.estimator.getEstimatedPosition().translation()
             - self.pose_history[0].translation()
-        ).norm() * (1 / self.control_loop_wait_time)
+        ).norm() * self.control_rate
         self.rotation_velocity = (
             self.estimator.getEstimatedPosition().rotation()
             - self.pose_history[0].rotation()
-        ) * (1 / self.control_loop_wait_time)
+        ) * self.control_rate
 
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
 
@@ -280,7 +282,9 @@ class Chassis:
 
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
-        loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / 0.02)
+        loops_ago = int(
+            (wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time
+        )
         if loops_ago >= len(self.pose_history):
             return (
                 self.pose_history[-1]
