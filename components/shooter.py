@@ -2,7 +2,7 @@ import ctre
 import wpilib
 import magicbot
 
-import math
+from utilities.ctre import FALCON_CPR
 
 
 class Shooter:
@@ -20,18 +20,10 @@ class Shooter:
     pidI = 0.0
     pidIZone = 200
     pidD = 0.01
-    SLEW_CRUISE_VELOCITY = 4000
-    SCAN_CRUISE_VELOCITY = 1500
-    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
 
-    # Constants for Talon on the turret
-    COUNTS_PER_MOTOR_REV = 2048
-    GEAR_REDUCTION = 1 / 1
-    COUNTS_PER_SHOOTER_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
-    COUNTS_PER_SHOOTER_RADIAN = int(COUNTS_PER_SHOOTER_REV / math.tau)
-
-    COUNTS_PER_REV = 2048
-    RPS_TO_CTRE_UNITS = COUNTS_PER_REV / 10  # counts per 100ms
+    # Conversion factor from rev/s to Talon units (counts/100ms).
+    RPS_TO_CTRE_UNITS = FALCON_CPR / 10
+    CTRE_UNITS_TO_RPS = 10 / FALCON_CPR
 
     MAX_MOTOR_SPEED = 6000 / 60
 
@@ -71,7 +63,7 @@ class Shooter:
 
     @magicbot.feedback
     def actual_velocity(self):
-        return self.left_motor.getSelectedSensorVelocity() / self.RPS_TO_CTRE_UNITS
+        return self.left_motor.getSelectedSensorVelocity() * self.CTRE_UNITS_TO_RPS
 
     @magicbot.feedback
     def flywheel_error(self):
