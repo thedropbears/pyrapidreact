@@ -13,11 +13,12 @@ class Shooter:
 
     motor_speed = 0.0
 
-    pidF = 0.1
-    pidP = 0.0
+    MAX_RP100ms = 10
+    pidF = 1023 / (2048 * MAX_RP100ms)
+    pidP = 0.15
     pidI = 0.0
     pidIZone = 200
-    pidD = 0
+    pidD = 0.01
     SLEW_CRUISE_VELOCITY = 4000
     SCAN_CRUISE_VELOCITY = 1500
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
