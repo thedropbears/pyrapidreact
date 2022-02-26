@@ -12,6 +12,7 @@ from magicbot import (
 )
 from components.chassis import Chassis
 from numpy import interp
+from wpimath.geometry import Pose2d, Translation2d
 
 
 class ShooterController(StateMachine):
@@ -26,8 +27,11 @@ class ShooterController(StateMachine):
     flywheel_speed = tunable(0.0)
 
     distance = 0.0
-    ranges_lookup = (3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+    # fmt: off
+    ranges_lookup =         (3.0,  4.0,  5.0,  6.0,  7.0,  8.0)
     flywheel_speed_lookup = (28.0, 30.0, 35.0, 39.0, 43.5, 48.0)
+    times_lookup =          (1.5,  2.0,  2.5,  3.0,  3.5,  4.0)
+    # fmt: on
 
     MAX_DIST = 8
     MIN_DIST = 3
@@ -39,12 +43,29 @@ class ShooterController(StateMachine):
 
     @default_state
     def tracking(self) -> None:
-        # calculate angle and dist to target
-        turret_pose = self.chassis.robot_to_world(self.shooter.turret_offset)
-        field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
         cur_pose = self.chassis.estimator.getEstimatedPosition()
+
+        # adjust shot to hit while moving
+        effective_trans = cur_pose.translation()
+        for _ in range(3):
+            self.distance = effective_trans.distance(Translation2d())
+            flight_time: float = interp(
+                self.distance, self.ranges_lookup, self.times_lookup
+            )
+            effective_trans = (
+                cur_pose.translation() + self.chassis.translation_velocity * flight_time
+            )
+
+        # calculate angle and dist to target
+        effecetive_pose = Pose2d(
+            effective_trans,
+            cur_pose.rotation() + self.chassis.rotation_velocity * flight_time,
+        )
+        turret_pose = self.chassis.robot_to_world(
+            self.shooter.turret_offset, effecetive_pose
+        )
+        field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
         angle = field_angle - cur_pose.rotation().radians()
-        self.distance = cur_pose.translation().norm()
 
         self.turret.slew_local(angle)
 
@@ -62,7 +83,7 @@ class ShooterController(StateMachine):
             and self.turret.is_on_target()
             and self.distance > self.MIN_DIST
             and self.distance < self.MAX_DIST
-            and self.chassis.translation_velocity < self.MAX_SPEED
+            and self.chassis.translation_velocity.norm() < self.MAX_SPEED
             and self.chassis.rotation_velocity < self.MAX_ROTATION
         ):
             self.next_state("firing")

@@ -170,6 +170,8 @@ class Chassis:
 
     def __init__(self):
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
+        self.translation_velocity = Translation2d()
+        self.rotation_velocity = Rotation2d()
 
     def setup(self):
         # mag encoder only
@@ -269,11 +271,11 @@ class Chassis:
         self.translation_velocity = (
             self.estimator.getEstimatedPosition().translation()
             - self.pose_history[0].translation()
-        ).norm() * self.control_rate
+        ) * self.control_rate
         self.rotation_velocity = (
             self.estimator.getEstimatedPosition().rotation()
             - self.pose_history[0].rotation()
-        ).radians() * self.control_rate
+        ) * self.control_rate
 
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
         self.field_obj.setPose(goal_to_field(self.pose_history[0]))
