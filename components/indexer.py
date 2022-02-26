@@ -54,9 +54,7 @@ class Indexer:
             self.chimney_speed * self._chimney_direction.value
         )
         if self._cat_flap_is_open:
-            self.cat_flap_piston.set(
-                wpilib.DoubleSolenoid.Value.kForward
-            )
+            self.cat_flap_piston.set(wpilib.DoubleSolenoid.Value.kForward)
         else:
             self.cat_flap_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
