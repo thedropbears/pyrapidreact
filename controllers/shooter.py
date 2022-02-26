@@ -19,8 +19,14 @@ class ShooterController(StateMachine):
     flywheel_speed = tunable(0.0)
 
     distance = 0.0
-    ranges_lookup = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
-    flywheel_speed_lookup = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
+    ranges_lookup = (3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+    flywheel_speed_lookup = (28.0, 30.0, 35.0, 39.0, 43.5, 48.0)
+
+    MAX_DIST = 8
+    MIN_DIST = 3
+
+    MAX_SPEED = 0.1
+    MAX_ROTATION = 0.1
 
     _wants_to_fire = False
 
@@ -47,10 +53,15 @@ class ShooterController(StateMachine):
             and self.indexer.has_cargo_in_chimney()
             and self.shooter.is_at_speed()
             and self.turret.is_on_target()
+            and self.distance > self.MIN_DIST
+            and self.distance < self.MAX_DIST
+            and self.chassis.translation_velocity < self.MAX_SPEED
+            and self.chassis.rotation_velocity < self.MAX_ROTATION
         ):
             self.next_state("firing")
-            # Reset each loop so that the call has to be made each control loop
-            self._wants_to_fire = False
+
+        # Reset each loop so that the call has to be made each control loop
+        self._wants_to_fire = False
 
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self) -> None:
