@@ -1,6 +1,5 @@
 import ctre
 import wpilib
-from wpimath.controller import SimpleMotorFeedforwardMeters
 import magicbot
 
 import math
@@ -14,12 +13,12 @@ class Shooter:
 
     motor_speed = 0.0
 
-    ff_calculator = SimpleMotorFeedforwardMeters(kS=0.3, kV=0.123, kA=0.0159598)
-    pidF = 0
-    pidP = 0.04
+    MAX_RP100ms = 10
+    pidF = 1023 / (2048 * MAX_RP100ms)
+    pidP = 0.15
     pidI = 0.0
     pidIZone = 200
-    pidD = 0
+    pidD = 0.01
     SLEW_CRUISE_VELOCITY = 4000
     SCAN_CRUISE_VELOCITY = 1500
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.15)
@@ -58,19 +57,13 @@ class Shooter:
             )
 
     def execute(self):
-        feed_forward = self.ff_calculator.calculate(self.motor_speed)
-
         self.right_motor.set(
             ctre.ControlMode.Velocity,
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
-            ctre.DemandType.ArbitraryFeedForward,
-            feed_forward / 12,
         )
         self.left_motor.set(
             ctre.ControlMode.Velocity,
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
-            ctre.DemandType.ArbitraryFeedForward,
-            feed_forward / 12,
         )
 
     @magicbot.feedback
