@@ -60,7 +60,7 @@ class Indexer:
         else:
             self.cat_flap_piston.set(
                 wpilib.DoubleSolenoid.Value.kReverse
-            )  # TODO check direction
+            ) 
 
         if self.has_red():
             self.last_colour = Indexer.CargoColour.RED
