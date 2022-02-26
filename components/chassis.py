@@ -1,20 +1,25 @@
+from collections import deque
+from logging import Logger
 import math
+from typing import Optional, Deque
 
 import ctre
 import magicbot
 import navx
+import wpilib
 
 from wpimath.kinematics import (
     SwerveDrive4Kinematics,
     ChassisSpeeds,
     SwerveModuleState,
-    SwerveDrive4Odometry,
 )
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
+from wpimath.estimator import SwerveDrive4PoseEstimator
 
 from utilities.functions import constrain_angle
 from utilities.ctre import TalonEncoder
 from wpimath.controller import SimpleMotorFeedforwardMeters
+from utilities.trajectory_generator import goal_to_field
 
 
 class SwerveModule:
@@ -151,10 +156,17 @@ class Chassis:
 
     imu: navx.AHRS
 
+    control_loop_wait_time: float
+
     debug_steer_pos = magicbot.tunable(0)
 
     desired_states = None
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
+    field: wpilib.Field2d
+    logger: Logger
+
+    def __init__(self):
+        self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
 
     def setup(self):
         # mag encoder only
@@ -214,8 +226,19 @@ class Chassis:
         )
         self.sync_all()
         self.imu.zeroYaw()
-        self.odometry = SwerveDrive4Odometry(self.kinematics, self.imu.getRotation2d())
-        self.set_odometry(Pose2d(Translation2d(-2, 0), Rotation2d(math.pi)))
+        self.estimator = SwerveDrive4PoseEstimator(
+            self.imu.getRotation2d(),
+            Pose2d(0, 0, 0),
+            self.kinematics,
+            stateStdDevs=(0.05, 0.05, math.radians(5)),
+            localMeasurementStdDevs=(0.01,),
+            visionMeasurementStdDevs=(0.5, 0.5, 0.2),
+        )
+        self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
+
+        self.field_obj = self.field.getObject("estimator_pose")
+
+        self.control_rate = 1 / self.control_loop_wait_time
 
     def drive_field(self, x, y, z):
         """Field oriented drive commands"""
@@ -231,14 +254,26 @@ class Chassis:
         for state, module in zip(self.desired_states, self.modules):
             state = SwerveModuleState.optimize(state, module.get_rotation())
             module.set(state)
-
-        self.odometry.update(
+        self.kinematics.desaturateWheelSpeeds
+        self.estimator.update(
             self.imu.getRotation2d(),
             self.modules[0].get(),
             self.modules[1].get(),
             self.modules[2].get(),
             self.modules[3].get(),
         )
+
+        self.translation_velocity = (
+            self.estimator.getEstimatedPosition().translation()
+            - self.pose_history[0].translation()
+        ).norm() * self.control_rate
+        self.rotation_velocity = (
+            self.estimator.getEstimatedPosition().rotation()
+            - self.pose_history[0].rotation()
+        ) * self.control_rate
+
+        self.pose_history.appendleft(self.estimator.getEstimatedPosition())
+        self.field_obj.setPose(goal_to_field(self.pose_history[0]))
 
     @magicbot.feedback
     def get_imu_rotation(self):
@@ -248,5 +283,34 @@ class Chassis:
         for m in self.modules:
             m.sync_steer_encoders()
 
-    def set_odometry(self, pose: Pose2d) -> None:
-        self.odometry.resetPosition(pose, self.imu.getRotation2d())
+    def set_pose(self, pose: Pose2d) -> None:
+        self.pose_history = deque([pose], maxlen=100)
+        self.estimator.resetPosition(pose, self.imu.getRotation2d())
+
+    def get_pose_at(self, t: float) -> Pose2d:
+        """Gets where the robot was at t"""
+        loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) * self.control_rate)
+        if loops_ago < 0:
+            self.logger.warning("vision clocks warpped")
+            return self.estimator.getEstimatedPosition()
+        if loops_ago >= len(self.pose_history):
+            return (
+                self.pose_history[-1]
+                if len(self.pose_history) > 0
+                else self.estimator.getEstimatedPosition()
+            )
+        return self.pose_history[loops_ago]
+
+    def robot_to_world(
+        self, offset: Translation2d, robot: Optional[Pose2d] = None
+    ) -> Pose2d:
+        """Transforms a translation from robot space to world space (e.g. turret position)"""
+        if robot is None:
+            robot = self.estimator.getEstimatedPosition()
+        return Pose2d(
+            robot.translation() + offset.rotateBy(robot.rotation()),
+            robot.rotation(),
+        )
+
+    def getVelocity(self):
+        return Pose2d(self.estimator.getEstimatedPosition().translation())

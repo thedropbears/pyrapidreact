@@ -9,7 +9,6 @@ from wpimath.trajectory import TrapezoidProfile
 import wpilib
 
 from components.chassis import Chassis
-from components.target_estimator import TargetEstimator
 from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
 from utilities import trajectory_generator
@@ -20,7 +19,6 @@ class AutoBase(AutonomousStateMachine):
     if it has a ball it stops before the next waypoint to fire it, otherwise dosent stop"""
 
     chassis: Chassis
-    target_estimator: TargetEstimator
     indexer_control: IndexerController
     shooter_control: ShooterController
 
@@ -72,7 +70,7 @@ class AutoBase(AutonomousStateMachine):
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
     def on_enable(self):
-        self.target_estimator.set_pose(self.waypoints[0])
+        self.chassis.set_pose(self.waypoints[0])
 
         self.last_pose = self.waypoints[0]
         # generates initial velocity profile
@@ -129,7 +127,7 @@ class AutoBase(AutonomousStateMachine):
             goal_pose.translation(), Rotation2d(goal_pose_diff.x, goal_pose_diff.y)
         )
 
-        cur_pose = self.chassis.odometry.getPose()
+        cur_pose = self.chassis.estimator.getEstimatedPosition()
         # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
@@ -138,7 +136,7 @@ class AutoBase(AutonomousStateMachine):
             angleRef=goal_rotation,
         )
         # send poses to driverstation
-        display_poses = [goal_pose, self.chassis.odometry.getPose()]
+        display_poses = [goal_pose, cur_pose]
         self.field.getRobotObject().setPoses(
             [trajectory_generator.goal_to_field(p) for p in display_poses]
         )
