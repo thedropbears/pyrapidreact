@@ -2,7 +2,7 @@ from collections import deque
 import ctre
 import magicbot
 import math
-from wpilib import DutyCycleEncoder
+from wpilib import DutyCycleEncoder, Timer
 from utilities.functions import constrain_angle
 
 
@@ -114,12 +114,13 @@ class Turret:
         return constrain_angle(self.absolute_encoder.getDistance() + self.abs_offset)
 
     def get_angle_at(self, t: float) -> float:
-        # loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
-        # if loops_ago >= len(self.angle_history):
-        #     return (
-        #         self.angle_history[-1]
-        #         if len(self.angle_history) > 0
-        #         else self.get_angle()
-        #     )
-        # return self.angle_history[loops_ago]
-        return self.get_angle()
+        if len(self.angle_history) == 0:
+            return self.get_angle()
+        loops_ago = int((Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
+        if loops_ago >= len(self.angle_history):
+            return (
+                self.angle_history[-1]
+                if len(self.angle_history) > 0
+                else self.get_angle()
+            )
+        return self.angle_history[loops_ago]

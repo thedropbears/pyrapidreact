@@ -15,7 +15,6 @@ from components.shooter import Shooter
 from components.turret import Turret
 from controllers.indexer import IndexerController
 from components.vision import Vision
-from components.target_estimator import TargetEstimator
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
@@ -37,7 +36,6 @@ class MyRobot(magicbot.MagicRobot):
     shooter: Shooter
     turret: Turret
     vision: Vision
-    target_estimator: TargetEstimator
 
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
