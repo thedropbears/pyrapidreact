@@ -146,8 +146,8 @@ class AutoBase(AutonomousStateMachine):
             cur_pose.rotation().radians() - next_wp.pose.rotation().radians()
         )
         is_close = (
-            translation_error < self.ALLOWED_TRANS_ERROR
-            and rotation_error < self.ALLOWED_ROT_ERROR
+            abs(translation_error) < self.ALLOWED_TRANS_ERROR
+            and abs(rotation_error) < self.ALLOWED_ROT_ERROR
         )
         if self.trap_profile.isFinished(trap_time) and (
             self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE or is_close
