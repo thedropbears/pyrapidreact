@@ -1,6 +1,7 @@
 import ctre
 import wpilib
 import magicbot
+from wpimath.geometry import Translation2d
 
 import math
 
@@ -36,6 +37,7 @@ class Shooter:
     MAX_MOTOR_SPEED = 6000 / 60
 
     COMPENSATED_VOLTAGE = 11.0
+    turret_offset = Translation2d(-0.148, 0)  # From CAD
 
     def setup(self):
         self.left_motor.setInverted(False)
