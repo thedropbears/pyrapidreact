@@ -142,7 +142,6 @@ class MyRobot(magicbot.MagicRobot):
                 self.intake.deployed = False
                 if self.indexer_control.current_state == "intaking":
                     self.indexer_control.stop()
-                    self.indexer_control.wants_to_intake = False
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True

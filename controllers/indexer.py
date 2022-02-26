@@ -14,6 +14,9 @@ class IndexerController(StateMachine):
     wants_to_intake = tunable(False)
     ignore_colour = tunable(False)
 
+    def stop(self) -> None:
+        self.next_state("stopping")
+
     @default_state
     def stopped(self) -> None:
         # By default the indexer does nothing and has the cat flap closed, so we can do nothing too!
