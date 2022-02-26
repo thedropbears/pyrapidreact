@@ -16,6 +16,8 @@ from utilities import trajectory_generator
 from typing import List
 from enum import Enum, auto
 
+from utilities.functions import constrain_angle
+
 
 class WaypointType(Enum):
     PICKUP = auto()
@@ -54,6 +56,9 @@ class AutoBase(AutonomousStateMachine):
     max_speed = 2.0
     max_accel = 1.0
 
+    ALLOWED_TRANS_ERROR = 0.1
+    ALLOWED_ROT_ERROR = math.radians(10)
+
     def __init__(self):
         super().__init__()
         self.waypoints_poses = [w.pose for w in self.waypoints]
@@ -80,6 +85,7 @@ class AutoBase(AutonomousStateMachine):
         self.total_length = trajectory_generator.total_length(self.waypoints_poses)
         # how far around the current position is used to smooth the path
         self.look_around = 0.3
+        # the index of the waypoint we are currently going towards or at
         self.cur_waypoint = 0
 
         self.last_pose = self.waypoints[0].pose
@@ -116,18 +122,6 @@ class AutoBase(AutonomousStateMachine):
         # calculate speed and position from current trapazoidal profile
         trap_time = tm - self.trap_profile_start_time
         linear_state = self.trap_profile.calculate(trap_time)
-        # TODO: change to our error from final position is below value
-        is_done = self.trap_profile.isFinished(trap_time)
-
-        if is_done:
-            self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
-            waypoint_type = self.waypoints[self.cur_waypoint].type
-            if waypoint_type is WaypointType.SHOOT:
-                self.next_state("firing")
-            elif waypoint_type is WaypointType.PICKUP:
-                self.next_state("pickup")
-            else:
-                self.move_next_waypoint(tm)
 
         # find current goal pose
         goal_pose = trajectory_generator.smooth_path(
@@ -144,6 +138,29 @@ class AutoBase(AutonomousStateMachine):
         )
 
         cur_pose = self.chassis.estimator.getEstimatedPosition()
+
+        # check if we're done current waypoint
+        next_wp = self.waypoints[self.cur_waypoint]
+        translation_error = cur_pose.translation().distance(next_wp.pose.translation())
+        rotation_error = constrain_angle(
+            cur_pose.rotation().radians() - next_wp.pose.rotation().radians()
+        )
+        is_close = (
+            translation_error < self.ALLOWED_TRANS_ERROR
+            and rotation_error < self.ALLOWED_ROT_ERROR
+        )
+        if self.trap_profile.isFinished(trap_time) and (
+            self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE or is_close
+        ):
+            self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
+            waypoint_type = self.waypoints[self.cur_waypoint].type
+            if waypoint_type is WaypointType.SHOOT:
+                self.next_state("firing")
+            elif waypoint_type is WaypointType.PICKUP:
+                self.next_state("pickup")
+            else:
+                self.move_next_waypoint(tm)
+
         # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
