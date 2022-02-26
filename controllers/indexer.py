@@ -7,9 +7,12 @@ from magicbot import (
     tunable,
 )
 
+from controllers.shooter import ShooterController
+
 
 class IndexerController(StateMachine):
     indexer: Indexer
+    shooter_control: ShooterController
 
     wants_to_intake = tunable(False)
     ignore_colour = tunable(False)
@@ -25,6 +28,7 @@ class IndexerController(StateMachine):
         if (
             self.indexer.has_cargo_in_tunnel()
             and not self.indexer.has_cargo_in_chimney()
+            and not self.shooter_control.current_state == "firing"
         ):
             # We can just check the indexer prox sensors, because opposition cargo is rejected before
             # returning to the "stopped" state, so it is guaranteed to be our cargo

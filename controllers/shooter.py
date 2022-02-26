@@ -49,8 +49,9 @@ class ShooterController(StateMachine):
             and self.turret.is_on_target()
         ):
             self.next_state("firing")
-            # Reset each loop so that the call has to be made each control loop
-            self._wants_to_fire = False
+
+        # Reset each loop so that the call has to be made each control loop
+        self._wants_to_fire = False
 
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self) -> None:

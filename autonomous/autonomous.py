@@ -10,6 +10,8 @@ import wpilib
 from components.chassis import Chassis
 from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
+from components.indexer import Indexer
+from components.intake import Intake
 from utilities import trajectory_generator
 from typing import List
 from enum import Enum, auto
@@ -37,6 +39,8 @@ class Waypoint:
 
 class AutoBase(AutonomousStateMachine):
     chassis: Chassis
+    indexer: Indexer
+    intake: Intake
     indexer_control: IndexerController
     shooter_control: ShooterController
 
@@ -46,8 +50,8 @@ class AutoBase(AutonomousStateMachine):
 
     waypoints: List[Waypoint]
 
-    max_speed = 2.5
-    max_accel = 1.5
+    max_speed = 1.5
+    max_accel = 0.5
 
     def __init__(self):
         super().__init__()
@@ -95,12 +99,19 @@ class AutoBase(AutonomousStateMachine):
         self.trap_profile = self._generate_trap_profile(TrapezoidProfile.State(0, 0))
         super().on_enable()
 
+    @state(first=True)
+    def startup(self):
+        if self.waypoints[0].type is WaypointType.SHOOT:
+            self.next_state("firing")
+        else:
+            self.next_state("move")
+
     @state
     def move(self, tm: float) -> None:
         # indexer controller will hanle it self raising and lowering
-        self.indexer_control.wants_to_intake = True
-        # always be trying to fire
-        self.shooter_control.wants_to_fire = True
+        if self.indexer.ready_to_intake():
+            self.intake.deployed = True
+            self.indexer_control.wants_to_intake = True
         # calculate speed and position from current trapazoidal profile
         trap_time = tm - self.trap_profile_start_time
         linear_state = self.trap_profile.calculate(trap_time)
@@ -155,17 +166,28 @@ class AutoBase(AutonomousStateMachine):
     @state
     def pickup(self, state_tm: float, tm: float) -> None:
         """Waits until full"""
-        self.shooter_control.wants_to_fire = True
-        self.indexer_control.wants_to_intake = True
-        if False or state_tm > 2:  # self.indexer_control.is_full():
+        if self.indexer.ready_to_intake():
+            self.intake.deployed = True
+            self.indexer_control.wants_to_intake = True
+        if (
+            self.indexer.has_cargo_in_chimney()
+            and self.indexer.has_cargo_in_tunnel()
+            or state_tm > 6
+        ):
             self.move_next_waypoint(tm)
             self.next_state("move")
 
-    @state(first=True)
+    @state
     def firing(self, state_tm: float, tm: float) -> None:
         """Waits until empty"""
-        self.shooter_control.wants_to_fire = True
-        if state_tm > 1:  # TODO: replace with indexer is empty and finished firing
+        self.shooter_control.fire()
+        self.intake.deployed = False
+        if state_tm > 2 or not (
+            self.indexer.has_cargo_in_chimney()
+            or self.indexer.has_cargo_in_tunnel()
+            or self.indexer_control.current_state == "transferring_to_chimney"
+            or self.indexer_control.current_state == "firing"
+        ):  # TODO: replace with indexer is finished firing
             self.move_next_waypoint(tm)
             self.next_state("move")
 
@@ -247,9 +269,16 @@ class FiveBall(AutoBase):
     def __init__(self):
         self.waypoints = [
             Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
-            Waypoint(-0.711, -3.5, Rotation2d(-110), WaypointType.SHOOT),  # 3
-            Waypoint(-2.789, -2.378, Rotation2d(-206), WaypointType.SHOOT),  # 2
-            Waypoint(-6.813, -2.681, Rotation2d(-136), WaypointType.PICKUP),  # 4
+            Waypoint(
+                -0.711, -3.3, Rotation2d.fromDegrees(-95), WaypointType.SHOOT
+            ),  # 3
+            Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
+            Waypoint(
+                -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
+            ),  # 2
+            Waypoint(
+                -6.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+            ),  # 4
             Waypoint(-4.8, 0, 143, WaypointType.SHOOT),  # shoot
         ]
         super().__init__()
