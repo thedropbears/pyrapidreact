@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 import logging
 import math
 
@@ -13,27 +12,26 @@ from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
 from utilities import trajectory_generator
 from typing import List
-from enum import Enum
+from enum import Enum, auto
 
 
 class WaypointType(Enum):
-    PICKUP = 0
-    SHOOT = 1
-    WAYPOINT = 2
+    PICKUP = auto()
+    SHOOT = auto()
+    SIMPLE = auto()
 
 
-@dataclass
 class Waypoint:
     def __init__(
         self,
         x: float,
         y: float,
-        angle: float,
-        waypoint_type: WaypointType = WaypointType.WAYPOINT,
-    ):
+        rotation: Rotation2d(),
+        waypoint_type: WaypointType = WaypointType.SIMPLE,
+    ) -> None:
         """x, y: field position in meters
         angle: robot angle in degrees"""
-        self.pose = Pose2d(x, y, Rotation2d.fromDegrees(angle))
+        self.pose = Pose2d(x, y, rotation)
         self.type = waypoint_type
 
 
@@ -47,7 +45,6 @@ class AutoBase(AutonomousStateMachine):
     logger: logging.Logger
 
     waypoints: List[Waypoint]
-    waypoints_poses: List[Pose2d]
 
     max_speed = 2.5
     max_accel = 1.5
@@ -85,7 +82,7 @@ class AutoBase(AutonomousStateMachine):
 
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
-    def setup(self):
+    def setup(self) -> None:
         field_goal = self.field.getObject("goal")
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
@@ -96,10 +93,10 @@ class AutoBase(AutonomousStateMachine):
         # generates initial velocity profile
         self.cur_waypoint = 0
         self.trap_profile = self._generate_trap_profile(TrapezoidProfile.State(0, 0))
-        return super().on_enable()
+        super().on_enable()
 
     @state
-    def move(self, tm):
+    def move(self, tm: float) -> None:
         # indexer controller will hanle it self raising and lowering
         self.indexer_control.wants_to_intake = True
         # always be trying to fire
@@ -113,9 +110,9 @@ class AutoBase(AutonomousStateMachine):
         if is_done:
             self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
             waypoint_type = self.waypoints[self.cur_waypoint].type
-            if waypoint_type == WaypointType.SHOOT:
+            if waypoint_type is WaypointType.SHOOT:
                 self.next_state("firing")
-            elif waypoint_type == WaypointType.PICKUP:
+            elif waypoint_type is WaypointType.PICKUP:
                 self.next_state("pickup")
             else:
                 self.move_next_waypoint(tm)
@@ -156,7 +153,7 @@ class AutoBase(AutonomousStateMachine):
         self.last_pose = goal_pose
 
     @state
-    def pickup(self, state_tm, tm):
+    def pickup(self, state_tm: float, tm: float) -> None:
         """Waits until full"""
         self.shooter_control.wants_to_fire = True
         self.indexer_control.wants_to_intake = True
@@ -165,14 +162,14 @@ class AutoBase(AutonomousStateMachine):
             self.next_state("move")
 
     @state(first=True)
-    def firing(self, state_tm, tm):
+    def firing(self, state_tm: float, tm: float) -> None:
         """Waits until empty"""
         self.shooter_control.wants_to_fire = True
         if state_tm > 1:  # TODO: replace with indexer is empty and finished firing
             self.move_next_waypoint(tm)
             self.next_state("move")
 
-    def move_next_waypoint(self, cur_time):
+    def move_next_waypoint(self, cur_time: float) -> None:
         """Creates the trapazoidal profile to move to the next waypoint"""
         if self.cur_waypoint >= len(self.waypoints) - 1:
             self.done()
@@ -192,8 +189,8 @@ class AutoBase(AutonomousStateMachine):
         )
         waypoint_type = self.waypoints[self.cur_waypoint].type
         if (
-            waypoint_type == WaypointType.SHOOT
-            or waypoint_type == WaypointType.PICKUP
+            waypoint_type is WaypointType.SHOOT
+            or waypoint_type is WaypointType.PICKUP
             or self.cur_waypoint >= len(self.waypoints)
         ):
             end_speed = 0.0
