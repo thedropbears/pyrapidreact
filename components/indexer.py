@@ -1,6 +1,8 @@
+from ast import Index
+from ctre import FeedbackDevice
 import rev
 import wpilib
-from enum import Enum
+from enum import Enum, auto
 from magicbot import tunable, feedback
 
 
@@ -9,6 +11,11 @@ class Indexer:
         OFF = 0
         FORWARDS = 1
         BACKWARDS = -1
+
+    class CargoColour(Enum):
+        NONE = auto()
+        RED = auto()
+        BLUE = auto()
 
     # The "tunnel" is the horizontal part of the indexer that the cargo enters first
     # The "chimney" is the vertical section of the indexer that feeds the shooter
@@ -21,22 +28,32 @@ class Indexer:
     cat_flap_piston: wpilib.DoubleSolenoid
 
     is_firing = tunable(False)
-    indexer_speed = tunable(0.5)
+    tunnel_speed = tunable(0.3)
+    chimney_speed = tunable(1.0)
 
     _tunnel_direction = Direction.OFF
     _chimney_direction = Direction.OFF
     _cat_flap_is_open = False
 
+    last_colour = CargoColour.NONE
+
     has_trapped_cargo = tunable(False)
 
     def setup(self) -> None:
         self.indexer_tunnel_motor.setInverted(True)
+        self.indexer_tunnel_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
         self.indexer_chimney_motor.setInverted(False)
+        self.indexer_chimney_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
     def execute(self) -> None:
-        self.indexer_tunnel_motor.set(self.indexer_speed * self._tunnel_direction.value)
+        if self._tunnel_direction is Indexer.Direction.BACKWARDS:
+            self.indexer_tunnel_motor.set(-1.0)
+        elif self._tunnel_direction is Indexer.Direction.FORWARDS:
+            self.indexer_tunnel_motor.set(self.tunnel_speed)
+        else:
+            self.indexer_tunnel_motor.set(0.0)
         self.indexer_chimney_motor.set(
-            self.indexer_speed * self._chimney_direction.value
+            self.chimney_speed * self._chimney_direction.value
         )
         if self._cat_flap_is_open:
             self.cat_flap_piston.set(
@@ -46,6 +63,11 @@ class Indexer:
             self.cat_flap_piston.set(
                 wpilib.DoubleSolenoid.Value.kReverse
             )  # TODO check direction
+
+        if self.has_red():
+            self.last_colour = Indexer.CargoColour.RED
+        elif self.has_blue():
+            self.last_colour = Indexer.CargoColour.BLUE
 
         # Default state is for nothing to be moving and for the cat flap to be down
         self._tunnel_direction = self._chimney_direction = Indexer.Direction.OFF
@@ -60,17 +82,20 @@ class Indexer:
 
     @feedback
     def has_cargo_in_tunnel(self) -> bool:
-        return self.colour_sensor.getProximity() > 400
+        return self.last_colour is not Indexer.CargoColour.NONE
 
     @feedback
     def are_we_red(self) -> bool:
         return wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed
 
     @feedback
-    def has_opposition_cargo_in_tunnel(self) -> bool:
-        raw = self.colour_sensor.getRawColor()
-        is_red_cargo = raw.red > raw.blue
-        return self.has_cargo_in_tunnel() and is_red_cargo == self.are_we_red()
+    def last_cargo_was_opposition(self) -> bool:
+        if self.last_colour is Indexer.CargoColour.RED and not self.are_we_red():
+            return True
+        elif self.last_colour is Indexer.CargoColour.BLUE and self.are_we_red():
+            return True
+        
+        return False
 
     @feedback
     def ready_to_intake(self) -> bool:
@@ -87,6 +112,14 @@ class Indexer:
         raw = self.colour_sensor.getRawColor()
         return f"r{raw.red:.3f}, g{raw.green:.3f}, b{raw.blue:.3f}"
 
+    @feedback
+    def get_proximity(self) -> float:
+        return self.colour_sensor.getProximity()
+
+    @feedback
+    def get_last_colour(self) -> str:
+        return self.last_colour.name
+
     def open_cat_flap(self) -> None:
         self._cat_flap_is_open = True
 
@@ -98,3 +131,9 @@ class Indexer:
 
     def run_chimney_motor(self, direction: Direction) -> None:
         self._chimney_direction = direction
+
+    def has_red(self) -> bool:
+        return self.colour_sensor.getRawColor().red > 900
+
+    def has_blue(self) -> bool:
+        return self.colour_sensor.getRawColor().blue > 900

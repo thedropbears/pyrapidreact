@@ -1,4 +1,5 @@
 from components.indexer import Indexer
+from components.intake import Intake
 from magicbot import (
     StateMachine,
     default_state,
@@ -13,10 +14,6 @@ class IndexerController(StateMachine):
 
     wants_to_intake = tunable(False)
     ignore_colour = tunable(False)
-
-    def stop(self) -> None:
-        self.next_state("stopped")
-        self.wants_to_intake = False
 
     @default_state
     def stopped(self) -> None:
@@ -33,6 +30,12 @@ class IndexerController(StateMachine):
         elif self.wants_to_intake and self.indexer.ready_to_intake():
             self.next_state("intaking")
 
+    @state(must_finish=True)
+    def stopping(self) -> None:
+        self.indexer.last_colour = Indexer.CargoColour.NONE
+        self.wants_to_intake = False
+        self.next_state("stopped")
+
     @state(first=True, must_finish=True)
     def intaking(self) -> None:
         if self.indexer.has_cargo_in_tunnel():
@@ -43,7 +46,9 @@ class IndexerController(StateMachine):
     @state(must_finish=True)
     def reading(self, state_tm) -> None:
         if state_tm > 0.1:
-            if self.indexer.has_opposition_cargo_in_tunnel() and not self.ignore_colour:
+            if self.indexer.last_colour is Indexer.CargoColour.NONE:
+                self.next_state("clearing")
+            elif self.indexer.last_cargo_was_opposition() and not self.ignore_colour:
                 if (
                     self.indexer.has_trapped_cargo
                     or self.indexer.has_cargo_in_chimney()
@@ -54,24 +59,25 @@ class IndexerController(StateMachine):
             else:
                 # It is our ball so we have finished this process
                 # The "stopped" state will work out if it needs to move the ball into the chimney
-                self.stop()
+                self.next_state("stopped")
+            
 
-    @timed_state(duration=1, next_state="stopped", must_finish=True)
+    @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def clearing(self) -> None:
         self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
 
-    @timed_state(duration=10.0, next_state="stopped", must_finish=True)
+    @timed_state(duration=10.0, next_state="stopping", must_finish=True)
     def transferring_to_chimney(self) -> None:
         if self.indexer.has_cargo_in_chimney():
-            self.stop()
+            self.next_state("stopping")
             return
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
 
-    @timed_state(duration=1.5, next_state="stopped", must_finish=True)
+    @timed_state(duration=1.0, next_state="stopping", must_finish=True)
     def trapping(self, state_tm) -> None:
         self.indexer.open_cat_flap()
-        if state_tm > 0.5:
+        if state_tm > 0.3:
             # Give some time for the piston to move the flap
             self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
             self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
