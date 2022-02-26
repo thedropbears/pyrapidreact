@@ -24,9 +24,10 @@ class Indexer:
     lower_chimney_prox_sensor: wpilib.DigitalInput
     upper_chimney_prox_sensor: wpilib.DigitalInput
     cat_flap_piston: wpilib.DoubleSolenoid
+    tunnel_break_beam: wpilib.DigitalInput
 
     is_firing = tunable(False)
-    tunnel_speed = tunable(0.4)
+    tunnel_speed = tunable(0.8)
     chimney_speed = tunable(1.0)
 
     _tunnel_direction = Direction.OFF
@@ -76,7 +77,7 @@ class Indexer:
 
     @feedback
     def has_cargo_in_tunnel(self) -> bool:
-        return self.last_colour is not Indexer.CargoColour.NONE
+        return not self.tunnel_break_beam.get()
 
     @feedback
     def are_we_red(self) -> bool:
@@ -127,7 +128,7 @@ class Indexer:
         self._chimney_direction = direction
 
     def tunnel_has_red(self) -> bool:
-        return self.colour_sensor.getRawColor().red > 750
+        return self.colour_sensor.getRawColor().red > 1000
 
     def tunnel_has_blue(self) -> bool:
-        return self.colour_sensor.getRawColor().blue > 750
+        return self.colour_sensor.getRawColor().blue > 1000
