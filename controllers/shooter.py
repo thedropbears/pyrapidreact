@@ -4,7 +4,6 @@ from components.shooter import Shooter
 from components.turret import Turret
 from magicbot import StateMachine, tunable, default_state, timed_state, feedback
 from components.chassis import Chassis
-from magicbot import tunable, feedback
 from wpimath.geometry import Translation2d
 from numpy import interp
 
