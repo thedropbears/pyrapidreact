@@ -32,7 +32,8 @@ class Waypoint:
         waypoint_type: WaypointType = WaypointType.SIMPLE,
     ) -> None:
         """x, y: field position in meters
-        angle: robot angle in degrees"""
+        rotation: desired robot heading
+        """
         self.pose = Pose2d(x, y, rotation)
         self.type = waypoint_type
 
