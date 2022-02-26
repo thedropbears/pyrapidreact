@@ -19,8 +19,8 @@ class ShooterController(StateMachine):
     flywheel_speed = tunable(0.0)
 
     distance = 0.0
-    ranges_lookup = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
-    flywheel_speed_lookup = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
+    ranges_lookup = (3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+    flywheel_speed_lookup = (28.0, 30.0, 35.0, 39.0, 43.5, 48.0)
 
     MAX_DIST = 8
     MIN_DIST = 3
