@@ -13,6 +13,7 @@ import wpilib
 
 from utilities.functions import constrain_angle
 from utilities.scalers import scale_value
+from utilities.trajectory_generator import goal_to_field
 
 
 @dataclass
@@ -43,6 +44,8 @@ class Vision:
 
     camera_offset = 0.316
 
+    field: wpilib.Field2d
+
     def __init__(self) -> None:
 
         self.nt = NetworkTables
@@ -61,6 +64,9 @@ class Vision:
         self.last_data_timestamp = Timer.getFPGATimestamp()  # timestamp of last data
 
         self.vision_data: Optional[VisionData] = None
+
+    def setup(self):
+        self.field_obj = self.field.getObject("vision_pose")
 
     def get_data(self) -> Optional[VisionData]:
         """Returns the latest vision data.
@@ -102,6 +108,7 @@ class Vision:
             distance=self.vision_data.distance,
             angle=Rotation2d(angle_from_target),
         )
+        self.field_obj.setPose(goal_to_field(vis_estimate))
         # calcualte vision std dev
         # trust vision less the more outdated it is
         vis_age = wpilib.Timer.getFPGATimestamp() - self.vision_data.timestamp

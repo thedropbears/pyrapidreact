@@ -18,6 +18,7 @@ from wpimath.estimator import SwerveDrive4PoseEstimator
 from utilities.functions import constrain_angle
 from utilities.ctre import TalonEncoder
 from wpimath.controller import SimpleMotorFeedforwardMeters
+from utilities.trajectory_generator import goal_to_field
 
 
 class SwerveModule:
@@ -160,6 +161,7 @@ class Chassis:
 
     desired_states = None
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
+    field: wpilib.Field2d
 
     def __init__(self):
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
@@ -230,7 +232,9 @@ class Chassis:
             localMeasurementStdDevs=(0.01,),
             visionMeasurementStdDevs=(0.5, 0.5, 0.2),
         )
-        self.set_pose(Pose2d(Translation2d(-2, 0), Rotation2d(math.pi)))
+        self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
+
+        self.field_obj = self.field.getObject("estimator_pose")
 
         self.control_rate = 1 / self.control_loop_wait_time
 
@@ -267,6 +271,7 @@ class Chassis:
         ) * self.control_rate
 
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
+        self.field_obj.setPose(goal_to_field(self.pose_history[0]))
 
     @magicbot.feedback
     def get_imu_rotation(self):
