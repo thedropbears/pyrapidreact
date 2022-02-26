@@ -1,32 +1,30 @@
+from components.indexer import Indexer
 from components.shooter import Shooter
 from components.target_estimator import TargetEstimator
 from components.turret import Turret
-from controllers.indexer import IndexerController
-from magicbot import tunable, feedback, will_reset_to
+from magicbot import StateMachine, tunable, default_state, timed_state, feedback
 from numpy import interp
 
 
-class ShooterController:
-    indexer_control: IndexerController
+class ShooterController(StateMachine):
     shooter: Shooter
     target_estimator: TargetEstimator
     turret: Turret
+    indexer: Indexer
 
     # If set to true, flywheel speed is set from tunable
     # Otherwise it is calculated from the interpolation table
     interpolation_override = tunable(False)
     flywheel_speed = tunable(0.0)
 
-    wants_to_fire = will_reset_to(False)
-
-    allowed_flywheel_error = tunable(20.0)
-    allowed_bearing_error = tunable(0.2)
-
     distance = 0.0
     ranges_lookup = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     flywheel_speed_lookup = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
 
-    def execute(self):
+    _wants_to_fire = False
+
+    @default_state
+    def tracking(self) -> None:
         angle, self.distance = self.target_estimator.to_target()
         if angle is not None:
             self.turret.slew_local(angle)
@@ -39,12 +37,22 @@ class ShooterController:
             )
 
         if (
-            self.wants_to_fire
-            and abs(self.shooter.flywheel_error()) < self.allowed_flywheel_error
-            and abs(self.turret.get_error()) < self.allowed_bearing_error
+            self._wants_to_fire
+            and self.indexer.has_cargo_in_chimney()
+            and self.shooter.is_at_speed()
+            and self.turret.is_on_target()
         ):
-            self.indexer_control.wants_to_fire = True
+            self.next_state("firing")
+            # Reset each loop so that the call has to be made each control loop
+            self._wants_to_fire = False
+
+    @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
+    def firing(self) -> None:
+        self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
 
     @feedback
     def distance_to_goal(self) -> float:
         return self.distance
+
+    def fire(self) -> None:
+        self._wants_to_fire = True

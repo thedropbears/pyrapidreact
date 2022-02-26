@@ -12,6 +12,7 @@ class Shooter:
     right_motor: ctre.TalonFX
 
     motor_speed = 0.0
+    allowable_error = magicbot.tunable(20.0)
 
     MAX_RP100ms = 10
     pidF = 1023 / (2048 * MAX_RP100ms)
@@ -34,6 +35,8 @@ class Shooter:
 
     MAX_MOTOR_SPEED = 6000 / 60
 
+    COMPENSATED_VOLTAGE = 11.0
+
     def setup(self):
         self.left_motor.setInverted(False)
         self.right_motor.setInverted(True)
@@ -45,7 +48,7 @@ class Shooter:
             motor.configFactoryDefault()
             motor.setNeutralMode(ctre.NeutralMode.Coast)
 
-            motor.configVoltageCompSaturation(12, timeoutMs=10)
+            motor.configVoltageCompSaturation(self.COMPENSATED_VOLTAGE, timeoutMs=10)
             motor.enableVoltageCompensation(True)
 
             motor.config_kF(0, self.pidF, 10)
@@ -73,3 +76,6 @@ class Shooter:
     @magicbot.feedback
     def flywheel_error(self):
         return self.motor_speed - self.actual_velocity()
+
+    def is_at_speed(self) -> bool:
+        return abs(self.flywheel_error()) < self.allowable_error

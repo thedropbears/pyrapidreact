@@ -32,6 +32,8 @@ class Turret:
     # max rotation either side of zero
     MAX_ROTATION = math.radians(200)
 
+    allowable_error = magicbot.tunable(0.1)  # radians
+
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
         self.has_synced = False
@@ -101,8 +103,11 @@ class Turret:
     def get_angle(self):
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
-    def get_error(self):
+    def get_error(self) -> float:
         return self.get_angle() - self.target
+
+    def is_on_target(self) -> bool:
+        return abs(self.get_error()) < self.allowable_error
 
     @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
