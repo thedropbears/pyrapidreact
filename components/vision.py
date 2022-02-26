@@ -110,7 +110,9 @@ class Vision:
             distance=self.vision_data.distance,
             angle=Rotation2d(angle_from_target),
         )
-        self.field_obj.setPose(goal_to_field(Pose2d(vis_estimate, Rotation2d(0))))
+        self.field_obj.setPose(
+            goal_to_field(Pose2d(vis_estimate, self.imu.getRotation2d()))
+        )
         # calcualte vision std dev
         # trust vision less the more outdated it is
         vis_age = wpilib.Timer.getFPGATimestamp() - self.vision_data.timestamp
@@ -129,7 +131,7 @@ class Vision:
             self.chassis.estimator.addVisionMeasurement(
                 Pose2d(vis_estimate, self.imu.getRotation2d()),
                 self.vision_data.timestamp,
-                vis_std_dev,
+                [vis_std_dev, vis_std_dev, 0.0],
             )
         self.last_data_timestamp = self.vision_data.timestamp
 

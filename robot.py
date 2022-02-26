@@ -106,6 +106,7 @@ class MyRobot(magicbot.MagicRobot):
         )
 
         self.turret.try_sync()
+        self.vision.execute()
 
     def teleopPeriodic(self) -> None:
         # handle chassis inputs

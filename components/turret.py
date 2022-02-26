@@ -1,4 +1,5 @@
 from collections import deque
+from logging import Logger
 import ctre
 import magicbot
 import math
@@ -33,6 +34,8 @@ class Turret:
     MAX_ROTATION = math.radians(200)
 
     allowable_error = magicbot.tunable(0.1)  # radians
+
+    logger: Logger
 
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
@@ -114,9 +117,10 @@ class Turret:
         return constrain_angle(self.absolute_encoder.getDistance() + self.abs_offset)
 
     def get_angle_at(self, t: float) -> float:
-        if len(self.angle_history) == 0:
-            return self.get_angle()
         loops_ago = int((Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
+        if loops_ago < 0:
+            self.logger.warning("vision clocks wrapped")
+            return self.get_angle()
         if loops_ago >= len(self.angle_history):
             return (
                 self.angle_history[-1]

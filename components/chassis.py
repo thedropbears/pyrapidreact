@@ -1,4 +1,5 @@
 from collections import deque
+from logging import Logger
 import math
 from typing import Optional, Deque
 
@@ -162,6 +163,7 @@ class Chassis:
     desired_states = None
     chassis_speeds = magicbot.will_reset_to(ChassisSpeeds(0, 0, 0))
     field: wpilib.Field2d
+    logger: Logger
 
     def __init__(self):
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
@@ -288,6 +290,9 @@ class Chassis:
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
         loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) * self.control_rate)
+        if loops_ago < 0:
+            self.logger.warning("vision clocks warpped")
+            return self.estimator.getEstimatedPosition()
         if loops_ago >= len(self.pose_history):
             return (
                 self.pose_history[-1]

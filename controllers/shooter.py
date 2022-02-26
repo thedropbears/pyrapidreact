@@ -4,7 +4,6 @@ from components.shooter import Shooter
 from components.turret import Turret
 from magicbot import StateMachine, tunable, default_state, timed_state, feedback
 from components.chassis import Chassis
-from wpimath.geometry import Translation2d
 from numpy import interp
 
 
@@ -23,13 +22,12 @@ class ShooterController(StateMachine):
     ranges_lookup = (2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
     flywheel_speed_lookup = (32.0, 30.0, 36.0, 39.0, 42.0, 46.0, 51.0, 56.0)
 
-    turret_offset = Translation2d(-0.148, 0)  # From CAD
     _wants_to_fire = False
 
     @default_state
     def tracking(self) -> None:
         # calculate angle and dist to target
-        turret_pose = self.chassis.robot_to_world(self.turret_offset)
+        turret_pose = self.chassis.robot_to_world(self.shooter.turret_offset)
         field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
         cur_pose = self.chassis.estimator.getEstimatedPosition()
         angle = field_angle - cur_pose.rotation().radians()
