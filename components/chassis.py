@@ -283,7 +283,7 @@ class Chassis:
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
         loops_ago = int(
-            (wpilib.Timer.getFPGATimestamp() - t) / self.control_loop_wait_time
+            (wpilib.Timer.getFPGATimestamp() - t) * self.control_rate
         )
         if loops_ago >= len(self.pose_history):
             return (
