@@ -13,7 +13,8 @@ import navx
 import wpilib
 
 from utilities.functions import constrain_angle
-from utilities.scalers import scale_value
+
+# from utilities.scalers import scale_value
 from utilities.trajectory_generator import goal_to_field
 
 
@@ -115,24 +116,24 @@ class Vision:
         )
         # calcualte vision std dev
         # trust vision less the more outdated it is
-        vis_age = wpilib.Timer.getFPGATimestamp() - self.vision_data.timestamp
-        age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
-        # trust vision less the more it thinks we've moved (to reduce impact of false positives)
-        innovation = vis_estimate.distance(
-            self.chassis.estimator.getEstimatedPosition().translation()
-        )
-        # will be 0 if innovation is over 1.5m
-        innovation_fit = min(1, max(0, scale_value(innovation, 0.25, 1.5, 1, 0)))
-        # combined vision confidence is 0-1
-        vis_confidence = self.vision_data.fittness * innovation_fit * age_fit
-        if vis_confidence > 0.4:
-            vis_std_dev = 0.5 / vis_confidence
-            # pass vision pose estimate to chassis kalman filter
-            self.chassis.estimator.addVisionMeasurement(
-                Pose2d(vis_estimate, self.imu.getRotation2d()),
-                self.vision_data.timestamp,
-                [vis_std_dev, vis_std_dev, 0.0],
-            )
+        # vis_age = wpilib.Timer.getFPGATimestamp() - self.vision_data.timestamp
+        # age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
+        # # trust vision less the more it thinks we've moved (to reduce impact of false positives)
+        # innovation = vis_estimate.distance(
+        #     self.chassis.estimator.getEstimatedPosition().translation()
+        # )
+        # # will be 0 if innovation is over 1.5m
+        # innovation_fit = min(1, max(0, scale_value(innovation, 0.25, 1.5, 1, 0)))
+        # # combined vision confidence is 0-1
+        # vis_confidence = self.vision_data.fittness * innovation_fit * age_fit
+        # if vis_confidence > 0.4:
+        #     vis_std_dev = 0.5 / vis_confidence
+        #     # pass vision pose estimate to chassis kalman filter
+        #     self.chassis.estimator.addVisionMeasurement(
+        #         Pose2d(vis_estimate, self.imu.getRotation2d()),
+        #         self.vision_data.timestamp,
+        #         [vis_std_dev, vis_std_dev, 0.0],
+        #     )
         self.last_data_timestamp = self.vision_data.timestamp
 
     @feedback
