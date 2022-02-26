@@ -26,7 +26,7 @@ class Waypoint:
         self,
         x: float,
         y: float,
-        rotation: Rotation2d(),
+        rotation: Rotation2d,
         waypoint_type: WaypointType = WaypointType.SIMPLE,
     ) -> None:
         """x, y: field position in meters
@@ -219,9 +219,9 @@ red_balls = [
     (-0.850, -3792),  # right
 ]
 # start positions
-right_mid_start = Pose2d(-0.711, -2.419, -88.5)
-right_left_start = Pose2d(-1.846, -1.555, -133.5)
-left_mid_start = Pose2d(-2.273, 1.090, 136.5)
+right_mid_start = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
+right_left_start = Pose2d(-1.846, -1.555, Rotation2d.fromDegrees(-133.5))
+left_mid_start = Pose2d(-2.273, 1.090, Rotation2d.fromDegrees(136.5))
 
 
 class TestAuto(AutoBase):
@@ -229,11 +229,11 @@ class TestAuto(AutoBase):
 
     def __init__(self):
         self.waypoints = [
-            Waypoint(0, 0, 0),
-            Waypoint(2, 0, 90),
-            Waypoint(2, 2, 180),
-            Waypoint(0, 2, 270),
-            Waypoint(0, 0, 0),
+            Waypoint(0, 0, Rotation2d.fromDegrees(0)),
+            Waypoint(2, 0, Rotation2d.fromDegrees(90)),
+            Waypoint(2, 2, Rotation2d.fromDegrees(180)),
+            Waypoint(0, 2, Rotation2d.fromDegrees(270)),
+            Waypoint(0, 0, Rotation2d.fromDegrees(0)),
         ]
         super().__init__()
 
@@ -246,10 +246,10 @@ class FiveBall(AutoBase):
 
     def __init__(self):
         self.waypoints = [
-            Waypoint(-0.711, -2.419, -88.5),  # start
-            Waypoint(-0.711, -3.5, -110, WaypointType.SHOOT),  # 3
-            Waypoint(-2.789, -2.378, -206, WaypointType.SHOOT),  # 2
-            Waypoint(-6.813, -2.681, -136, WaypointType.PICKUP),  # 4
+            Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
+            Waypoint(-0.711, -3.5, Rotation2d(-110), WaypointType.SHOOT),  # 3
+            Waypoint(-2.789, -2.378, Rotation2d(-206), WaypointType.SHOOT),  # 2
+            Waypoint(-6.813, -2.681, Rotation2d(-136), WaypointType.PICKUP),  # 4
             Waypoint(-4.8, 0, 143, WaypointType.SHOOT),  # shoot
         ]
         super().__init__()
