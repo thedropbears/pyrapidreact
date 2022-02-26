@@ -16,7 +16,7 @@ class Intake:
         )
 
     def execute(self) -> None:
-        if self._intake_limit.get():
+        if self.has_cargo():
             # If the breakbeam has fired we have a ball and we should retract
             self.deployed = False
         if self.deployed:
@@ -25,3 +25,6 @@ class Intake:
         else:
             self.intake_motor.set(0.0)
             self.intake_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
+
+    def has_cargo(self) -> bool:
+        return self._intake_limit.get()
