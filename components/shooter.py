@@ -58,6 +58,9 @@ class Shooter:
             motor.configSelectedFeedbackSensor(
                 ctre.FeedbackDevice.IntegratedSensor, 0, 10
             )
+            motor.setStatusFramePeriod(
+                ctre.StatusFrameEnhanced.Status_1_General, 250, 10
+            )
 
     def execute(self):
         self.right_motor.set(
