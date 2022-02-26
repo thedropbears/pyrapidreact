@@ -192,8 +192,8 @@ class AutoBase(AutonomousStateMachine):
             and self.indexer.has_cargo_in_tunnel()
             or state_tm > 6
         ):
-            self.move_next_waypoint(tm)
             self.next_state("move")
+            self.move_next_waypoint(tm)
 
     @state
     def firing(self, state_tm: float, tm: float) -> None:
@@ -206,8 +206,8 @@ class AutoBase(AutonomousStateMachine):
             or self.indexer_control.current_state == "transferring_to_chimney"
             or self.indexer_control.current_state == "firing"
         ):
-            self.move_next_waypoint(tm)
             self.next_state("move")
+            self.move_next_waypoint(tm)
 
     @state
     def finished(self) -> None:
