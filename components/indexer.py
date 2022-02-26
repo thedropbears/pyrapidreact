@@ -56,7 +56,7 @@ class Indexer:
         if self._cat_flap_is_open:
             self.cat_flap_piston.set(
                 wpilib.DoubleSolenoid.Value.kForward
-            )  # TODO check direction
+            )
         else:
             self.cat_flap_piston.set(
                 wpilib.DoubleSolenoid.Value.kReverse
