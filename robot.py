@@ -73,6 +73,7 @@ class MyRobot(magicbot.MagicRobot):
         )
         self.upper_chimney_prox_sensor = wpilib.DigitalInput(8)
         self.lower_chimney_prox_sensor = wpilib.DigitalInput(6)
+        self.tunnel_break_beam = wpilib.DigitalInput(1)
         self.cat_flap_piston = wpilib.DoubleSolenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 1, 3
         )  # TODO correct port numbers
