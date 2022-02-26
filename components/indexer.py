@@ -1,5 +1,3 @@
-from ast import Index
-from ctre import FeedbackDevice
 import rev
 import wpilib
 from enum import Enum, auto
@@ -94,7 +92,7 @@ class Indexer:
             return True
         elif self.last_colour is Indexer.CargoColour.BLUE and self.are_we_red():
             return True
-        
+
         return False
 
     @feedback

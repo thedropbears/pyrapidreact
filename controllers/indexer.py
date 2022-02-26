@@ -1,5 +1,4 @@
 from components.indexer import Indexer
-from components.intake import Intake
 from magicbot import (
     StateMachine,
     default_state,
@@ -60,7 +59,6 @@ class IndexerController(StateMachine):
                 # It is our ball so we have finished this process
                 # The "stopped" state will work out if it needs to move the ball into the chimney
                 self.next_state("stopped")
-            
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def clearing(self) -> None:
