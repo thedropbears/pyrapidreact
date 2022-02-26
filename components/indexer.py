@@ -127,7 +127,7 @@ class Indexer:
         self._chimney_direction = direction
 
     def tunnel_has_red(self) -> bool:
-        return self.colour_sensor.getRawColor().red > 900
+        return self.colour_sensor.getRawColor().red > 750
 
     def tunnel_has_blue(self) -> bool:
-        return self.colour_sensor.getRawColor().blue > 900
+        return self.colour_sensor.getRawColor().blue > 750
