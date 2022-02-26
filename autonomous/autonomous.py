@@ -50,8 +50,8 @@ class AutoBase(AutonomousStateMachine):
 
     waypoints: List[Waypoint]
 
-    max_speed = 1.5
-    max_accel = 0.5
+    max_speed = 2.0
+    max_accel = 1.0
 
     def __init__(self):
         super().__init__()
@@ -187,14 +187,20 @@ class AutoBase(AutonomousStateMachine):
             or self.indexer.has_cargo_in_tunnel()
             or self.indexer_control.current_state == "transferring_to_chimney"
             or self.indexer_control.current_state == "firing"
-        ):  # TODO: replace with indexer is finished firing
+        ):
             self.move_next_waypoint(tm)
             self.next_state("move")
+
+    @state
+    def finished(self) -> None:
+        """Finished, keeps trying to fire incase we have any balls left"""
+        self.shooter_control.fire()
+        self.intake.deployed = False
 
     def move_next_waypoint(self, cur_time: float) -> None:
         """Creates the trapazoidal profile to move to the next waypoint"""
         if self.cur_waypoint >= len(self.waypoints) - 1:
-            self.done()
+            self.next_state("finished")
             return
         # last state in the current profile
         last_end = self.trap_profile.calculate(self.trap_profile.totalTime())
@@ -277,8 +283,10 @@ class FiveBall(AutoBase):
                 -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
             ),  # 2
             Waypoint(
-                -6.5, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                -6.95, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
             ),  # 4
-            Waypoint(-5.0, 0, 143, WaypointType.SHOOT),  # shoot
+            Waypoint(
+                -5.0, 0, Rotation2d.fromDegrees(-200), WaypointType.SHOOT
+            ),  # shoot
         ]
         super().__init__()

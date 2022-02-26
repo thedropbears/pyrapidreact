@@ -55,8 +55,8 @@ class ShooterController(StateMachine):
             and self.turret.is_on_target()
             and self.distance > self.MIN_DIST
             and self.distance < self.MAX_DIST
-            and self.chassis.getVelocity().translation().norm() < self.MAX_SPEED
-            and self.chassis.getVelocity().rotation() < self.MAX_ROTATION
+            and self.chassis.translation_velocity < self.MAX_SPEED
+            and self.chassis.rotation_velocity < self.MAX_ROTATION
         ):
             self.next_state("firing")
 

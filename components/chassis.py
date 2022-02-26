@@ -270,7 +270,7 @@ class Chassis:
         self.rotation_velocity = (
             self.estimator.getEstimatedPosition().rotation()
             - self.pose_history[0].rotation()
-        ) * self.control_rate
+        ).radians() * self.control_rate
 
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
         self.field_obj.setPose(goal_to_field(self.pose_history[0]))
@@ -311,6 +311,3 @@ class Chassis:
             robot.translation() + offset.rotateBy(robot.rotation()),
             robot.rotation(),
         )
-
-    def getVelocity(self):
-        return Pose2d(self.translation_velocity, self.rotation_velocity)
