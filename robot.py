@@ -85,11 +85,14 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
         self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
 
+        self.auto_shoot = False
+
     def autonomousInit(self) -> None:
-        pass
+        self.auto_shoot = False
 
     def teleopInit(self) -> None:
         self.indexer_control.ignore_colour = False
+        self.auto_shoot = False
 
     def testInit(self) -> None:
         pass
@@ -134,7 +137,10 @@ class MyRobot(magicbot.MagicRobot):
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
-        if self.joystick.getTrigger():
+        if self.joystick.getRawButtonPressed(11):
+            self.auto_shoot = not self.auto_shoot
+
+        if self.joystick.getTrigger() or self.auto_shoot:
             self.shooter_control.fire()
 
         if self.joystick.getRawButtonPressed(2):
