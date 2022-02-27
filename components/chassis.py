@@ -168,8 +168,12 @@ class Chassis:
     field: wpilib.Field2d
     logger: Logger
 
+    vel_avg_alpha = 0.2
+
     def __init__(self):
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
+        self.translation_velocity = Translation2d()
+        self.rotation_velocity = Rotation2d()
 
     def setup(self):
         # mag encoder only
@@ -266,14 +270,22 @@ class Chassis:
             self.modules[3].get(),
         )
 
-        self.translation_velocity = (
+        cur_trans_vel = (
             self.estimator.getEstimatedPosition().translation()
             - self.pose_history[0].translation()
-        ).norm() * self.control_rate
-        self.rotation_velocity = (
+        ) * self.control_rate
+        self.translation_velocity = (
+            cur_trans_vel * self.vel_avg_alpha
+            + self.translation_velocity * (1 - self.vel_avg_alpha)
+        )
+        cur_rot_vel = (
             self.estimator.getEstimatedPosition().rotation()
             - self.pose_history[0].rotation()
-        ).radians() * self.control_rate
+        ) * self.control_rate
+        self.rotation_velocity = (
+            cur_rot_vel * self.vel_avg_alpha
+            + self.rotation_velocity * (1 - self.vel_avg_alpha)
+        )
 
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
         self.field_obj.setPose(goal_to_field(self.pose_history[0]))
