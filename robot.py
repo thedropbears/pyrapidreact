@@ -86,9 +86,12 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
 
     def autonomousInit(self) -> None:
-        pass
+        self.shooter_control.lead_shots = False
+        self.intake.auto_retract = False
 
     def teleopInit(self) -> None:
+        self.intake.auto_retract = True
+        self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
 
     def testInit(self) -> None:

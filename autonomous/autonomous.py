@@ -51,8 +51,8 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    max_speed = 3
-    max_accel = 2
+    max_speed = 3.5
+    max_accel = 2.1
 
     ALLOWED_TRANS_ERROR = 0.2
     ALLOWED_ROT_ERROR = math.radians(20)
@@ -71,12 +71,12 @@ class AutoBase(AutonomousStateMachine):
         )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
-            2, 0, 0, self.drive_rotation_constraints
+            4, 0, 0, self.drive_rotation_constraints
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(1, 0, 0.2),
-            controller.PIDController(1, 0, 0.2),
+            controller.PIDController(3, 0, 0.2),
+            controller.PIDController(3, 0, 0.2),
             rotation_controller,
         )
 
@@ -166,7 +166,7 @@ class AutoBase(AutonomousStateMachine):
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose_fake,
-            linearVelocityRef=linear_state.velocity * 0.15,  # used for feedforward
+            linearVelocityRef=linear_state.velocity * 0.2,  # used for feedforward
             angleRef=goal_rotation,
         )
         self.chassis.drive_local(
@@ -185,13 +185,12 @@ class AutoBase(AutonomousStateMachine):
     @state
     def pickup(self, state_tm: float, tm: float) -> None:
         """Waits until full"""
-        if self.indexer.ready_to_intake():
-            self.intake.deployed = True
-            self.indexer_control.wants_to_intake = True
+        self.intake.deployed = True
+        self.indexer_control.wants_to_intake = True
         if (
             self.indexer.has_cargo_in_chimney()
             and self.indexer.has_cargo_in_tunnel()
-            or state_tm > 6
+            or state_tm > 3
         ):
             self.next_state("move")
             self.move_next_waypoint(tm)
@@ -201,7 +200,7 @@ class AutoBase(AutonomousStateMachine):
         """Waits until empty"""
         self.shooter_control.fire()
         self.intake.deployed = False
-        if state_tm > 2 or not (
+        if state_tm > 2.5 or not (
             self.indexer.has_cargo_in_chimney()
             or self.indexer.has_cargo_in_tunnel()
             or self.indexer_control.current_state == "transferring_to_chimney"
@@ -297,17 +296,17 @@ class FiveBall(AutoBase):
             [
                 Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
                 Waypoint(
-                    -0.7, -3.5, Rotation2d.fromDegrees(-120), WaypointType.SHOOT
+                    -0.65, -3.5, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
                 ),  # 3
                 Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
                 Waypoint(
                     -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.25, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
             ]
         )

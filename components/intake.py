@@ -8,6 +8,7 @@ class Intake:
     intake_piston: wpilib.DoubleSolenoid
 
     deployed = False
+    auto_retract = True
 
     def setup(self) -> None:
         self.intake_motor.restoreFactoryDefaults()
@@ -17,7 +18,7 @@ class Intake:
         )
 
     def execute(self) -> None:
-        if self.has_cargo():
+        if self.has_cargo() and self.auto_retract:
             # If the breakbeam has fired we have a ball and we should retract
             self.deployed = False
         if self.deployed:

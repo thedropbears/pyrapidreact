@@ -43,6 +43,9 @@ class ShooterController(StateMachine):
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
+    # dont want to lead shots in auto beacuse we are shoot on the move
+    # and the it causes weird behavoir with wrapping
+    lead_shots = tunable(True)
 
     def setup(self):
         self.field_effective_goal = self.field.getObject("effective_goal")
@@ -53,25 +56,28 @@ class ShooterController(StateMachine):
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # adjust shot to hit while moving
-        effective_trans = cur_pose.translation()
-        for _ in range(3):
-            self.distance = effective_trans.distance(Translation2d())
-            flight_time: float = interpolate(
-                self.distance, self.ranges_lookup, self.times_lookup
+        if self.lead_shots:
+            effective_trans = cur_pose.translation()
+            for _ in range(3):
+                self.distance = effective_trans.distance(Translation2d())
+                flight_time: float = interpolate(
+                    self.distance, self.ranges_lookup, self.times_lookup
+                )
+                effective_trans = (
+                    cur_pose.translation()
+                    + self.chassis.translation_velocity * flight_time
+                )
+            self.field_effective_goal.setPose(
+                goal_to_field(
+                    Pose2d(effective_trans - cur_pose.translation(), Rotation2d(0))
+                )
             )
-            effective_trans = (
-                cur_pose.translation() + self.chassis.translation_velocity * flight_time
-            )
-        self.field_effective_goal.setPose(
-            goal_to_field(
-                Pose2d(effective_trans - cur_pose.translation(), Rotation2d(0))
-            )
-        )
-        # calculate angle and dist to target
-        effective_pose = Pose2d(
-            effective_trans,
-            cur_pose.rotation() + self.chassis.rotation_velocity * flight_time,
-        )
+            # calculate angle and dist to target
+            effective_pose = Pose2d(effective_trans, cur_pose.rotation())
+        else:
+            effective_pose = cur_pose
+            self.distance = effective_pose.translation().distance(Translation2d())
+
         turret_pose = self.chassis.robot_to_world(
             self.shooter.turret_offset, effective_pose
         )
