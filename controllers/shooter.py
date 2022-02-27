@@ -11,7 +11,7 @@ from magicbot import (
     will_reset_to,
 )
 from components.chassis import Chassis
-from numpy import interp
+from utilities.functions import interpolate
 
 
 class ShooterController(StateMachine):
@@ -51,7 +51,7 @@ class ShooterController(StateMachine):
         if self.interpolation_override:
             self.shooter.motor_speed = self.flywheel_speed
         else:
-            self.shooter.motor_speed = interp(
+            self.shooter.motor_speed = interpolate(
                 self.distance, self.ranges_lookup, self.flywheel_speed_lookup
             )
 
