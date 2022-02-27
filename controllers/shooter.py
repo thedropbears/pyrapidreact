@@ -2,7 +2,14 @@ from components.indexer import Indexer
 import math
 from components.shooter import Shooter
 from components.turret import Turret
-from magicbot import StateMachine, tunable, default_state, timed_state, feedback
+from magicbot import (
+    StateMachine,
+    tunable,
+    default_state,
+    timed_state,
+    feedback,
+    will_reset_to,
+)
 from components.chassis import Chassis
 from numpy import interp
 
@@ -28,7 +35,7 @@ class ShooterController(StateMachine):
     MAX_SPEED = 0.1
     MAX_ROTATION = 0.1
 
-    _wants_to_fire = False
+    _wants_to_fire = will_reset_to(False)
 
     @default_state
     def tracking(self) -> None:
@@ -59,9 +66,6 @@ class ShooterController(StateMachine):
             and self.chassis.rotation_velocity < self.MAX_ROTATION
         ):
             self.next_state("firing")
-
-        # Reset each loop so that the call has to be made each control loop
-        self._wants_to_fire = False
 
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self) -> None:
