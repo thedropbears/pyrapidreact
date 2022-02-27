@@ -36,7 +36,7 @@ class ShooterController(StateMachine):
     # fmt: on
 
     MAX_DIST = 8
-    MIN_DIST = 3
+    MIN_DIST = 2.5
 
     MAX_SPEED = 2.0
     MAX_ROTATION = 3.0
@@ -56,7 +56,7 @@ class ShooterController(StateMachine):
         effective_trans = cur_pose.translation()
         for _ in range(3):
             self.distance = effective_trans.distance(Translation2d())
-            flight_time: float = interp(
+            flight_time: float = interpolate(
                 self.distance, self.ranges_lookup, self.times_lookup
             )
             effective_trans = (
