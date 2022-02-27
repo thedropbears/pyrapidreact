@@ -51,16 +51,15 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    waypoints: List[Waypoint]
-
     max_speed = 2.5
     max_accel = 1.75
 
     ALLOWED_TRANS_ERROR = 0.2
     ALLOWED_ROT_ERROR = math.radians(20)
 
-    def __init__(self):
+    def __init__(self, waypoints: List[Waypoint]):
         super().__init__()
+        self.waypoints = waypoints
         self.waypoints_poses = [w.pose for w in self.waypoints]
         # applies to the linear speed, not turning
         self.linear_constraints = TrapezoidProfile.Constraints(
@@ -89,7 +88,7 @@ class AutoBase(AutonomousStateMachine):
         self.cur_waypoint = 0
 
         self.last_pose = self.waypoints[0].pose
-        self.trap_profile_start_time = 0
+        self.trap_profile_start_time = 0.0
 
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
@@ -274,14 +273,15 @@ class TestAuto(AutoBase):
     MODE_NAME = "Test"
 
     def __init__(self):
-        self.waypoints = [
-            Waypoint(0, 0, Rotation2d.fromDegrees(0)),
-            Waypoint(2, 0, Rotation2d.fromDegrees(90)),
-            Waypoint(2, 2, Rotation2d.fromDegrees(180)),
-            Waypoint(0, 2, Rotation2d.fromDegrees(270)),
-            Waypoint(0, 0, Rotation2d.fromDegrees(0)),
-        ]
-        super().__init__()
+        super().__init__(
+            [
+                Waypoint(0, 0, Rotation2d.fromDegrees(0)),
+                Waypoint(2, 0, Rotation2d.fromDegrees(90)),
+                Waypoint(2, 2, Rotation2d.fromDegrees(180)),
+                Waypoint(0, 2, Rotation2d.fromDegrees(270)),
+                Waypoint(0, 0, Rotation2d.fromDegrees(0)),
+            ]
+        )
 
 
 class FiveBall(AutoBase):
@@ -291,20 +291,21 @@ class FiveBall(AutoBase):
     DEFAULT = True
 
     def __init__(self):
-        self.waypoints = [
-            Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
-            Waypoint(
-                -0.711, -3.3, Rotation2d.fromDegrees(-95), WaypointType.SHOOT
-            ),  # 3
-            Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
-            Waypoint(
-                -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
-            ),  # 2
-            Waypoint(
-                -7.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
-            ),  # 4
-            Waypoint(
-                -5.0, 0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
-            ),  # shoot
-        ]
-        super().__init__()
+        super().__init__(
+            [
+                Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
+                Waypoint(
+                    -0.711, -3.3, Rotation2d.fromDegrees(-95), WaypointType.SHOOT
+                ),  # 3
+                Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
+                Waypoint(
+                    -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
+                ),  # 2
+                Waypoint(
+                    -7.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                ),  # 4
+                Waypoint(
+                    -5.0, 0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                ),  # shoot
+            ]
+        )
