@@ -4,7 +4,6 @@ import ctre
 import magicbot
 import math
 from wpilib import DutyCycleEncoder, Timer
-from utilities.functions import constrain_angle
 
 
 class Turret:
@@ -81,7 +80,20 @@ class Turret:
             )
             self.has_synced = True
 
+    @classmethod
+    def wrap_allowable_angle(cls, theta: float) -> float:
+        """
+        Constrain a given angle to be within allowable angles for the turret.
+        This allows for some overlap around the turret's wraparound.
+        """
+        while theta > cls.MAX_ROTATION:
+            theta -= math.tau
+        while theta < -cls.MAX_ROTATION:
+            theta += math.tau
+        return theta
+
     def execute(self) -> None:
+        self.target = self.wrap_allowable_angle(self.target)
         # constrain in a way that allows a bit of overlap
         while self.target > self.MAX_ROTATION:
             self.target -= math.tau
@@ -114,7 +126,8 @@ class Turret:
 
     @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
-        return constrain_angle(self.absolute_encoder.getDistance() + self.abs_offset)
+        angle = self.absolute_encoder.getDistance() + self.abs_offset
+        return self.wrap_allowable_angle(angle)
 
     def get_angle_at(self, t: float) -> float:
         loops_ago = int((Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
