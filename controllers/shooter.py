@@ -12,7 +12,9 @@ from magicbot import (
 )
 from components.chassis import Chassis
 from numpy import interp
-from wpimath.geometry import Pose2d, Translation2d
+from wpimath.geometry import Pose2d, Translation2d, Rotation2d
+import wpilib
+from utilities.trajectory_generator import goal_to_field
 
 
 class ShooterController(StateMachine):
@@ -30,7 +32,7 @@ class ShooterController(StateMachine):
     # fmt: off
     ranges_lookup =         (3.0,  4.0,  5.0,  6.0,  7.0,  8.0)
     flywheel_speed_lookup = (28.0, 30.0, 35.0, 39.0, 43.5, 48.0)
-    times_lookup =          (1.5,  2.0,  2.5,  3.0,  3.5,  4.0)
+    times_lookup =          (0.9,  1.0,  1.2,  1.4,  1.6,  2.0)
     # fmt: on
 
     MAX_DIST = 8
@@ -40,6 +42,11 @@ class ShooterController(StateMachine):
     MAX_ROTATION = 3.0
 
     _wants_to_fire = will_reset_to(False)
+    field: wpilib.Field2d
+
+    def setup(self):
+        self.field_effective_goal = self.field.getObject("effective_goal")
+        self.field_effective_goal.setPose(goal_to_field(Pose2d(0, 0, 0)))
 
     @default_state
     def tracking(self) -> None:
@@ -55,7 +62,11 @@ class ShooterController(StateMachine):
             effective_trans = (
                 cur_pose.translation() + self.chassis.translation_velocity * flight_time
             )
-
+        self.field_effective_goal.setPose(
+            goal_to_field(
+                Pose2d(effective_trans - cur_pose.translation(), Rotation2d(0))
+            )
+        )
         # calculate angle and dist to target
         effecetive_pose = Pose2d(
             effective_trans,
@@ -84,7 +95,7 @@ class ShooterController(StateMachine):
             and self.distance > self.MIN_DIST
             and self.distance < self.MAX_DIST
             and self.chassis.translation_velocity.norm() < self.MAX_SPEED
-            and self.chassis.rotation_velocity < self.MAX_ROTATION
+            and self.chassis.rotation_velocity.radians() < self.MAX_ROTATION
         ):
             self.next_state("firing")
 

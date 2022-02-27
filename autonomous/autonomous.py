@@ -93,7 +93,7 @@ class AutoBase(AutonomousStateMachine):
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
     def setup(self) -> None:
-        field_goal = self.field.getObject("goal")
+        field_goal = self.field.getObject("auto_goal")
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
     def on_enable(self):

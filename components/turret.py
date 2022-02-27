@@ -18,13 +18,13 @@ class Turret:
 
     # pidF = 0.71901 / 12 * 1023 / 10 * math.tau / COUNTS_PER_MOTOR_REV
     pidF = 1
-    pidP = 3
+    pidP = 2
     pidI = 0.0
     pidIZone = 200
     pidD = 3  # 1.109
 
-    SLEW_CRUISE_VELOCITY = 4 * COUNTS_PER_TURRET_RADIAN / 10
-    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.2)
+    SLEW_CRUISE_VELOCITY = 3 * COUNTS_PER_TURRET_RADIAN / 10
+    CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.1)
 
     target = magicbot.tunable(0.0)
     control_loop_wait_time: float
@@ -32,7 +32,7 @@ class Turret:
     # max rotation either side of zero
     MAX_ROTATION = math.radians(200)
 
-    allowable_error = magicbot.tunable(0.1)  # radians
+    allowable_error = magicbot.tunable(math.radians(20))  # radians
 
     logger: Logger
 
