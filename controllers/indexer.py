@@ -51,7 +51,7 @@ class IndexerController(StateMachine):
 
     @state(must_finish=True)
     def reading(self, state_tm) -> None:
-        if state_tm > 0.2:
+        if state_tm > 0.3:
             if self.indexer.last_colour is Indexer.CargoColour.NONE:
                 self.next_state("clearing")
             elif self.indexer.last_cargo_was_opposition() and not self.ignore_colour:
