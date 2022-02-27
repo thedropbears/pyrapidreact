@@ -11,10 +11,10 @@ from magicbot import (
     will_reset_to,
 )
 from components.chassis import Chassis
-from numpy import interp
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 import wpilib
 from utilities.trajectory_generator import goal_to_field
+from utilities.functions import interpolate
 
 
 class ShooterController(StateMachine):
@@ -83,9 +83,8 @@ class ShooterController(StateMachine):
         if self.interpolation_override:
             self.shooter.motor_speed = self.flywheel_speed
         else:
-            self.shooter.motor_speed = min(
-                self.ranges_lookup[-1],
-                interp(self.distance, self.ranges_lookup, self.flywheel_speed_lookup),
+            self.shooter.motor_speed = interpolate(
+                self.distance, self.ranges_lookup, self.flywheel_speed_lookup
             )
 
         if (
