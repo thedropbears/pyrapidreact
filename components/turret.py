@@ -4,7 +4,6 @@ import ctre
 import magicbot
 import math
 from wpilib import DutyCycleEncoder, Timer
-from utilities.functions import constrain_angle
 
 
 class Turret:
