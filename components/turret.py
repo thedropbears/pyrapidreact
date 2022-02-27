@@ -39,7 +39,7 @@ class Turret:
     def __init__(self):
         self.angle_history = deque([], maxlen=100)
         self.has_synced = False
-        self.abs_offset = 2.68
+        self.abs_offset = 3.07
 
     def setup(self):
         self.motor.configFactoryDefault()
