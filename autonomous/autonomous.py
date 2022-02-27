@@ -16,6 +16,8 @@ from utilities import trajectory_generator
 from typing import List
 from enum import Enum, auto
 
+from utilities.functions import constrain_angle
+
 
 class WaypointType(Enum):
     PICKUP = auto()
@@ -51,8 +53,11 @@ class AutoBase(AutonomousStateMachine):
 
     waypoints: List[Waypoint]
 
-    max_speed = 2.0
-    max_accel = 1.0
+    max_speed = 2.5
+    max_accel = 1.75
+
+    ALLOWED_TRANS_ERROR = 0.2
+    ALLOWED_ROT_ERROR = math.radians(20)
 
     def __init__(self):
         super().__init__()
@@ -80,6 +85,7 @@ class AutoBase(AutonomousStateMachine):
         self.total_length = trajectory_generator.total_length(self.waypoints_poses)
         # how far around the current position is used to smooth the path
         self.look_around = 0.3
+        # the index of the waypoint we are currently going towards or at
         self.cur_waypoint = 0
 
         self.last_pose = self.waypoints[0].pose
@@ -98,6 +104,7 @@ class AutoBase(AutonomousStateMachine):
         # generates initial velocity profile
         self.cur_waypoint = 0
         self.trap_profile = self._generate_trap_profile(TrapezoidProfile.State(0, 0))
+        self.indexer_control.ignore_colour = True
         super().on_enable()
 
     @state(first=True)
@@ -116,18 +123,6 @@ class AutoBase(AutonomousStateMachine):
         # calculate speed and position from current trapazoidal profile
         trap_time = tm - self.trap_profile_start_time
         linear_state = self.trap_profile.calculate(trap_time)
-        # TODO: change to our error from final position is below value
-        is_done = self.trap_profile.isFinished(trap_time)
-
-        if is_done:
-            self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
-            waypoint_type = self.waypoints[self.cur_waypoint].type
-            if waypoint_type is WaypointType.SHOOT:
-                self.next_state("firing")
-            elif waypoint_type is WaypointType.PICKUP:
-                self.next_state("pickup")
-            else:
-                self.move_next_waypoint(tm)
 
         # find current goal pose
         goal_pose = trajectory_generator.smooth_path(
@@ -144,6 +139,28 @@ class AutoBase(AutonomousStateMachine):
         )
 
         cur_pose = self.chassis.estimator.getEstimatedPosition()
+
+        # check if we're done current waypoint
+        translation_error = cur_pose.translation().distance(goal_pose.translation())
+        rotation_error = constrain_angle(
+            cur_pose.rotation().radians() - goal_pose.rotation().radians()
+        )
+        is_close = (
+            abs(translation_error) < self.ALLOWED_TRANS_ERROR
+            and abs(rotation_error) < self.ALLOWED_ROT_ERROR
+        )
+        if self.trap_profile.isFinished(trap_time) and (
+            self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE or is_close
+        ):
+            self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
+            waypoint_type = self.waypoints[self.cur_waypoint].type
+            if waypoint_type is WaypointType.SHOOT:
+                self.next_state("firing")
+            elif waypoint_type is WaypointType.PICKUP:
+                self.next_state("pickup")
+            else:
+                self.move_next_waypoint(tm)
+
         # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
@@ -175,8 +192,8 @@ class AutoBase(AutonomousStateMachine):
             and self.indexer.has_cargo_in_tunnel()
             or state_tm > 6
         ):
-            self.move_next_waypoint(tm)
             self.next_state("move")
+            self.move_next_waypoint(tm)
 
     @state
     def firing(self, state_tm: float, tm: float) -> None:
@@ -189,8 +206,8 @@ class AutoBase(AutonomousStateMachine):
             or self.indexer_control.current_state == "transferring_to_chimney"
             or self.indexer_control.current_state == "firing"
         ):
-            self.move_next_waypoint(tm)
             self.next_state("move")
+            self.move_next_waypoint(tm)
 
     @state
     def finished(self) -> None:
@@ -284,10 +301,10 @@ class FiveBall(AutoBase):
                 -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
             ),  # 2
             Waypoint(
-                -6.95, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                -7.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
             ),  # 4
             Waypoint(
-                -5.0, 0, Rotation2d.fromDegrees(-200), WaypointType.SHOOT
+                -5.0, 0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
             ),  # shoot
         ]
         super().__init__()
