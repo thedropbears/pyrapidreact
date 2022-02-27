@@ -83,8 +83,9 @@ class ShooterController(StateMachine):
         if self.interpolation_override:
             self.shooter.motor_speed = self.flywheel_speed
         else:
-            self.shooter.motor_speed = interp(
-                self.distance, self.ranges_lookup, self.flywheel_speed_lookup
+            self.shooter.motor_speed = min(
+                self.ranges_lookup[-1],
+                interp(self.distance, self.ranges_lookup, self.flywheel_speed_lookup),
             )
 
         if (
