@@ -23,6 +23,7 @@ class WaypointType(Enum):
     PICKUP = auto()
     SHOOT = auto()
     SIMPLE = auto()
+    MOVE_SHOOT = auto()
 
 
 class Waypoint:
@@ -51,8 +52,12 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    max_speed = 2.5
-    max_accel = 1.75
+    waypoints: List[Waypoint]
+
+    move_max_speed = 2.5
+    move_max_accel = 1.75
+    shoot_max_speed = 0.75
+    shoot_max_accel = 1.75
 
     ALLOWED_TRANS_ERROR = 0.2
     ALLOWED_ROT_ERROR = math.radians(20)
@@ -62,8 +67,11 @@ class AutoBase(AutonomousStateMachine):
         self.waypoints = waypoints
         self.waypoints_poses = [w.pose for w in self.waypoints]
         # applies to the linear speed, not turning
-        self.linear_constraints = TrapezoidProfile.Constraints(
-            self.max_speed, self.max_accel
+        self.move_linear_constraints = TrapezoidProfile.Constraints(
+            self.move_max_speed, self.move_max_accel
+        )
+        self.shoot_linear_constrains = TrapezoidProfile.Constraints(
+            self.shoot_max_speed, self.max_accel
         )
 
         self.drive_rotation_constraints = (
@@ -115,10 +123,39 @@ class AutoBase(AutonomousStateMachine):
 
     @state
     def move(self, tm: float) -> None:
-        # indexer controller will hanle it self raising and lowering
         if self.indexer.ready_to_intake():
             self.intake.deployed = True
             self.indexer_control.wants_to_intake = True
+        self.do_move(tm)
+
+    @state
+    def move_shoot(self, tm: float) -> None:
+        if self.indexer.ready_to_intake():
+            self.intake.deployed = True
+            self.indexer_control.wants_to_intake = True
+        self.shooter_control.fire()
+        self.do_move(tm)
+        if not (
+            self.indexer.has_cargo_in_chimney()
+            or self.indexer.has_cargo_in_tunnel()
+            or self.indexer_control.current_state == "transferring_to_chimney"
+            or self.indexer_control.current_state == "firing"
+        ):
+            # get current linear state
+            trap_time = tm - self.trap_profile_start_time
+            linear_state = self.trap_profile.calculate(trap_time)
+            end_point = trajectory_generator.total_length(
+                self.waypoints_poses[: self.cur_waypoint + 1]
+            )
+            # generate new profile going to max speed
+            self.trap_profile = TrapezoidProfile(
+                self.move_linear_constraints,
+                goal=TrapezoidProfile.State(end_point, self.move_max_speed),
+                initial=linear_state,
+            )
+            self.trap_profile_start_time = tm
+
+    def do_move(self, tm: float) -> None:
         # calculate speed and position from current trapazoidal profile
         trap_time = tm - self.trap_profile_start_time
         linear_state = self.trap_profile.calculate(trap_time)
@@ -237,12 +274,19 @@ class AutoBase(AutonomousStateMachine):
             waypoint_type is WaypointType.SHOOT
             or waypoint_type is WaypointType.PICKUP
             or self.cur_waypoint >= len(self.waypoints)
+            or waypoint_type is WaypointType.MOVE_SHOOT
         ):
             end_speed = 0.0
         else:
-            end_speed = self.max_speed
+            end_speed = self.move_max_speed
+
+        if waypoint_type is WaypointType.MOVE_SHOOT:
+            constraints = self.shoot_linear_constrains
+        else:
+            constraints = self.move_linear_constraints
+
         return TrapezoidProfile(
-            self.linear_constraints,
+            constraints,
             goal=TrapezoidProfile.State(end_point, end_speed),
             initial=current_state,
         )
@@ -295,11 +339,11 @@ class FiveBall(AutoBase):
             [
                 Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
                 Waypoint(
-                    -0.711, -3.3, Rotation2d.fromDegrees(-95), WaypointType.SHOOT
+                    -0.711, -3.3, Rotation2d.fromDegrees(-95)
                 ),  # 3
-                Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
+                Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200), WaypointType.MOVE_SHOOT),
                 Waypoint(
-                    -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
+                    -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.MOVE_SHOOT
                 ),  # 2
                 Waypoint(
                     -7.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
