@@ -36,7 +36,7 @@ class ShooterController(StateMachine):
     # fmt: on
 
     MAX_DIST = 8
-    MIN_DIST = 3
+    MIN_DIST = 2
 
     MAX_SPEED = 2.0
     MAX_ROTATION = 3.0
@@ -83,9 +83,8 @@ class ShooterController(StateMachine):
         if self.interpolation_override:
             self.shooter.motor_speed = self.flywheel_speed
         else:
-            self.shooter.motor_speed = min(
-                self.ranges_lookup[-1],
-                interp(self.distance, self.ranges_lookup, self.flywheel_speed_lookup),
+            self.shooter.motor_speed = interp(
+                self.distance, self.ranges_lookup, self.flywheel_speed_lookup
             )
 
         if (

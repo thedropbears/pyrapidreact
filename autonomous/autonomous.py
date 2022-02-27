@@ -55,8 +55,8 @@ class AutoBase(AutonomousStateMachine):
     waypoints: List[Waypoint]
 
     move_max_speed = 2.5
-    move_max_accel = 1.75
-    shoot_max_speed = 0.75
+    move_max_accel = 2.0
+    shoot_max_speed = 0.4
     shoot_max_accel = 1.75
 
     ALLOWED_TRANS_ERROR = 0.2
@@ -71,7 +71,7 @@ class AutoBase(AutonomousStateMachine):
             self.move_max_speed, self.move_max_accel
         )
         self.shoot_linear_constrains = TrapezoidProfile.Constraints(
-            self.shoot_max_speed, self.max_accel
+            self.shoot_max_speed, self.shoot_max_accel
         )
 
         self.drive_rotation_constraints = (
@@ -190,7 +190,10 @@ class AutoBase(AutonomousStateMachine):
         ):
             self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
             waypoint_type = self.waypoints[self.cur_waypoint].type
-            if waypoint_type is WaypointType.SHOOT:
+            if (
+                waypoint_type is WaypointType.SHOOT
+                or waypoint_type is WaypointType.MOVE_SHOOT
+            ):
                 self.next_state("firing")
             elif waypoint_type is WaypointType.PICKUP:
                 self.next_state("pickup")
@@ -339,17 +342,17 @@ class FiveBall(AutoBase):
             [
                 Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
                 Waypoint(
-                    -0.711, -3.3, Rotation2d.fromDegrees(-95)
+                    -0.7, -3.5, Rotation2d.fromDegrees(-120), WaypointType.SHOOT
                 ),  # 3
-                Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200), WaypointType.MOVE_SHOOT),
+                Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
                 Waypoint(
-                    -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.MOVE_SHOOT
+                    -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.25, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -5.0, 0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
             ]
         )

@@ -168,7 +168,7 @@ class Chassis:
     field: wpilib.Field2d
     logger: Logger
 
-    vel_avg_alpha = 0.2
+    vel_avg_alpha = 0.3
 
     def __init__(self):
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
