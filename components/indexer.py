@@ -46,6 +46,14 @@ class Indexer:
         self.indexer_chimney_motor.setInverted(False)
         self.indexer_chimney_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
+        # Reduce all CAN periodic status frame rates.
+        for motor in (self.indexer_chimney_motor, self.indexer_tunnel_motor):
+            motor.setPeriodicFramePeriod(rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 500)
+            motor.setPeriodicFramePeriod(rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 500)
+            motor.setPeriodicFramePeriod(rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 500)
+            # periodic status 3 is analog readings per <rev/CANSparkMaxFrames.h>
+            motor.setPeriodicFramePeriod(rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus3, 500)
+
     def execute(self) -> None:
         if self._tunnel_direction is Indexer.Direction.BACKWARDS:
             self.indexer_tunnel_motor.set(-1.0)
