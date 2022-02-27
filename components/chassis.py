@@ -81,6 +81,9 @@ class SwerveModule:
         # Reduce CAN status frame rates
         steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
         drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
+        encoder.talon.setStatusFramePeriod(
+            ctre.StatusFrameEnhanced.Status_1_General, 250, 10
+        )
 
     def get_angle(self) -> float:
         """Gets steer angle from absolute encoder"""
