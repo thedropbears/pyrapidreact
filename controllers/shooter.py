@@ -68,12 +68,12 @@ class ShooterController(StateMachine):
             )
         )
         # calculate angle and dist to target
-        effecetive_pose = Pose2d(
+        effective_pose = Pose2d(
             effective_trans,
             cur_pose.rotation() + self.chassis.rotation_velocity * flight_time,
         )
         turret_pose = self.chassis.robot_to_world(
-            self.shooter.turret_offset, effecetive_pose
+            self.shooter.turret_offset, effective_pose
         )
         field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
         angle = field_angle - cur_pose.rotation().radians()
