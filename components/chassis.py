@@ -249,7 +249,7 @@ class Chassis:
 
     def drive_field(self, x, y, z):
         """Field oriented drive commands"""
-        rotation = self.imu.getRotation2d()
+        rotation = self.get_rotation()
         self.chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(x, y, z, rotation)
 
     def drive_local(self, x, y, z):
@@ -311,6 +311,14 @@ class Chassis:
         self.estimator.resetPosition(
             Pose2d(cur_pose.translation(), Rotation2d(0)), self.imu.getRotation2d()
         )
+
+    def get_pose(self) -> Pose2d:
+        """Get the current location of the robot relative to the goal."""
+        return self.estimator.getEstimatedPosition()
+
+    def get_rotation(self) -> Rotation2d:
+        """Get the current heading of the robot."""
+        return self.get_pose().rotation()
 
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
