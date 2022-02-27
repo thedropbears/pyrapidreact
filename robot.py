@@ -116,7 +116,7 @@ class MyRobot(magicbot.MagicRobot):
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
         spin_rate = 2.0
         joystick_x = (
-            rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
+            -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
             * 4
             * throttle
         )
