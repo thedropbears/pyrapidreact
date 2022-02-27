@@ -290,10 +290,6 @@ class Chassis:
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
         self.field_obj.setPose(goal_to_field(self.pose_history[0]))
 
-    @magicbot.feedback
-    def get_imu_rotation(self):
-        return self.imu.getRotation2d().radians()
-
     def sync_all(self):
         for m in self.modules:
             m.sync_steer_encoders()
