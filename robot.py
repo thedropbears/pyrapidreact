@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from sklearn.covariance import LedoitWolf
 import wpilib
 import magicbot
 import ctre
@@ -7,6 +8,7 @@ import navx
 import rev
 import math
 
+from components.leds import LEDScreen
 from components.chassis import Chassis
 from components.hanger import Hanger
 from components.indexer import Indexer
@@ -29,6 +31,7 @@ class MyRobot(magicbot.MagicRobot):
     shooter_control: ShooterController
     indexer_control: IndexerController
 
+    leds: LEDScreen
     chassis: Chassis
     hanger: Hanger
     intake: Intake
