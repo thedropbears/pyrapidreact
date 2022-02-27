@@ -134,7 +134,7 @@ class MyRobot(magicbot.MagicRobot):
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
-        if self.joystick.getTriggerPressed():
+        if self.joystick.getTrigger():
             self.shooter_control.fire()
 
         if self.joystick.getRawButtonPressed(2):
