@@ -148,7 +148,7 @@ class AutoBase(AutonomousStateMachine):
             abs(translation_error) < self.ALLOWED_TRANS_ERROR
             and abs(rotation_error) < self.ALLOWED_ROT_ERROR
         )
-        is_stopped = abs(self.chassis.translation_velocity.norm()) < 0.2
+        is_stopped = self.chassis.translation_velocity.norm() < 0.2
         if self.trap_profile.isFinished(trap_time) and (
             self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE
             or (is_close and is_stopped)
