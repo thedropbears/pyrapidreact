@@ -88,7 +88,7 @@ class AutoBase(AutonomousStateMachine):
         self.cur_waypoint = 0
 
         self.last_pose = self.waypoints[0].pose
-        self.trap_profile_start_time = 0
+        self.trap_profile_start_time = 0.0
 
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
