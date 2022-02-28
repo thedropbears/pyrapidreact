@@ -163,23 +163,6 @@ class Vision:
     def get_clocks_offset(self) -> float:
         return self.latency_entry.getDouble(0)
 
-    def get_vis_pose_at(self, t: float) -> Pose2d:
-        """Gets where the camera was at t"""
-        robot_pose = self.chassis.get_pose_at(t)
-        turret_translation = self.chassis.robot_to_world(
-            self.shooter.turret_offset, robot_pose
-        ).translation()
-        taken_at_angle = Rotation2d(
-            robot_pose.rotation().radians() + self.turret.get_angle_at(t)
-        )
-        camera_translation = turret_translation + Translation2d(
-            distance=self.CAMERA_OFFSET, angle=taken_at_angle
-        )
-        return Pose2d(
-            camera_translation,
-            taken_at_angle,
-        )
-
 
 def pose_from_vision(
     range: float, turret_angle: float, chassis_heading: float
