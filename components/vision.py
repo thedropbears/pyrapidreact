@@ -27,13 +27,13 @@ class VisionData:
     distance: float
 
     # how confident we are that we are correct, is generally lower when the target is smaller or irregular
-    fittness: float
+    fitness: float
 
     #: An arbitrary timestamp, in seconds,
     #: for when the vision system last obtained data.
     timestamp: float
 
-    __slots__ = ("angle", "distance", "fittness", "timestamp")
+    __slots__ = ("angle", "distance", "fitness", "timestamp")
 
 
 class Vision:
@@ -79,14 +79,14 @@ class Vision:
         return self.vision_data
 
     @feedback
-    def get_ange(self):
+    def angle(self):
         # just feedback for debugging
         if self.vision_data is None:
             return -100
         return self.vision_data.angle
 
     def execute(self) -> None:
-        self.recive_pong()
+        self.receive_pong()
         self.ping()
         self.nt.flush()
         data = self.vision_data_entry.getDoubleArray(None)
@@ -125,7 +125,7 @@ class Vision:
         # # will be 0 if innovation is over 1.5m
         # innovation_fit = min(1, max(0, scale_value(innovation, 0.25, 1.5, 1, 0)))
         # # combined vision confidence is 0-1
-        # vis_confidence = self.vision_data.fittness * innovation_fit * age_fit
+        # vis_confidence = self.vision_data.fitness * innovation_fit * age_fit
         # if vis_confidence > 0.4:
         #     vis_std_dev = 0.5 / vis_confidence
         #     # pass vision pose estimate to chassis kalman filter
@@ -151,7 +151,7 @@ class Vision:
         """Send a ping to the RasPi to determine the connection latency."""
         self.ping_time_entry.setDouble(Timer.getFPGATimestamp())
 
-    def recive_pong(self) -> None:
+    def receive_pong(self) -> None:
         """Receive a pong from the RasPi to determine the connection latency."""
         rio_pong_time = self.rio_pong_time_entry.getDouble(0)
         if abs(rio_pong_time - self.last_pong) > 1e-4:  # Floating point comparison
