@@ -138,7 +138,10 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
         if self.joystick.getRawButtonPressed(11):
-            self.auto_shoot = not self.auto_shoot
+            self.auto_shoot = True
+
+        if self.joystick.getRawButtonPressed(12):
+            self.auto_shoot = False
 
         if self.joystick.getTrigger() or self.auto_shoot:
             self.shooter_control.fire()
