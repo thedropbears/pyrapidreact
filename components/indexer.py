@@ -99,10 +99,6 @@ class Indexer:
         return not self.tunnel_break_beam.get()
 
     @feedback
-    def are_we_red(self) -> bool:
-        return wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed
-
-    @feedback
     def last_cargo_was_opposition(self) -> bool:
         return self.last_colour.is_opposition()
 
