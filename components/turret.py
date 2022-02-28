@@ -32,7 +32,8 @@ class Turret:
     # max rotation either side of zero
     MAX_ROTATION = math.radians(200)
 
-    allowable_error = magicbot.tunable(math.radians(20))  # radians
+    allowable_position_error = magicbot.tunable(math.radians(10))  # radians
+    allowable_velocity_error = magicbot.tunable(100)  # counts/100ms
 
     logger: Logger
 
@@ -122,7 +123,11 @@ class Turret:
         return self.get_angle() - self.target
 
     def is_on_target(self) -> bool:
-        return abs(self.get_error()) < self.allowable_error
+        return (
+            abs(self.get_error()) < self.allowable_position_error
+            and abs(self.motor.getSelectedSensorVelocity())
+            < self.allowable_velocity_error
+        )
 
     @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
