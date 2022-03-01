@@ -33,7 +33,7 @@ class Turret:
     MAX_ROTATION = math.radians(200)
 
     allowable_position_error = magicbot.tunable(math.radians(10))  # radians
-    allowable_velocity_error = magicbot.tunable(100)  # counts/100ms
+    allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
 
     logger: Logger
 
@@ -127,6 +127,8 @@ class Turret:
             abs(self.get_error()) < self.allowable_position_error
             and abs(self.motor.getSelectedSensorVelocity())
             < self.allowable_velocity_error
+            * self.COUNTS_PER_TURRET_REV
+            / 10  # Convert to counts/100ms
         )
 
     @magicbot.feedback
