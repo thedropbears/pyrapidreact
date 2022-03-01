@@ -7,6 +7,8 @@ import magicbot
 import math
 from wpilib import DutyCycleEncoder, Timer
 
+from utilities.functions import constrain_angle
+
 
 class Turret:
     motor: ctre.TalonSRX
@@ -106,11 +108,13 @@ class Turret:
 
     def slew_relative(self, angle: float) -> None:
         """Slews relative to current turret position"""
-        self.slew_local(self.get_angle() + angle)
+        self.target = self.get_angle() + angle
 
     def slew_local(self, angle: float) -> None:
         """Slew to a robot relative angle"""
-        self.target = angle
+        # Make sure we account for overlap, so test if an overlapped angle is actually closer
+        delta = constrain_angle(angle - self.get_angle())
+        self.slew_relative(delta)
 
     @magicbot.feedback
     def get_angle(self) -> float:

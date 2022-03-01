@@ -15,7 +15,7 @@ from components.chassis import Chassis
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 import wpilib
 from utilities.trajectory_generator import goal_to_field
-from utilities.functions import interpolate
+from utilities.functions import constrain_angle, interpolate
 
 
 class ShooterController(StateMachine):
@@ -86,7 +86,7 @@ class ShooterController(StateMachine):
             self.shooter.turret_offset, effective_pose
         )
         field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
-        angle = field_angle - cur_pose.rotation().radians()
+        angle = constrain_angle(field_angle - cur_pose.rotation().radians())
 
         self.turret.slew_local(angle)
 
