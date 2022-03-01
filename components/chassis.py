@@ -302,6 +302,16 @@ class Chassis:
         self.pose_history = deque([pose], maxlen=100)
         self.estimator.resetPosition(pose, self.imu.getRotation2d())
 
+    def zero_yaw(self) -> None:
+        """Sets pose to current pose but with a heading of zero"""
+        cur_pose = self.estimator.getEstimatedPosition()
+        # reset position says to zero encoders distances but i think this is
+        # a misake copied from diff drive pose estimator
+        # beacuse we never pass the encoder distances to the estimator
+        self.estimator.resetPosition(
+            Pose2d(cur_pose.translation(), Rotation2d(0)), self.imu.getRotation2d()
+        )
+
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
         loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) * self.control_rate)
