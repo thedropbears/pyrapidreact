@@ -94,11 +94,6 @@ class Turret:
 
     def execute(self) -> None:
         self.target = self.wrap_allowable_angle(self.target)
-        # constrain in a way that allows a bit of overlap
-        while self.target > self.MAX_ROTATION:
-            self.target -= math.tau
-        while self.target < -self.MAX_ROTATION:
-            self.target += math.tau
         self.angle_history.appendleft(self.get_angle())
 
         self.motor.set(
