@@ -1,5 +1,4 @@
 import ctre
-import wpilib
 import magicbot
 from wpimath.geometry import Translation2d
 
@@ -7,8 +6,6 @@ from utilities.ctre import FALCON_CPR
 
 
 class Shooter:
-    joystick: wpilib.Joystick
-
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
