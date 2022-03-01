@@ -116,9 +116,7 @@ class Vision:
             range, turret_angle + self.vision_data.angle, chassis_heading
         )
 
-        self.field_obj.setPose(
-            goal_to_field(vision_pose)
-        )
+        self.field_obj.setPose(goal_to_field(vision_pose))
 
         if self.fuse_vision_observations:
             innovation = vision_pose.translation().distance(
@@ -127,9 +125,9 @@ class Vision:
             # Gate on innovation
             if innovation > 1.0:
                 return
-            # Come up with a position std dev from the angle in the picture
+            # Come up with a position std dev from the fitness reported
             # When the target is near the edge, the estimate of range is worse
-            pos_std_dev = 0.2 + 0.4 * abs(self.vision_data.angle) / math.radians(15)
+            pos_std_dev = 0.1 + 0.5 * (1.0 - self.vision_data.fitness)
             # TODO Can we be smarter and find different values for x and y based on robot orientation?
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
