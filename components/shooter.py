@@ -13,7 +13,7 @@ class Shooter:
     right_motor: ctre.TalonFX
 
     motor_speed = 0.0
-    allowable_error = magicbot.tunable(20.0)
+    allowable_error = magicbot.tunable(2.0)
 
     MAX_RP100ms = 10
     pidF = 1023 / (2048 * MAX_RP100ms)

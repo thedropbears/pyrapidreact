@@ -168,8 +168,12 @@ class Chassis:
     field: wpilib.Field2d
     logger: Logger
 
+    vel_avg_alpha = 0.2
+
     def __init__(self):
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
+        self.translation_velocity = Translation2d()
+        self.rotation_velocity = Rotation2d()
 
     def setup(self):
         # mag encoder only
@@ -266,14 +270,22 @@ class Chassis:
             self.modules[3].get(),
         )
 
-        self.translation_velocity = (
+        cur_trans_vel = (
             self.estimator.getEstimatedPosition().translation()
             - self.pose_history[0].translation()
-        ).norm() * self.control_rate
-        self.rotation_velocity = (
+        ) * self.control_rate
+        self.translation_velocity = (
+            cur_trans_vel * self.vel_avg_alpha
+            + self.translation_velocity * (1 - self.vel_avg_alpha)
+        )
+        cur_rot_vel = (
             self.estimator.getEstimatedPosition().rotation()
             - self.pose_history[0].rotation()
-        ).radians() * self.control_rate
+        ) * self.control_rate
+        self.rotation_velocity = (
+            cur_rot_vel * self.vel_avg_alpha
+            + self.rotation_velocity * (1 - self.vel_avg_alpha)
+        )
 
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
         self.field_obj.setPose(goal_to_field(self.pose_history[0]))
@@ -289,6 +301,16 @@ class Chassis:
     def set_pose(self, pose: Pose2d) -> None:
         self.pose_history = deque([pose], maxlen=100)
         self.estimator.resetPosition(pose, self.imu.getRotation2d())
+
+    def zero_yaw(self) -> None:
+        """Sets pose to current pose but with a heading of zero"""
+        cur_pose = self.estimator.getEstimatedPosition()
+        # reset position says to zero encoders distances but i think this is
+        # a misake copied from diff drive pose estimator
+        # beacuse we never pass the encoder distances to the estimator
+        self.estimator.resetPosition(
+            Pose2d(cur_pose.translation(), Rotation2d(0)), self.imu.getRotation2d()
+        )
 
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
