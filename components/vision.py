@@ -3,18 +3,13 @@ import math
 from networktables import NetworkTables
 from typing import Optional
 from dataclasses import dataclass
-from magicbot import feedback
+from magicbot import feedback, tunable
 from wpilib import Timer
 from components.turret import Turret
 from components.chassis import Chassis
-from components.shooter import Shooter
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
-import navx
 import wpilib
 
-from utilities.functions import constrain_angle
-
-# from utilities.scalers import scale_value
 from utilities.trajectory_generator import goal_to_field
 
 
@@ -27,13 +22,13 @@ class VisionData:
     distance: float
 
     # how confident we are that we are correct, is generally lower when the target is smaller or irregular
-    fittness: float
+    fitness: float
 
     #: An arbitrary timestamp, in seconds,
     #: for when the vision system last obtained data.
     timestamp: float
 
-    __slots__ = ("angle", "distance", "fittness", "timestamp")
+    __slots__ = ("angle", "distance", "fitness", "timestamp")
 
 
 class Vision:
@@ -42,10 +37,9 @@ class Vision:
     SYSTEM_LAG_THRESHOLD = 0.200
     turret: Turret
     chassis: Chassis
-    shooter: Shooter
-    imu: navx.AHRS
 
-    camera_offset = 0.316
+    CAMERA_OFFSET = 0.35  # m from camera to centre of turret, measured from CAD
+    TURRET_OFFSET = 0.15  # m from robot centre to turret centre, measured from CAD
 
     field: wpilib.Field2d
 
@@ -68,6 +62,8 @@ class Vision:
 
         self.vision_data: Optional[VisionData] = None
 
+        self.fuse_vision_observations = tunable(True)
+
     def setup(self):
         self.field_obj = self.field.getObject("vision_pose")
 
@@ -79,14 +75,14 @@ class Vision:
         return self.vision_data
 
     @feedback
-    def get_ange(self):
+    def angle(self):
         # just feedback for debugging
         if self.vision_data is None:
             return -100
         return self.vision_data.angle
 
     def execute(self) -> None:
-        self.recive_pong()
+        self.receive_pong()
         self.ping()
         self.nt.flush()
         data = self.vision_data_entry.getDoubleArray(None)
@@ -99,42 +95,41 @@ class Vision:
         )
         if self.vision_data.timestamp == self.last_data_timestamp:
             return
+
+        self.last_data_timestamp = self.vision_data.timestamp
+
         # Get vision pose estimate
         # work out where the vision data was taken from based on histories
-        camera_pose = self.get_vis_pose_at(self.vision_data.timestamp)
-        # angle from target to robot in world space
-        angle_from_target = constrain_angle(
-            camera_pose.rotation().radians() - self.vision_data.angle + math.pi
+        t = self.vision_data.timestamp
+        turret_angle = self.turret.get_angle_at(t)
+        chassis_heading = self.chassis.get_pose_at(t).rotation().radians()
+
+        # Ranges from vision are from centre of goal to the camera
+        # Add the offset to get range to the centre of the turret
+        range = self.vision_data.distance + self.CAMERA_OFFSET
+
+        vision_pose = pose_from_vision(
+            range, turret_angle + self.vision_data.angle, chassis_heading
         )
-        # work out where vision though it was when the image was taken
-        vis_estimate = Translation2d(
-            distance=self.vision_data.distance,
-            angle=Rotation2d(angle_from_target),
-        )
-        self.field_obj.setPose(
-            goal_to_field(Pose2d(vis_estimate, self.imu.getRotation2d()))
-        )
-        # calcualte vision std dev
-        # trust vision less the more outdated it is
-        # vis_age = wpilib.Timer.getFPGATimestamp() - self.vision_data.timestamp
-        # age_fit = max(0, scale_value(vis_age, 0, 0.2, 1, 0))
-        # # trust vision less the more it thinks we've moved (to reduce impact of false positives)
-        # innovation = vis_estimate.distance(
-        #     self.chassis.estimator.getEstimatedPosition().translation()
-        # )
-        # # will be 0 if innovation is over 1.5m
-        # innovation_fit = min(1, max(0, scale_value(innovation, 0.25, 1.5, 1, 0)))
-        # # combined vision confidence is 0-1
-        # vis_confidence = self.vision_data.fittness * innovation_fit * age_fit
-        # if vis_confidence > 0.4:
-        #     vis_std_dev = 0.5 / vis_confidence
-        #     # pass vision pose estimate to chassis kalman filter
-        #     self.chassis.estimator.addVisionMeasurement(
-        #         Pose2d(vis_estimate, self.imu.getRotation2d()),
-        #         self.vision_data.timestamp,
-        #         [vis_std_dev, vis_std_dev, 0.0],
-        #     )
-        self.last_data_timestamp = self.vision_data.timestamp
+
+        self.field_obj.setPose(goal_to_field(vision_pose))
+
+        if self.fuse_vision_observations:
+            innovation = vision_pose.translation().distance(
+                self.chassis.estimator.getEstimatedPosition().translation()
+            )
+            # Gate on innovation
+            if innovation > 1.0:
+                return
+            # Come up with a position std dev from the fitness reported
+            # When the target is near the edge, the estimate of range is worse
+            pos_std_dev = 0.1 + 0.5 * (1.0 - self.vision_data.fitness)
+            # TODO Can we be smarter and find different values for x and y based on robot orientation?
+            self.chassis.estimator.addVisionMeasurement(
+                vision_pose,
+                self.vision_data.timestamp,
+                [pos_std_dev, pos_std_dev, 0.0],
+            )
 
     @feedback
     def is_ready(self) -> bool:
@@ -151,7 +146,7 @@ class Vision:
         """Send a ping to the RasPi to determine the connection latency."""
         self.ping_time_entry.setDouble(Timer.getFPGATimestamp())
 
-    def recive_pong(self) -> None:
+    def receive_pong(self) -> None:
         """Receive a pong from the RasPi to determine the connection latency."""
         rio_pong_time = self.rio_pong_time_entry.getDouble(0)
         if abs(rio_pong_time - self.last_pong) > 1e-4:  # Floating point comparison
@@ -162,19 +157,16 @@ class Vision:
     def get_clocks_offset(self) -> float:
         return self.latency_entry.getDouble(0)
 
-    def get_vis_pose_at(self, t: float) -> Pose2d:
-        """Gets where the camera was at t"""
-        robot_pose = self.chassis.get_pose_at(t)
-        turret_translation = self.chassis.robot_to_world(
-            self.shooter.turret_offset, robot_pose
-        ).translation()
-        taken_at_angle = Rotation2d(
-            robot_pose.rotation().radians() + self.turret.get_angle_at(t)
-        )
-        camera_translation = turret_translation + Translation2d(
-            distance=self.camera_offset, angle=taken_at_angle
-        )
-        return Pose2d(
-            camera_translation,
-            taken_at_angle,
-        )
+
+def pose_from_vision(
+    range: float, turret_angle: float, chassis_heading: float
+) -> Pose2d:
+    # Assume robot is at origin
+    location = Translation2d(
+        -Vision.TURRET_OFFSET + math.cos(turret_angle) * range,
+        math.sin(turret_angle) * range,
+    )
+    # Rotate by the chassis heading
+    location = location.rotateBy(Rotation2d(chassis_heading))
+    # Now transform the pose so that the target is at the origin
+    return Pose2d(-location.X(), -location.Y(), chassis_heading)
