@@ -88,9 +88,13 @@ class MyRobot(magicbot.MagicRobot):
         self.auto_shoot = False
 
     def autonomousInit(self) -> None:
+        self.shooter_control.lead_shots = False
+        self.intake.auto_retract = False
         self.auto_shoot = False
 
     def teleopInit(self) -> None:
+        self.intake.auto_retract = True
+        self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.auto_shoot = False
 
@@ -114,7 +118,7 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-        spin_rate = 1.5
+        spin_rate = 2.0
         joystick_x = (
             -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
             * 4
@@ -126,7 +130,7 @@ class MyRobot(magicbot.MagicRobot):
             * throttle
         )
         joystick_z = (
-            -rescale_js(self.joystick.getZ(), deadzone=0.4, exponential=25.0)
+            -rescale_js(self.joystick.getZ(), deadzone=0.3, exponential=25.0)
             * spin_rate
         )
 
