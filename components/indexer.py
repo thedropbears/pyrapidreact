@@ -4,18 +4,17 @@ from enum import Enum
 from magicbot import tunable, feedback
 
 
-class CargoColour(Enum):
+class CargoColour():
     NONE = wpilib.DriverStation.Alliance.kInvalid
     RED = wpilib.DriverStation.Alliance.kRed
     BLUE = wpilib.DriverStation.Alliance.kBlue
 
-    
+    red_total = int(0)
+    blue_total = int(0)
+    value = NONE
 
-    def __init__(self, value) -> None:
-        super().__init__()
-        self.value = value
-        self.red_total = 0
-        self.blue_total = 0
+    def __init__(self) -> None:
+        pass
 
     def is_opposition(self) -> bool:
         return self.value != wpilib.DriverStation.getAlliance()
@@ -26,20 +25,20 @@ class CargoColour(Enum):
     def reset(self) -> None:
         self.blue_total = 0
         self.red_total = 0
-        self = self.NONE
+        self.value = self.NONE
 
-    def match_colour(self, colour: rev.ColorSensorV3.RawColor) -> "CargoColour":
+    def match_colour(self, colour: rev.ColorSensorV3.RawColor) -> None:
         # In testing, the value of blue when we have red cargo never went above 600
         if colour.red > 700 or colour.blue > 700:
             self.red_total += colour.red
             self.blue_total += colour.blue
 
-        if self.blue_total is 0 and self.red_total is 0:
-            self = self.NONE
+        if self.blue_total == 0 and self.red_total == 0:
+            self.value = self.NONE
         elif self.blue_total > self.red_total:
-            self = self.BLUE
+            self.value = self.BLUE
         else:
-            self = self.RED
+            self.value = self.RED
         
 class Indexer:
     class Direction(Enum):
@@ -66,7 +65,7 @@ class Indexer:
     _chimney_direction = Direction.OFF
     _cat_flap_is_open = False
 
-    cargo_colour = CargoColour.NONE
+    cargo_colour = CargoColour()
 
     has_trapped_cargo = tunable(False)
 
@@ -136,7 +135,15 @@ class Indexer:
 
     @feedback
     def get_last_colour(self) -> str:
-        return self.cargo_colour.name
+        return self.cargo_colour.value.name
+
+    @feedback
+    def red_value(self) -> int:
+        return self.cargo_colour.red_total
+
+    @feedback
+    def blue_value(self) -> int:
+        return self.cargo_colour.blue_total
 
     def open_cat_flap(self) -> None:
         self._cat_flap_is_open = True
