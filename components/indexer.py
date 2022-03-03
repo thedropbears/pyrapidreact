@@ -1,7 +1,29 @@
 import rev
 import wpilib
-from enum import Enum, auto
+from enum import Enum
 from magicbot import tunable, feedback
+
+
+class CargoColour(Enum):
+    NONE = wpilib.DriverStation.Alliance.kInvalid
+    RED = wpilib.DriverStation.Alliance.kRed
+    BLUE = wpilib.DriverStation.Alliance.kBlue
+
+    def is_opposition(self) -> bool:
+        return self.value != wpilib.DriverStation.getAlliance()
+
+    def is_valid(self) -> bool:
+        return self is not self.NONE
+
+    @classmethod
+    def match_colour(cls, colour: rev.ColorSensorV3.RawColor) -> "CargoColour":
+        # In testing, the value of blue when we have red cargo never went above 600
+        if colour.red > 700 and colour.red > colour.blue:
+            return cls.RED
+        # In testing, the value of red when we have blue cargo never went above 600
+        if colour.blue > 700 and colour.blue > colour.red:
+            return cls.BLUE
+        return cls.NONE
 
 
 class Indexer:
@@ -9,11 +31,6 @@ class Indexer:
         OFF = 0
         FORWARDS = 1
         BACKWARDS = -1
-
-    class CargoColour(Enum):
-        NONE = auto()
-        RED = auto()
-        BLUE = auto()
 
     # The "tunnel" is the horizontal part of the indexer that the cargo enters first
     # The "chimney" is the vertical section of the indexer that feeds the shooter
@@ -61,10 +78,10 @@ class Indexer:
         else:
             self.cat_flap_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
-        if self.tunnel_has_red():
-            self.last_colour = Indexer.CargoColour.RED
-        elif self.tunnel_has_blue():
-            self.last_colour = Indexer.CargoColour.BLUE
+        colour = self.colour_sensor.getRawColor()
+        cargo_colour = CargoColour.match_colour(colour)
+        if cargo_colour.is_valid():
+            self.last_colour = cargo_colour
 
         # Default state is for nothing to be moving and for the cat flap to be down
         self._tunnel_direction = self._chimney_direction = Indexer.Direction.OFF
@@ -82,17 +99,8 @@ class Indexer:
         return not self.tunnel_break_beam.get()
 
     @feedback
-    def are_we_red(self) -> bool:
-        return wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed
-
-    @feedback
     def last_cargo_was_opposition(self) -> bool:
-        if self.last_colour is Indexer.CargoColour.RED and not self.are_we_red():
-            return True
-        elif self.last_colour is Indexer.CargoColour.BLUE and self.are_we_red():
-            return True
-
-        return False
+        return self.last_colour.is_opposition()
 
     @feedback
     def ready_to_intake(self) -> bool:
@@ -128,13 +136,3 @@ class Indexer:
 
     def run_chimney_motor(self, direction: Direction) -> None:
         self._chimney_direction = direction
-
-    def tunnel_has_red(self) -> bool:
-        colour = self.colour_sensor.getRawColor()
-        # In testing, the value of blue when we have red cargo never went above 600
-        return colour.red > 700 and colour.red > colour.blue
-
-    def tunnel_has_blue(self) -> bool:
-        colour = self.colour_sensor.getRawColor()
-        # In testing, the value of red when we have blue cargo never went above 600
-        return colour.blue > 700 and colour.blue > colour.red
