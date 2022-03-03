@@ -135,7 +135,7 @@ class Turret:
     @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
         angle = self.absolute_encoder.getDistance() + self.abs_offset
-        
+
         while angle > math.tau:
             angle -= math.tau
         while angle < 0:
