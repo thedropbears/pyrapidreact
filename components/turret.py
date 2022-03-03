@@ -34,8 +34,8 @@ class Turret:
     control_loop_wait_time: float
 
     # max rotation either side of zero
-    MIN_ROTATION = math.radians(-215)
-    MAX_ROTATION = math.radians(215)
+    MIN_ROTATION = math.radians(-30)
+    MAX_ROTATION = math.radians(390)
 
     allowable_position_error = magicbot.tunable(math.radians(10))  # radians
     allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
