@@ -38,7 +38,7 @@ class IndexerController(StateMachine):
 
     @state(must_finish=True)
     def stopping(self) -> None:
-        self.indexer.last_colour = CargoColour.NONE
+        self.indexer.cargo_colour.reset()
         self.wants_to_intake = False
         self.next_state("stopped")
 
@@ -52,7 +52,7 @@ class IndexerController(StateMachine):
     @state(must_finish=True)
     def reading(self, state_tm) -> None:
         if state_tm > 0.3:
-            colour = self.indexer.last_colour
+            colour = self.indexer.cargo_colour
             if not colour.is_valid():
                 self.next_state("clearing")
             elif colour.is_opposition() and not self.ignore_colour:
