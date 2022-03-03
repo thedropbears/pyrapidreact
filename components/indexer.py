@@ -4,7 +4,7 @@ from enum import Enum
 from magicbot import tunable, feedback
 
 
-class CargoColour():
+class CargoColour:
     NONE = wpilib.DriverStation.Alliance.kInvalid
     RED = wpilib.DriverStation.Alliance.kRed
     BLUE = wpilib.DriverStation.Alliance.kBlue
@@ -39,7 +39,8 @@ class CargoColour():
             self.value = self.BLUE
         else:
             self.value = self.RED
-        
+
+
 class Indexer:
     class Direction(Enum):
         OFF = 0

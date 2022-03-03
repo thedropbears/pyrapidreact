@@ -1,4 +1,4 @@
-from components.indexer import CargoColour, Indexer
+from components.indexer import Indexer
 from magicbot import (
     StateMachine,
     default_state,
