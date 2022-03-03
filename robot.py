@@ -87,7 +87,7 @@ class MyRobot(magicbot.MagicRobot):
         )  # TODO correct port numbers
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
-        self.climb_motor = rev.CANSparkMax(22, rev.CANSparkMax.MotorType.kBrushless)
+        self.climb_motor = ctre.TalonFX(22)
 
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
