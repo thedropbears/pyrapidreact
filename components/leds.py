@@ -16,8 +16,7 @@ class StatusLights:
     leds: wpilib.AddressableLED
 
     def __init__(self):
-        self.led_length = 72
-        self.led_bottom = wpilib.AddressableLED.LEDData(175, 0, 0)
+        self.led_length = 72  # TODO: check length
 
     def setup(self) -> None:
         self.leds.setLength(self.led_length)

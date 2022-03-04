@@ -95,7 +95,7 @@ class ShooterController(StateMachine):
                 self.distance, self.ranges_lookup, self.flywheel_speed_lookup
             )
 
-        self.led_info()
+        self.set_leds()
 
         if (
             self._wants_to_fire
@@ -120,7 +120,7 @@ class ShooterController(StateMachine):
     def fire(self) -> None:
         self._wants_to_fire = True
 
-    def led_info(self):
+    def set_leds(self):
         if not self.indexer.has_cargo_in_chimney():
             self.status_lights.set(LedStates.NO_BALL)
         elif self.distance > self.MAX_DIST or self.distance < self.MIN_DIST:
