@@ -1,7 +1,8 @@
-from components.indexer import Indexer
 import math
+from components.indexer import Indexer
 from components.shooter import Shooter
 from components.turret import Turret
+from components.intake import Intake
 from magicbot import (
     StateMachine,
     tunable,
@@ -21,6 +22,7 @@ class ShooterController(StateMachine):
     shooter: Shooter
     turret: Turret
     indexer: Indexer
+    intake: Intake
     chassis: Chassis
 
     # If set to true, flywheel speed is set from tunable
@@ -46,6 +48,9 @@ class ShooterController(StateMachine):
     # dont want to lead shots in auto beacuse we are shoot on the move
     # and the it causes weird behavoir with wrapping
     lead_shots = tunable(True)
+
+    def __init__(self):
+        self.flywheels_running = False
 
     def setup(self):
         self.field_effective_goal = self.field.getObject("effective_goal")
@@ -86,12 +91,20 @@ class ShooterController(StateMachine):
 
         self.turret.slew_local(angle)
 
-        if self.interpolation_override:
-            self.shooter.motor_speed = self.flywheel_speed
-        else:
-            self.shooter.motor_speed = interpolate(
-                self.distance, self.ranges_lookup, self.flywheel_speed_lookup
-            )
+        if (
+            self.indexer.has_cargo_in_chimney()
+            or self.indexer.has_cargo_in_tunnel()
+            or self.intake.deployed
+        ):
+            self.flywheels_running = True
+
+        if self.flywheels_running:
+            if self.interpolation_override:
+                self.shooter.motor_speed = self.flywheel_speed
+            else:
+                self.shooter.motor_speed = interpolate(
+                    self.distance, self.ranges_lookup, self.flywheel_speed_lookup
+                )
 
         if (
             self._wants_to_fire
