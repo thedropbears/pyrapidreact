@@ -71,11 +71,7 @@ class Turret:
         )
         self.absolute_encoder.setDistancePerRotation(-math.tau)
 
-    def on_disable(self) -> None:
-        self.has_synced = False
-
-    def on_enable(self) -> None:
-        self.has_synced = False
+    def on_enable(self):
         self.try_sync()
 
     def try_sync(self) -> None:
