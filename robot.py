@@ -52,6 +52,7 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
+        self.codriver = wpilib.XboxController(0)
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
@@ -164,7 +165,63 @@ class MyRobot(magicbot.MagicRobot):
                 self.intake.deployed = True
 
     def testPeriodic(self) -> None:
-        pass
+        # hold y and use joystick throttle to set flywheel speed
+        throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
+        if self.codriver.getYButton():
+            self.shooter.motor_speed = throttle * 60
+
+        # hold x and use left stick to slew turret
+        if self.codriver.getXButton():
+            slew_x = self.codriver.getRawAxis(wpilib.XboxController.Axis.kLeftX) / 50
+            self.turret.slew_relative(slew_x)
+
+        # joystick trigger to force fire
+        if self.joystick.getTrigger():
+            self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
+
+        # handle chassis inputs
+        spin_rate = 0.5
+        joystick_x = (
+            -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5) * 0.5
+        )
+        joystick_y = (
+            -rescale_js(self.joystick.getX(), deadzone=0.1, exponential=1.5) * 0.5
+        )
+        joystick_z = (
+            -rescale_js(self.joystick.getZ(), deadzone=0.3, exponential=25.0)
+            * spin_rate
+        )
+
+        # if joystick_x or joystick_y or joystick_z:
+        # Drive in field oriented mode unless button 6 is held
+        if not self.joystick.getRawButton(6):
+            self.chassis.drive_field(joystick_x, joystick_y, joystick_z)
+        else:
+            self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
+
+        # reset heading to intake facing directly downfield
+        if self.joystick.getRawButtonPressed(9):
+            self.chassis.zero_yaw()
+
+        # indexer same as teleop
+        if self.joystick.getRawButtonPressed(2):
+            if self.intake.deployed:
+                self.intake.deployed = False
+                if self.indexer_control.current_state == "intaking":
+                    self.indexer_control.stop()
+            elif self.indexer.ready_to_intake():
+                self.indexer_control.wants_to_intake = True
+                self.intake.deployed = True
+
+        self.chassis.execute()
+        self.hanger.execute()
+        self.intake.execute()
+        self.indexer.execute()
+        self.shooter.execute()
+        self.turret.execute()
+        self.vision.execute()
+
+        self.indexer_control.execute()
 
 
 if __name__ == "__main__":
