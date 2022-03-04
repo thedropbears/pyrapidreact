@@ -15,6 +15,7 @@ from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
 from controllers.indexer import IndexerController
+from controllers.leds import LedController
 from components.vision import Vision
 
 from controllers.shooter import ShooterController
@@ -27,6 +28,7 @@ GIT_INFO = git.describe()
 
 
 class MyRobot(magicbot.MagicRobot):
+    led_control: LedController
     shooter_control: ShooterController
     indexer_control: IndexerController
 
