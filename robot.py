@@ -14,6 +14,7 @@ from components.indexer import Indexer
 from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
+from controllers.climb import ClimbController
 from controllers.indexer import IndexerController
 from controllers.leds import LedController
 from components.vision import Vision
@@ -31,6 +32,7 @@ class MyRobot(magicbot.MagicRobot):
     led_control: LedController
     shooter_control: ShooterController
     indexer_control: IndexerController
+    climb_control: ClimbController
 
     status_lights: StatusLights
     chassis: Chassis
@@ -178,10 +180,13 @@ class MyRobot(magicbot.MagicRobot):
         if self.codriver.getAButton():
             self.chassis.set_pose_failsafe()
 
-        if self.joystick.getRawButtonPressed(9):
+        if self.codriver.getYButton():
+            self.climb_control.engage()
+
+        if self.codriver.getRightTriggerAxis():
             self.hanger.winch()
-        
-        if self.joystick.getRawButton(10):
+
+        if self.codriver.getLeftTriggerAxis():
             self.hanger.payout()
 
     def testPeriodic(self) -> None:

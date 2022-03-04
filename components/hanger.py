@@ -1,8 +1,9 @@
 import ctre
-from magicbot import tunable, will_reset_to
+from magicbot import tunable
+
 
 class Hanger:
-    
+
     climb_motor: ctre.TalonFX
 
     climb_position = tunable(0.1)
@@ -17,7 +18,9 @@ class Hanger:
         self.climb_motor.config_kP(0, 1.0, 10)
         self.climb_motor.config_kI(0, 0.0, 10)
         self.climb_motor.config_kD(0, 0.0, 10)
-        self.climb_motor.configSelectedFeedbackSensor(ctre.FeedbackDevice.IntegratedSensor, 0, 10)
+        self.climb_motor.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.IntegratedSensor, 0, 10
+        )
         self.climb_motor.configSelectedFeedbackCoefficient(self.GEAR_RATIO, 0, 10)
 
     def on_disable(self) -> None:
@@ -31,3 +34,7 @@ class Hanger:
 
     def payout(self) -> None:
         self.climb_position -= 0.1
+
+    def release(self) -> None:
+        # TODO put however climb releases its arms
+        pass
