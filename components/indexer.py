@@ -140,12 +140,12 @@ class Indexer:
             self.red_total += colour.red
             self.blue_total += colour.blue
 
-        if self.blue_total == 0 and self.red_total == 0:
-            return CargoColour.NONE
-        elif self.blue_total > self.red_total:
+        if self.blue_total > self.red_total:
             return CargoColour.BLUE
-        else:
+        elif self.red_total > self.blue_total:
             return CargoColour.RED
+        else
+            return CargoColour.NONE
 
     def reset_cargo_colour(self) -> None:
         self.blue_total = 0
