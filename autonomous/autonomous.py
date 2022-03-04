@@ -257,7 +257,7 @@ left_mid_start = Waypoint(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
 
 class TestAuto(AutoBase):
-    MODE_NAME = "Test"
+    MODE_NAME = "test"
 
     def __init__(self) -> None:
         super().__init__(
@@ -302,20 +302,20 @@ class FourBall(AutoBase):
     """Auto starting middle of left tarmac, picking up ball 1 and both at terminal
     In case we have a partner who can do a three ball"""
 
-    MODE_NAME = "4 Balls: Left - Terminal"
+    MODE_NAME = "Four Ball: Left - Terminal"
 
     def __init__(self) -> None:
         super().__init__(
             [
                 left_mid_start,
                 Waypoint(
-                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                    -3.1, 1.8, Rotation2d.fromDegrees(130), WaypointType.SHOOT
                 ),  # 1
                 Waypoint(
                     -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -5.0, 0.0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
             ]
         )
@@ -326,14 +326,14 @@ class TwoBall(AutoBase):
     In case we have a partner who can do a five ball
     """
 
-    MODE_NAME = "2 Balls: Left"
+    MODE_NAME = "Two Ball: Left"
 
     def __init__(self) -> None:
         super().__init__(
             [
                 left_mid_start,
                 Waypoint(
-                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                    -3.1, 1.8, Rotation2d.fromDegrees(130), WaypointType.SHOOT
                 ),  # 1
             ]
         )
