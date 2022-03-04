@@ -86,9 +86,9 @@ class Indexer:
 
     @feedback
     def last_cargo_was_opposition(self) -> bool:
-        if wpilib.DriverStation.getAlliance() is wpilib.DriverStation.Alliance.kBlue:
+        if wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kBlue:
             return self.red_total > self.blue_total
-        elif wpilib.DriverStation.getAlliance() is wpilib.DriverStation.Alliance.kRed:
+        elif wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed:
             return self.blue_total > self.red_total
         return True
 
