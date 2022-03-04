@@ -1,6 +1,6 @@
 from components.indexer import Indexer
 import math
-from components.leds import LEDScreen
+from components.leds import StatusLights, LedStates
 from components.shooter import Shooter
 from components.turret import Turret
 from magicbot import (
@@ -23,7 +23,7 @@ class ShooterController(StateMachine):
     turret: Turret
     indexer: Indexer
     chassis: Chassis
-    leds: LEDScreen
+    status_lights: StatusLights
 
     # If set to true, flywheel speed is set from tunable
     # Otherwise it is calculated from the interpolation table
@@ -95,6 +95,8 @@ class ShooterController(StateMachine):
                 self.distance, self.ranges_lookup, self.flywheel_speed_lookup
             )
 
+        self.led_info()
+
         if (
             self._wants_to_fire
             and self.indexer.has_cargo_in_chimney()
@@ -119,13 +121,16 @@ class ShooterController(StateMachine):
         self._wants_to_fire = True
 
     def led_info(self):
-        light_status = 0 # 0 = ready to fire, 1 = no ball, 2 = incorrect spd, 3 = not within distance
-
-        if not self.indexer.has_cargo_in_chimney() or not self.turret.is_on_target() or not self.shooter.is_at_speed():
-            light_status = 1 #red
-        if not self.chassis.translation_velocity < self.MAX_SPEED or not self.chassis.rotation_velocity < self.MAX_ROTATION:
-            light_status = 2 #flashing orange
-        if not self.distance > self.MIN_DIST or self.distance < self.MAX_DIST:
-            light_status = 3 #orange
-        
-        self.leds.update_lights(light_status)
+        if not self.indexer.has_cargo_in_chimney():
+            self.status_lights.set(LedStates.NO_BALL)
+        elif self.distance > self.MAX_DIST or self.distance < self.MIN_DIST:
+            self.status_lights.set(LedStates.RANGE)
+        elif (
+            self.chassis.translation_velocity.norm() > self.MAX_SPEED
+            or self.chassis.rotation_velocity.radians() > self.MAX_ROTATION
+        ):
+            self.status_lights.set(LedStates.SPEED)
+        elif not self.shooter.is_at_speed() or not self.turret.is_on_target():
+            self.status_lights.set(LedStates.TARGETING)
+        else:
+            self.status_lights.set(LedStates.READY)

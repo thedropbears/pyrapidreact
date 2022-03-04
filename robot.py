@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from sklearn.covariance import LedoitWolf
 import wpilib
 import magicbot
 import ctre
@@ -8,7 +7,7 @@ import navx
 import rev
 import math
 
-from components.leds import LEDScreen
+from components.leds import StatusLights
 from components.chassis import Chassis
 from components.hanger import Hanger
 from components.indexer import Indexer
@@ -31,7 +30,7 @@ class MyRobot(magicbot.MagicRobot):
     shooter_control: ShooterController
     indexer_control: IndexerController
 
-    leds: LEDScreen
+    status_lights: StatusLights
     chassis: Chassis
     hanger: Hanger
     intake: Intake
@@ -55,6 +54,7 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
+        self.leds = wpilib.AddressableLED(3)
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
