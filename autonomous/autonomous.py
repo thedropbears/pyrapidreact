@@ -250,24 +250,10 @@ class AutoBase(AutonomousStateMachine):
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
-# note these are positions of the balls, not where you should go to pick them up
-# so actual auto waypoints should be chosen manually, only using these as referances
-blue_balls = [
-    (-3.299, 2.116),  # left
-    (-3.219, -2.176),  # middle
-    (-0.681, -3.826),  # right
-    (-7.156, -3.010),  # terminal
-    (-7.924, -1.559),  # cargo line
-]
-red_balls = [
-    (-2.249, 3.169),  # left
-    (-3.771, -0.935),  # middle
-    (-0.850, -3792),  # right
-]
+
 # start positions
-right_mid_start = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
-right_left_start = Pose2d(-1.846, -1.555, Rotation2d.fromDegrees(-133.5))
-left_mid_start = Pose2d(-2.273, 1.090, Rotation2d.fromDegrees(136.5))
+right_mid_start = Waypoint(-0.630, -2.334, Rotation2d.fromDegrees(-88.5))
+left_mid_start = Pose2d(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
 
 class TestAuto(AutoBase):
@@ -286,15 +272,15 @@ class TestAuto(AutoBase):
 
 
 class FiveBall(AutoBase):
-    """Auto starting middle of right tarmac, picking up balls 3, 2 and both at 4"""
+    """Auto starting middle of right tarmac, picking up balls 3, 2 and both at terminal"""
 
-    MODE_NAME = "Five Ball"
+    MODE_NAME = "Five Ball: Right - Terminal"
     DEFAULT = True
 
     def __init__(self):
         super().__init__(
             [
-                Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
+                right_mid_start,
                 Waypoint(
                     -0.65, -3.5, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
                 ),  # 3
@@ -308,5 +294,46 @@ class FiveBall(AutoBase):
                 Waypoint(
                     -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
+            ]
+        )
+
+
+class FourBall(AutoBase):
+    """Auto starting middle of left tarmac, picking up ball 1 and both at terminal
+    In case we have a partner who can do a three ball"""
+
+    MODE_NAME = "4 Balls: Left - Terminal"
+
+    def __init__(self):
+        super().__init__(
+            [
+                left_mid_start,
+                Waypoint(
+                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                ),  # 1
+                Waypoint(
+                    -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                ),  # 4
+                Waypoint(
+                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                ),  # shoot
+            ]
+        )
+
+
+class TwoBall(AutoBase):
+    """Auto starting middle of left tarmac, picking up ball 1
+    In case we have a partner who can do a five ball
+    """
+
+    MODE_NAME = "2 Balls: Left"
+
+    def __init__(self):
+        super().__init__(
+            [
+                left_mid_start,
+                Waypoint(
+                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                ),  # 1
             ]
         )
