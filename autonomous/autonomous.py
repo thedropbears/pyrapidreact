@@ -253,7 +253,7 @@ class AutoBase(AutonomousStateMachine):
 
 # start positions
 right_mid_start = Waypoint(-0.630, -2.334, Rotation2d.fromDegrees(-88.5))
-left_mid_start = Pose2d(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
+left_mid_start = Waypoint(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
 
 class TestAuto(AutoBase):
