@@ -57,7 +57,6 @@ class Indexer:
             motor.setPeriodicFramePeriod(
                 rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 500
             )
-            # periodic status 3 is analog readings per <rev/CANSparkMaxFrames.h>
             motor.setPeriodicFramePeriod(
                 rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus3, 500
             )
