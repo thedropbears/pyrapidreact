@@ -11,7 +11,7 @@ class ClimbController(StateMachine):
     shooter_control: ShooterController
     turret: Turret
     intake: Intake
-    hang: Hanger
+    hanger: Hanger
 
     @state(first=True, must_finish=True)
     def prepare(self, state_tm):

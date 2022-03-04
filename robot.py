@@ -180,6 +180,7 @@ class MyRobot(magicbot.MagicRobot):
         if self.codriver.getAButton():
             self.chassis.set_pose_failsafe()
 
+        # Climb
         if self.codriver.getYButton():
             self.climb_control.engage()
 
