@@ -129,7 +129,7 @@ class Vision:
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
                 self.vision_data.timestamp,
-                [pos_std_dev, pos_std_dev, 0.001],
+                (pos_std_dev, pos_std_dev, 0.001),
             )
 
     @feedback
