@@ -50,7 +50,7 @@ class IndexerController(StateMachine):
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
 
     @state(must_finish=True)
-    def reading(self, state_tm) -> None:
+    def reading(self, state_tm: float) -> None:
         colour = self.indexer.get_cargo_colour()
         if state_tm > 0.3:
             if not colour.is_valid():
@@ -81,7 +81,7 @@ class IndexerController(StateMachine):
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
 
     @timed_state(duration=1.0, next_state="stopping", must_finish=True)
-    def trapping(self, state_tm) -> None:
+    def trapping(self, state_tm: float) -> None:
         self.indexer.open_cat_flap()
         if state_tm > 0.3:
             # Give some time for the piston to move the flap

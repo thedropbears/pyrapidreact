@@ -64,7 +64,7 @@ class Vision:
 
         self.fuse_vision_observations = tunable(True)
 
-    def setup(self):
+    def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
 
     def get_data(self) -> Optional[VisionData]:
@@ -75,7 +75,7 @@ class Vision:
         return self.vision_data
 
     @feedback
-    def angle(self):
+    def angle(self) -> float:
         # just feedback for debugging
         if self.vision_data is None:
             return -100
@@ -128,7 +128,7 @@ class Vision:
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
                 self.vision_data.timestamp,
-                [pos_std_dev, pos_std_dev, 0.0],
+                (pos_std_dev, pos_std_dev, 0.0),
             )
 
     @feedback

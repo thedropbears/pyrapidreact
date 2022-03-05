@@ -28,7 +28,7 @@ class Shooter:
     COMPENSATED_VOLTAGE = 11.0
     turret_offset = Translation2d(-0.148, 0)  # From CAD
 
-    def setup(self):
+    def setup(self) -> None:
         self.left_motor.setInverted(False)
         self.right_motor.setInverted(True)
 
@@ -53,22 +53,19 @@ class Shooter:
                 ctre.StatusFrameEnhanced.Status_1_General, 250, 10
             )
 
-    def execute(self):
-        self.right_motor.set(
-            ctre.ControlMode.Velocity,
-            self.motor_speed * self.RPS_TO_CTRE_UNITS,
-        )
-        self.left_motor.set(
-            ctre.ControlMode.Velocity,
-            self.motor_speed * self.RPS_TO_CTRE_UNITS,
-        )
+    def execute(self) -> None:
+        # XXX: mypy type inference bug?
+        speed_rps: float = self.motor_speed
+        speed = speed_rps * self.RPS_TO_CTRE_UNITS
+        self.right_motor.set(ctre.ControlMode.Velocity, speed)
+        self.left_motor.set(ctre.ControlMode.Velocity, speed)
 
     @feedback
-    def actual_velocity(self):
+    def actual_velocity(self) -> float:
         return self.left_motor.getSelectedSensorVelocity() * self.CTRE_UNITS_TO_RPS
 
     @feedback
-    def flywheel_error(self):
+    def flywheel_error(self) -> float:
         return self.motor_speed - self.actual_velocity()
 
     def is_at_speed(self) -> bool:

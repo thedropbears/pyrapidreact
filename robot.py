@@ -37,7 +37,7 @@ class MyRobot(magicbot.MagicRobot):
     turret: Turret
     vision: Vision
 
-    def createObjects(self):
+    def createObjects(self) -> None:
         self.logger.info("pyrapidreact %s", GIT_INFO)
 
         self.imu = navx.AHRS.create_spi()

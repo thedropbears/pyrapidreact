@@ -97,7 +97,7 @@ class SwerveModule:
         """Get the angle of the module."""
         return Rotation2d(self.get_motor_angle())
 
-    def get_speed(self):
+    def get_speed(self) -> float:
         return self.drive.getSelectedSensorVelocity() * self.DRIVE_SENSOR_TO_METRES * 10
 
     def set(self, desired_state: SwerveModuleState):
@@ -126,7 +126,7 @@ class SwerveModule:
             speed_volt / 12,
         )
 
-    def sync_steer_encoders(self):
+    def sync_steer_encoders(self) -> None:
         self.steer.setSelectedSensorPosition(
             self.get_angle() * self.STEER_RAD_TO_SENSOR
         )
@@ -170,12 +170,12 @@ class Chassis:
 
     vel_avg_alpha = 0.2
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
         self.translation_velocity = Translation2d()
         self.rotation_velocity = Rotation2d()
 
-    def setup(self):
+    def setup(self) -> None:
         # mag encoder only
         self.chassis_1_encoder.talon.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
@@ -247,16 +247,18 @@ class Chassis:
 
         self.control_rate = 1 / self.control_loop_wait_time
 
-    def drive_field(self, x, y, z):
+    def drive_field(self, vx: float, vy: float, omega: float) -> None:
         """Field oriented drive commands"""
-        rotation = self.get_rotation()
-        self.chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(x, y, z, rotation)
+        current_heading = self.get_rotation()
+        self.chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+            vx, vy, omega, current_heading
+        )
 
-    def drive_local(self, x, y, z):
-        """Field oriented drive commands"""
-        self.chassis_speeds = ChassisSpeeds(x, y, z)
+    def drive_local(self, vx: float, vy: float, omega: float) -> None:
+        """Robot oriented drive commands"""
+        self.chassis_speeds = ChassisSpeeds(vx, vy, omega)
 
-    def execute(self):
+    def execute(self) -> None:
         self.desired_states = self.kinematics.toSwerveModuleStates(self.chassis_speeds)
         for state, module in zip(self.desired_states, self.modules):
             state = SwerveModuleState.optimize(state, module.get_rotation())
@@ -290,7 +292,7 @@ class Chassis:
         self.pose_history.appendleft(self.estimator.getEstimatedPosition())
         self.field_obj.setPose(goal_to_field(self.pose_history[0]))
 
-    def sync_all(self):
+    def sync_all(self) -> None:
         for m in self.modules:
             m.sync_steer_encoders()
 
