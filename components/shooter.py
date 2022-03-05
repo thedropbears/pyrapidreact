@@ -1,5 +1,5 @@
 import ctre
-import magicbot
+from magicbot import will_reset_to, tunable, feedback
 from wpimath.geometry import Translation2d
 
 from utilities.ctre import FALCON_CPR
@@ -9,8 +9,8 @@ class Shooter:
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
-    motor_speed = 0.0
-    allowable_error = magicbot.tunable(2.0)
+    motor_speed = will_reset_to(0.0)
+    allowable_error = tunable(2.0)
 
     MAX_RP100ms = 10
     pidF = 1023 / (2048 * MAX_RP100ms)
@@ -63,11 +63,11 @@ class Shooter:
             self.motor_speed * self.RPS_TO_CTRE_UNITS,
         )
 
-    @magicbot.feedback
+    @feedback
     def actual_velocity(self):
         return self.left_motor.getSelectedSensorVelocity() * self.CTRE_UNITS_TO_RPS
 
-    @magicbot.feedback
+    @feedback
     def flywheel_error(self):
         return self.motor_speed - self.actual_velocity()
 
