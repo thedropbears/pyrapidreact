@@ -47,11 +47,10 @@ class Turret:
 
         # Positive motion is counterclockwise from above.
         self.motor.setInverted(False)
-        # set the peak and nominal outputs
-        self.motor.configNominalOutputForward(0, 10)
-        self.motor.configNominalOutputReverse(0, 10)
-        self.motor.configPeakOutputForward(1.0, 10)
-        self.motor.configPeakOutputReverse(-1.0, 10)
+
+        self.motor.configPeakCurrentLimit(0, timeoutMs=10)
+        self.motor.configContinuousCurrentLimit(15, timeoutMs=10)
+
         self.motor.config_kF(0, self.pidF, 10)
         self.motor.config_kP(0, self.pidP, 10)
         self.motor.config_IntegralZone(0, self.pidIZone, 10)
