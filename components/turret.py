@@ -27,7 +27,7 @@ class Turret:
     pidIZone = 200
     pidD = 3  # 1.109
 
-    SLEW_CRUISE_VELOCITY = 1 * COUNTS_PER_TURRET_RADIAN / 10
+    SLEW_CRUISE_VELOCITY = 2 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.1)
 
     target = magicbot.tunable(0.0)
@@ -70,6 +70,9 @@ class Turret:
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
         self.absolute_encoder.setDistancePerRotation(-math.tau)
+
+    def on_disable(self) -> None:
+        self.motor.set(ctre.TalonSRXControlMode.Disabled, 0)
 
     def on_enable(self):
         self.try_sync()

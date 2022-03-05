@@ -119,6 +119,13 @@ class ShooterController(StateMachine):
 
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self) -> None:
+        if self.flywheels_running:
+            if self.interpolation_override:
+                self.shooter.motor_speed = self.flywheel_speed
+            else:
+                self.shooter.motor_speed = interpolate(
+                    self.distance, self.ranges_lookup, self.flywheel_speed_lookup
+                )
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
 
     @feedback
