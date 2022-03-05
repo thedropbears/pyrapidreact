@@ -271,6 +271,7 @@ class Chassis:
             self.modules[2].get(),
             self.modules[3].get(),
         )
+        self.estimator.
 
         cur_trans_vel = (
             self.estimator.getEstimatedPosition().translation()

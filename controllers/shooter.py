@@ -5,6 +5,7 @@ from components.turret import Turret
 from components.intake import Intake
 from magicbot import (
     StateMachine,
+    state,
     tunable,
     default_state,
     timed_state,
@@ -14,6 +15,7 @@ from magicbot import (
 from components.chassis import Chassis
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 import wpilib
+from components.vision import Vision
 from utilities.trajectory_generator import goal_to_field
 from utilities.functions import constrain_angle, interpolate
 
@@ -24,6 +26,7 @@ class ShooterController(StateMachine):
     indexer: Indexer
     intake: Intake
     chassis: Chassis
+    vision: Vision
 
     # If set to true, flywheel speed is set from tunable
     # Otherwise it is calculated from the interpolation table
@@ -58,6 +61,8 @@ class ShooterController(StateMachine):
 
     @default_state
     def tracking(self) -> None:
+        if self.vision.lost_target:
+            self.next_state("")
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # adjust shot to hit while moving
@@ -127,6 +132,11 @@ class ShooterController(StateMachine):
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
                 )
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
+    
+    @state(must_finish=True)
+    def scanning(self) -> None:
+        if self.vision.has_target:
+            self.turret.slew_local(angle)
 
     @feedback
     def distance_to_goal(self) -> float:
