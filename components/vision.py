@@ -42,6 +42,7 @@ class Vision:
     TURRET_OFFSET = 0.15  # m from robot centre to turret centre, measured from CAD
 
     field: wpilib.Field2d
+    gate_innovation = tunable(False)
 
     def __init__(self) -> None:
 
@@ -119,7 +120,7 @@ class Vision:
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
-            if innovation > 1.0:
+            if self.gate_innovation and innovation > 1.0:
                 return
             # Come up with a position std dev from the fitness reported
             # When the target is near the edge, the estimate of range is worse
