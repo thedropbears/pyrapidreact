@@ -166,13 +166,12 @@ class MyRobot(magicbot.MagicRobot):
 
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
-        throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-        if self.codriver.getYButton():
-            self.shooter.motor_speed = throttle * 60
+        throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0, 1)
+        self.shooter.motor_speed = throttle * 60
 
         # hold x and use left stick to slew turret
-        if self.codriver.getXButton():
-            slew_x = self.codriver.getRawAxis(wpilib.XboxController.Axis.kLeftX) / 50
+        if self.joystick.getPOV() != -1:
+            slew_x = math.sin(math.radians(self.joystick.getPOV(0)))*25
             self.turret.slew_relative(slew_x)
 
         # joystick trigger to force fire
