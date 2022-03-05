@@ -15,16 +15,6 @@ class CargoColour(Enum):
     def is_valid(self) -> bool:
         return self is not self.NONE
 
-    @classmethod
-    def match_colour(cls, colour: rev.ColorSensorV3.RawColor) -> "CargoColour":
-        # In testing, the value of blue when we have red cargo never went above 600
-        if colour.red > 700 and colour.red > colour.blue:
-            return cls.RED
-        # In testing, the value of red when we have blue cargo never went above 600
-        if colour.blue > 700 and colour.blue > colour.red:
-            return cls.BLUE
-        return cls.NONE
-
 
 class Indexer:
     class Direction(Enum):
@@ -51,7 +41,8 @@ class Indexer:
     _chimney_direction = Direction.OFF
     _cat_flap_is_open = False
 
-    last_colour = CargoColour.NONE
+    red_total = int(0)
+    blue_total = int(0)
 
     has_trapped_cargo = tunable(False)
 
@@ -78,11 +69,6 @@ class Indexer:
         else:
             self.cat_flap_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
-        colour = self.colour_sensor.getRawColor()
-        cargo_colour = CargoColour.match_colour(colour)
-        if cargo_colour.is_valid():
-            self.last_colour = cargo_colour
-
         # Default state is for nothing to be moving and for the cat flap to be down
         self._tunnel_direction = self._chimney_direction = Indexer.Direction.OFF
         self._cat_flap_is_open = False
@@ -100,7 +86,11 @@ class Indexer:
 
     @feedback
     def last_cargo_was_opposition(self) -> bool:
-        return self.last_colour.is_opposition()
+        if wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kBlue:
+            return self.red_total > self.blue_total
+        elif wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed:
+            return self.blue_total > self.red_total
+        return True
 
     @feedback
     def ready_to_intake(self) -> bool:
@@ -122,8 +112,12 @@ class Indexer:
         return self.colour_sensor.getProximity()
 
     @feedback
-    def get_last_colour(self) -> str:
-        return self.last_colour.name
+    def red_value(self) -> int:
+        return self.red_total
+
+    @feedback
+    def blue_value(self) -> int:
+        return self.blue_total
 
     def open_cat_flap(self) -> None:
         self._cat_flap_is_open = True
@@ -136,3 +130,23 @@ class Indexer:
 
     def run_chimney_motor(self, direction: Direction) -> None:
         self._chimney_direction = direction
+
+    def get_cargo_colour(self) -> CargoColour:
+
+        colour = self.colour_sensor.getRawColor()
+
+        # In testing, the value of blue when we have red cargo never went above 600
+        if colour.red > 700 or colour.blue > 700:
+            self.red_total += colour.red
+            self.blue_total += colour.blue
+
+        if self.blue_total > self.red_total:
+            return CargoColour.BLUE
+        elif self.red_total > self.blue_total:
+            return CargoColour.RED
+        else:
+            return CargoColour.NONE
+
+    def reset_cargo_colour(self) -> None:
+        self.blue_total = 0
+        self.red_total = 0

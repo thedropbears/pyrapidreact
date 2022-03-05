@@ -1,4 +1,4 @@
-from components.indexer import CargoColour, Indexer
+from components.indexer import Indexer
 from magicbot import (
     StateMachine,
     default_state,
@@ -38,7 +38,7 @@ class IndexerController(StateMachine):
 
     @state(must_finish=True)
     def stopping(self) -> None:
-        self.indexer.last_colour = CargoColour.NONE
+        self.indexer.reset_cargo_colour()
         self.wants_to_intake = False
         self.next_state("stopped")
 
@@ -51,8 +51,8 @@ class IndexerController(StateMachine):
 
     @state(must_finish=True)
     def reading(self, state_tm) -> None:
+        colour = self.indexer.get_cargo_colour()
         if state_tm > 0.3:
-            colour = self.indexer.last_colour
             if not colour.is_valid():
                 self.next_state("clearing")
             elif colour.is_opposition() and not self.ignore_colour:
