@@ -96,7 +96,7 @@ class Turret:
 
     def execute(self) -> None:
         self.target = self.wrap_allowable_angle(self.target)
-        self.angle_history.appendleft(self.get_angle())
+        self.update_angle_history()
 
         self.motor.set(
             ctre.ControlMode.MotionMagic,
@@ -144,3 +144,7 @@ class Turret:
                 else self.get_angle()
             )
         return self.angle_history[loops_ago]
+
+    def update_angle_history(self) -> None:
+        self.angle_history.appendleft(self.get_angle())
+

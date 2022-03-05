@@ -112,7 +112,8 @@ class MyRobot(magicbot.MagicRobot):
             "swerve_relative_encoder",
             [module.get_motor_angle() for module in self.chassis.modules],
         )
-
+        self.turret.update_angle_history()
+        self.chassis.update_pose_history()
         self.turret.try_sync()
         self.vision.execute()
 
