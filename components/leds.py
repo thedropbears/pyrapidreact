@@ -89,5 +89,4 @@ class StatusLights:
         else:
             colour = self.colour
         self.single_led_data.setRGB(colour[0], colour[1], colour[2])
-        self.set_colour(self.colour)
         self.leds.setData(self.leds_data)
