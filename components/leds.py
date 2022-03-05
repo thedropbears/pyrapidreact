@@ -2,13 +2,15 @@ import wpilib
 import time
 from enum import Enum
 
+
 class LedColours(Enum):
     RED = (255, 0, 0)
     ORANGE = (255, 160, 0)
     PINK = (255, 0, 150)
-    BLUE = (0,0,255)
+    BLUE = (0, 0, 255)
     GREEN = (0, 255, 0)
-    OFF = (0,0,0)
+    OFF = (0, 0, 0)
+
 
 class StatusLights:
     leds: wpilib.AddressableLED
@@ -40,22 +42,22 @@ class StatusLights:
         self.leds_data = [self.single_led_data] * self.led_length
         self.leds.setData(self.leds_data)
         self.leds.start()
-    
-    def pulse(self, colour = None):
+
+    def pulse(self, colour=None):
         if not colour == None:
             self.colour = colour
         self.is_pulsing = True
         self.pulse_multiplier = 1
         self.is_flashing = False
 
-    def flash(self, colour = None):
+    def flash(self, colour=None):
         if not colour == None:
             self.colour = colour
         self.is_flashing = True
         self.flash_timer = time.time()
         self.is_pulsing = False
 
-    def solid(self, colour = None):
+    def solid(self, colour=None):
         if not colour == None:
             self.colour = colour
         self.is_flashing = False
