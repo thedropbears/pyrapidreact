@@ -147,4 +147,3 @@ class Turret:
 
     def update_angle_history(self) -> None:
         self.angle_history.appendleft(self.get_angle())
-
