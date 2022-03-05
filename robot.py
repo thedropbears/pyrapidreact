@@ -52,6 +52,7 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
+        self.codriver = wpilib.XboxController(0)
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
@@ -164,7 +165,38 @@ class MyRobot(magicbot.MagicRobot):
                 self.intake.deployed = True
 
     def testPeriodic(self) -> None:
-        pass
+        # hold y and use joystick throttle to set flywheel speed
+        throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0, 1)
+        self.shooter.motor_speed = throttle * 60
+
+        # hold x and use left stick to slew turret
+        if self.joystick.getPOV() != -1:
+            slew_x = math.sin(math.radians(self.joystick.getPOV(0))) * 25
+            self.turret.slew_relative(slew_x)
+
+        # joystick trigger to force fire
+        if self.joystick.getTrigger():
+            self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
+
+        # indexer same as teleop
+        if self.joystick.getRawButtonPressed(2):
+            if self.intake.deployed:
+                self.intake.deployed = False
+                if self.indexer_control.current_state == "intaking":
+                    self.indexer_control.stop()
+            elif self.indexer.ready_to_intake():
+                self.indexer_control.wants_to_intake = True
+                self.intake.deployed = True
+
+        self.indexer_control.execute()
+
+        self.chassis.execute()
+        self.hanger.execute()
+        self.intake.execute()
+        self.indexer.execute()
+        self.shooter.execute()
+        self.turret.execute()
+        self.vision.execute()
 
 
 if __name__ == "__main__":
