@@ -1,0 +1,1875 @@
+[33mcommit a981c484ff23cad9ad528036e31aefd199b740be[m[33m ([m[1;36mHEAD -> [m[1;32mleds[m[33m, [m[1;31morigin/leds[m[33m)[m
+Author: atomic-gong <oliver.alcaraz@thedropbears.org.au>
+Date:   Sun Feb 27 16:34:42 2022 +1100
+
+    Leds should now change colour depending on robot state
+
+[33mcommit 6c305a8899741af4bbf35fc9569156d793a14c1a[m[33m ([m[1;32mmain[m[33m)[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 27 14:42:45 2022 +1100
+
+    Work around typing bug for np.interp (#68)
+
+[33mcommit 5d2b4adadbade609be18ab0db04c27c4c3ee1fbd[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 27 13:15:39 2022 +1100
+
+    turret: Fix throwing away angle wraparound (#65)
+
+[33mcommit d7c2813790dec4f0b92a9357916f66a0b7483827[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 27 12:30:48 2022 +1100
+
+    Reduce CAN status rates on shooter and steer encoders (#56)
+
+[33mcommit 386165df7483f1163e5169c845f18ae43d7501b5[m
+Merge: 9ea46cc 7b368ac
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 27 12:27:41 2022 +1100
+
+    Merge pull request #62 from thedropbears/auto-waypoints-in-ctor
+
+[33mcommit 9ea46cc0bb1334db9993e01e5efb5c415a0b9dfa[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 27 12:22:32 2022 +1100
+
+    Fix 'wants to fire' flag resetting (#64)
+
+[33mcommit 7b368ac723acfc17baa73119190301505777f89e[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 27 11:52:39 2022 +1100
+
+    autonomous: Fix type of trap_profile_start_time
+
+[33mcommit eb8303ea04b92f9f5d49cdef0280f6a56e557a7f[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 27 11:50:01 2022 +1100
+
+    autonomous: Pass waypoints as constructor param
+
+[33mcommit 448e8c79ad18df631bae83fe4eba22a33827ae07[m
+Merge: d88f13a c8c6c3c
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sun Feb 27 11:22:45 2022 +1100
+
+    Merge pull request #60 from thedropbears/fix/auto-isdone
+    
+    Fix/auto isdone
+
+[33mcommit c8c6c3c1d3923e9e2db9f51dc19685b52f1e38fe[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 27 10:51:26 2022 +1100
+
+    auto tweaks
+
+[33mcommit 34835eeae5cef6d29220886315a8982b1dce2f56[m
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sun Feb 27 10:18:12 2022 +1100
+
+    Update autonomous/autonomous.py
+    
+    Co-authored-by: David Vo <auscompgeek@users.noreply.github.com>
+
+[33mcommit f19d9139156b65e110c21f48eab076b9a3677036[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 23:18:51 2022 +1100
+
+    fix state endless loop
+
+[33mcommit ece48acfa12e0f92e9156b1fa3daaf845e939dfe[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 22:33:35 2022 +1100
+
+    added proper isdone
+
+[33mcommit d88f13a556692dd85c89713d583598f467070c53[m
+Merge: 228fd33 0a647a7
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 26 21:01:11 2022 +1100
+
+    Merge pull request #52 from thedropbears/auto-states
+    
+    Auto states
+
+[33mcommit 228fd33c9b0445fd8649cf6dd96d08dd3d8a845d[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 26 20:02:09 2022 +1100
+
+    shooter: Clean up constants (#57)
+
+[33mcommit 0a647a71351ffc048526d3578cc4310e37925761[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 26 16:37:14 2022 +1100
+
+    Fix waypoint rotation doc
+
+[33mcommit 5379ad606e3946878013f9acbfce3c19e57fc4e8[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 26 18:13:25 2022 +1100
+
+    Add VSCode launch and tasks configs (#53)
+
+[33mcommit f9bf77938ba6011656c96bc1648f298cbc3900be[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 18:04:48 2022 +1100
+
+    added finshed state, fixed velocity limits
+
+[33mcommit 49618962e9ee1850bd398ed00a2e3b37aba5774a[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 17:41:00 2022 +1100
+
+    new shooter speeds
+
+[33mcommit 49a8f9d480031b12f8750d2349c005548b54468b[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 17:39:21 2022 +1100
+
+    added dist and velocity limits
+
+[33mcommit 4e15b8c8540b133475662e6f8274558512419f67[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 17:35:40 2022 +1100
+
+    fixed auto enable set pose
+
+[33mcommit 03db51e194ba2421bf9569185aea38240c4e0286[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 14:42:01 2022 +1100
+
+    fixed wait and shoot states, made fire non sticky, indexer waits for firing
+
+[33mcommit f53df1e962013bd718454dddf0576703cf27b36d[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 11:42:41 2022 +1100
+
+    fixed waypoint creation
+
+[33mcommit 659a2f00afa695426f1b4c8bfa6188e0e2fc9196[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 11:23:16 2022 +1100
+
+    address pr comments
+
+[33mcommit 7d5bc947a687210767b114635d859710476dedd9[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Feb 25 19:55:57 2022 +1100
+
+    changed 0 to 0.0 cause mypy
+
+[33mcommit b9c58ab6de5d1606f33ebda5ec996a3d26d9cc79[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 17:17:33 2022 +1100
+
+    format
+
+[33mcommit 55ed1400ea0601ae3226415ee06ef858d272cb23[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 17:15:46 2022 +1100
+
+    spelling error fixed
+
+[33mcommit e8e2491108f332dbc51e35a17037c667d402d934[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Feb 25 19:50:06 2022 +1100
+
+    stopped using inheritance
+
+[33mcommit 106300fb93e9fab349d8e36f656de76bfc123ade[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Feb 25 17:13:13 2022 +1100
+
+    fixed return value and removed useless method
+
+[33mcommit c5f0f1dfb342e8510a0c892099cec4c44d50cf55[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Feb 25 17:00:40 2022 +1100
+
+    fixed generation bug
+
+[33mcommit 8e6bd99e525f2fe3ad910efa554085ee0d3fc28c[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Feb 25 13:14:01 2022 +1100
+
+    added pickup and shoot states
+
+[33mcommit bdb5bf7a340243289d28205f9d42304940f08e8f[m
+Merge: 6d8baa6 43c3158
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 26 16:41:52 2022 +1100
+
+    Merge pull request #54 from thedropbears/pose-estimator
+    
+    Use wpilib servedriveposeestimator
+
+[33mcommit 43c3158aa704e76d0f8e7da60531c128964f1955[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 16:39:53 2022 +1100
+
+    disabled vision
+
+[33mcommit 44dff614543f19e491087e1c2468c79374696e12[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 16:18:37 2022 +1100
+
+    vision in disabled, half fix time travelling vision system
+
+[33mcommit 3b1033845b62c292d4fd9318fb923caf1cd0961a[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 15:22:18 2022 +1100
+
+    fix mypy errors
+
+[33mcommit 2a5dab43cd6899b2c811f310fbace84be20c48d0[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 15:16:59 2022 +1100
+
+    fixed imports
+
+[33mcommit 9054e2fd5e3e1d8260254899dc63d7e8ef1c2f7c[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sat Feb 26 04:14:47 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 4863709fcb4ca0c0055bd2401a606d5edfb8cb11[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 15:11:07 2022 +1100
+
+    added shooter to vision
+
+[33mcommit 01db508fea2058c1693ada8a6ce9c4caaee0d95b[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 15:05:08 2022 +1100
+
+    added field displayes for vision and pose estimator
+
+[33mcommit b4e37874537bf00bb2d386f40597c036aaadee02[m
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 26 15:03:46 2022 +1100
+
+    Update components/chassis.py
+    
+    Co-authored-by: David Vo <auscompgeek@users.noreply.github.com>
+
+[33mcommit 231586855b4f99c719d7287584ac19a4f649dea5[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 13:02:33 2022 +1100
+
+    neatened vision, add control rate
+
+[33mcommit a2989ba25544a662128238e4d8581e811837fa7f[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 11:29:59 2022 +1100
+
+    fixed bugs
+
+[33mcommit ea51a6506475977aa85154c05093c634dee14f5b[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 11:13:37 2022 +1100
+
+    use wpilib servedriveposeestimator
+
+[33mcommit 6d8baa686439bf7e99020fa8879e92bcd45e150b[m
+Merge: a98de80 daa5aed
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sat Feb 26 16:22:45 2022 +1100
+
+    Merge pull request #58 from thedropbears/index_break_beam
+    
+    Index break beam
+
+[33mcommit daa5aed615a575d5c858c08e7661be7ce27a5ea5[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 16:18:30 2022 +1100
+
+    increased delay time before reading to get more reliable detection of cargo
+
+[33mcommit 4c60a5d8cd321b80a685fa86a8a902b6126e6d71[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 16:18:07 2022 +1100
+
+    increased colour threshold
+
+[33mcommit 2da70fe6eff7caf98d4593b2b47984b3ad96a9b0[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 16:17:15 2022 +1100
+
+    added breakbeam to detect tunnel with ball instead of colour sensor
+
+[33mcommit a98de804ed2c8d4a07abbe6a800deb836e84707c[m
+Merge: 5159dd2 e6aa84c
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sat Feb 26 13:16:41 2022 +1100
+
+    Merge pull request #51 from thedropbears/indexer-rebase
+    
+    Refactor indexer
+
+[33mcommit e6aa84c867eaaa00d48c93a954aacbdbd1a0691b[m
+Merge: e567f15 5159dd2
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sat Feb 26 13:15:47 2022 +1100
+
+    Merge branch 'main' into indexer-rebase
+
+[33mcommit e567f1597097b2bfa9935caea0a69a0810dbf2fb[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 13:13:05 2022 +1100
+
+    lowered tunnel speed
+
+[33mcommit 427ecb8ef45e17a67beb6ce711c4ccbd8550757e[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 13:12:42 2022 +1100
+
+    lowered colour thresholds
+
+[33mcommit 5159dd277387c86fe0e4b8404671654b627dcf9d[m
+Merge: fe2cdbd 07fa2b3
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sat Feb 26 12:53:39 2022 +1100
+
+    Merge pull request #55 from thedropbears/flywheel-tuning
+    
+    Flywheel tuning
+
+[33mcommit 07fa2b39d348679436a0635c5573f5a498734bcb[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 12:50:39 2022 +1100
+
+    new pid gains
+
+[33mcommit 72c579c42a8efc0ff7f942c81202d034e051d3a4[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 12:34:51 2022 +1100
+
+    upped indexer speed
+
+[33mcommit df20ba972c310f26e2d249ec92f435ad6150469a[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 12:18:05 2022 +1100
+
+    made colour sensor methods more descriptive
+
+[33mcommit f14d3f94a495b71d107b787e4460e09a4364b3b2[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sat Feb 26 01:13:48 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit aef2ea07cc39d2dcd9eccd884a637d00382d0629[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sat Feb 26 01:13:41 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 945f7a227de75447af888af244630395b9cf59a7[m
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sat Feb 26 12:13:39 2022 +1100
+
+    Update components/indexer.py
+
+[33mcommit 6af50beb38e030b0ad9a3c3fb7ae39f907738c82[m
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sat Feb 26 12:13:34 2022 +1100
+
+    Update components/indexer.py
+
+[33mcommit a448a62f0b52a7e3ed6b10a2919276c7213519ca[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 12:06:14 2022 +1100
+
+    dealt with potential runtime bug
+
+[33mcommit 7816abd22d1799cf81120dd6b4059b7d1f613813[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 12:02:18 2022 +1100
+
+    precommit crap
+
+[33mcommit e0269aca821940219435d8efd93588b1a19b0bf8[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 12:01:02 2022 +1100
+
+    adjusted pxm pins for functional robot
+
+[33mcommit 52891e1add61e16e4581b21c53834fbf4c3c8ac9[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 12:00:44 2022 +1100
+
+    changes to indexer controller
+
+[33mcommit 2a343f804b8c2c00a777934010e8b5e5d2c773ed[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 12:00:01 2022 +1100
+
+    added helper method in intake to check for cargo
+
+[33mcommit 72152260265c8330fab2eb5f673549ff44c7a1ce[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 26 11:39:40 2022 +1100
+
+    removed feedforward
+
+[33mcommit 3b34861fe51110e99306366ca56e4f9d3fcc96b3[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sat Feb 26 09:14:44 2022 +1100
+
+    fixed capitalisation on bool values so things run
+
+[33mcommit 1db330f53788462252c23256a7e3529eea7fecbc[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Fri Feb 25 22:12:43 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 49b99f1db298f2b98a5308c7bc5b52abddfae095[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Sat Feb 26 09:12:10 2022 +1100
+
+    More understandable logic in indexer
+    
+    Co-authored-by: jack-scott <jack.scott6@hotmail.co.uk>
+
+[33mcommit e1f1311b77826a6014b280e74d48daabf3718b11[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Fri Feb 25 17:06:23 2022 +1100
+
+    Read the alliance colour from the DS
+
+[33mcommit e1d6e25a5f68fe866f2d54f06246cc1e225b280c[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 16:37:04 2022 +1100
+
+    squashed james' bug
+
+[33mcommit c12168d0f0c98c0d661ee813a635f70f308b0a46[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 16:33:26 2022 +1100
+
+    format and type hint for mypy
+
+[33mcommit 9cbda52fd04596fa07d1ae722c8634475639e0d5[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 16:25:49 2022 +1100
+
+    added check so chimney wheels can be engaged for use in the poop shoot
+
+[33mcommit 53ab6e42a9723080835e3584a0c97de95eff04c8[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 15:40:53 2022 +1100
+
+    stopping correctly when intaking a ball
+
+[33mcommit 613e16b00c437fcf61669b83c5db066bf30e83d2[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 15:40:03 2022 +1100
+
+    dealt with solenoid pins. catflap direction has not been checked
+
+[33mcommit b80d8ce22b76f28e96d7dcac48d7d72eaf492889[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 15:38:58 2022 +1100
+
+    sorted out starting state bug
+
+[33mcommit 5458906eb02c94d1b002cbf818330531288220f5[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Fri Feb 25 15:38:14 2022 +1100
+
+    bug fix to multiply direction
+
+[33mcommit fe2cdbd8ca176cfe8da3187cb852f7c644f554d8[m
+Merge: 3417dfb 3bfbc4a
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Thu Feb 24 23:21:52 2022 +1100
+
+    Merge pull request #33 from thedropbears/ci/mypy
+    
+    Type check
+
+[33mcommit 3bfbc4a1e972030125eb36df89be31411ce4527c[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Thu Feb 24 23:18:38 2022 +1100
+
+    autonomous: Add logger type hint for type checking
+
+[33mcommit 9382d9649651e4dcac1d5e3fe47825ff5baf1b29[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Mon Feb 21 00:04:03 2022 +1100
+
+    test_scalers: Work around mypy bug
+
+[33mcommit 176fec6819d97c65f1172bf20865c79ff4dbc0ed[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 20 23:49:41 2022 +1100
+
+    trajectory_generator: Fix mypy inferred types
+
+[33mcommit 58354b642e4c688c56b7f8740250863cf70de1d7[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 13 17:14:51 2022 +1100
+
+    chassis: Remove target_angle member in SwerveModule
+
+[33mcommit 9325426e4c813c5db9ffd47ec48da12f0c06870c[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 13 16:45:15 2022 +1100
+
+    Add mypy reviewdog GHA workflow
+
+[33mcommit 4df4e3e5a4992fc2633d30bf1c41a88707cd3132[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 13 16:35:03 2022 +1100
+
+    Add __init__.py files for mypy
+
+[33mcommit b6c6721f0de6ee36e30cc441f05943243e26bf2b[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Thu Feb 24 10:45:34 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 5732fbfefe690a79b522d0f80ca7212ab5cedb66[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 21:45:13 2022 +1100
+
+    Make compensated voltage in shooter lower than Vbatt
+
+[33mcommit 9baa1bb7594e58994348bf3022700cd255ec870c[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 21:43:09 2022 +1100
+
+    Move ready checks to turret and shooter components
+
+[33mcommit 516e9412671d04c2fe8efa730da47263a0263105[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Thu Feb 24 08:19:24 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 48b119ef19d2d195f60f4fa435ed1c676917dbcb[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 19:18:42 2022 +1100
+
+    Rename proximity sensors
+
+[33mcommit bc12e0bf07d67eaba11f077317ce909030db960d[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 19:15:55 2022 +1100
+
+    Use module type in solenoid initialisation
+
+[33mcommit 060c1af6a1f5aa19cd25a5d75b0c1312a679ac99[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Thu Feb 24 08:14:11 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit a0278285a9dbcd8ba8496ab36165c466a482d9c9[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 19:14:03 2022 +1100
+
+    Use pneumatics module type in initialisation of solenoids
+    
+    Co-authored-by: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+
+[33mcommit b4cd17cf0dc5e9dffe53b544c7404a2281ea0ebc[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 16:58:37 2022 +1100
+
+    Remove unused import
+
+[33mcommit d9ef60868131276501fb201cdc65a5e9c0259518[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Thu Feb 24 05:55:52 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 23b21a442845401a637b24fcc2494578d489218b[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 16:54:50 2022 +1100
+
+    Update intake and robot to enable driver control
+
+[33mcommit d90f4d7d904c9c5564041393b335bf3e42d50408[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Thu Feb 24 16:17:49 2022 +1100
+
+    Refactor indexer
+    
+    * Nicer method names
+    * More helper methods
+    * Split "firing" state from indexer state machine and add to shooter
+    * Trivial shooter state machine
+
+[33mcommit 3417dfbc52b6bf9a2cd58aa293e4d5d7a490ebf3[m
+Merge: 2cd9dd3 b9a78b4
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Tue Feb 22 19:51:02 2022 +1100
+
+    Merge pull request #49 from thedropbears/pose-offsets
+    
+    Pose offsets
+
+[33mcommit b9a78b43366cf539ec94c713a4b866f5291c2995[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Tue Feb 22 19:49:18 2022 +1100
+
+    change incorrect type annotations to static vars
+
+[33mcommit 2cd9dd397d2f3ed16dc8bef24b686797b8066707[m
+Merge: 9938a1b f271238
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Tue Feb 22 19:18:53 2022 +1100
+
+    Merge pull request #48 from thedropbears/shooter_control
+    
+    Shooter control
+
+[33mcommit f2712382246456ee550a23d15d078cad777c1d15[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Tue Feb 22 19:11:22 2022 +1100
+
+    pr comments
+
+[33mcommit f13762f2a6f5272dede9a969dfb891aeb57257ca[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Tue Feb 22 18:51:51 2022 +1100
+
+    cleaned up pr
+
+[33mcommit 8c718ba9b0278d2e00411349a13920c29e0ac1d3[m
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Tue Feb 22 11:08:19 2022 +1100
+
+    Update turret offset
+    
+    Co-authored-by: James Ward <james@thedropbears.org.au>
+
+[33mcommit d7f74904254e5efe6cbd7e938a0f290f800ef037[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 21 11:46:24 2022 +1100
+
+    offset to_target and get_vis_pose_at by turret and camera offsets
+
+[33mcommit c538d41c7ef2b9230b1590613d5e6dc1f8b78dc6[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 21 11:06:26 2022 +1100
+
+    added robot_to_world
+
+[33mcommit a7696b2079cd03321df5b4a2a1d22cfbfedd0714[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 21 10:01:24 2022 +1100
+
+    change prints to self.logger
+
+[33mcommit 9938a1b0e15d0050d448ecb8a3a739c7ae9f3983[m
+Merge: 2a58fc6 aea25f6
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Mon Feb 21 07:33:22 2022 +1100
+
+    Merge pull request #47 from thedropbears/tuning/shooter
+    
+    shooter tuning
+
+[33mcommit 1ee86ef1ee6f31515dd07bcd19dd9e42c9bd412c[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 20 23:48:59 2022 +1100
+
+    fixed firing input
+
+[33mcommit b4927b6e7f97b711ecebbafa3ba58e239cc6e58b[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 20 23:36:47 2022 +1100
+
+    fixed shooting after stopped and up speed
+
+[33mcommit 2a58fc610c2810efd52d6f7e96db9269b37c713c[m
+Merge: ee8b3de 60aa96f
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sun Feb 20 19:18:11 2022 +1100
+
+    Merge pull request #45 from thedropbears/new_deadzone
+    
+    Increased joystick z axis deadzone
+
+[33mcommit 0b571ea76fa674451e14816f21d36dd68910fc3b[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sun Feb 20 17:52:43 2022 +1100
+
+    More work on this
+
+[33mcommit aea25f601baeb211b9e23669e7f391eb3a7f3232[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 20 17:18:51 2022 +1100
+
+    new shooter gains
+
+[33mcommit eaf3d5c280aa22d26d21145608a3c7444373ec4c[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sun Feb 20 17:05:54 2022 +1100
+
+    Add shooter controller back
+
+[33mcommit 4381797f50ebd4b6bbe885783ed3c725d1907f78[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 16:36:13 2022 +1100
+
+    shooter tuning
+
+[33mcommit ee8b3deb7d3d9121b2242667a706f525a9acc1d0[m
+Merge: 9b1b43b bce5026
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sun Feb 20 16:39:27 2022 +1100
+
+    Merge pull request #46 from thedropbears/fix/auto_bug
+    
+    removed obsolete calls to stop crashes
+
+[33mcommit bce502676ce5556759cb1153526daaac4a86d20b[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sun Feb 20 05:38:42 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 543fe6460c6b1d23ea9a3995fbba0c8f66ec167e[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 16:38:05 2022 +1100
+
+    removed obsolete calls to stop crashes
+
+[33mcommit 60aa96febd8a2c78494d0654f4b4985478b10a3a[m[33m ([m[1;31morigin/new_deadzone[m[33m, [m[1;32mnew_deadzone[m[33m)[m
+Author: atomic-gong <oliver.alcaraz@thedropbears.org.au>
+Date:   Sun Feb 20 16:13:37 2022 +1100
+
+    Increased joystick z axis deadzone
+
+[33mcommit 9b1b43bba2873d89eb77a22262f68f1ab2ce86cd[m
+Merge: 887683b 950fb07
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sun Feb 20 16:06:56 2022 +1100
+
+    Merge pull request #29 from thedropbears/target-estimator
+    
+    Target estimator
+
+[33mcommit 950fb071b1125a5c75c6ecaf9ea0140db5d9042a[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sun Feb 20 04:56:37 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 0f9e0aec085805990645aa90c63ea4b0e33fbcaa[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:56:22 2022 +1100
+
+    made distance feedback rather than tunable
+
+[33mcommit 587a8c94f8a4204cec4df18e53949bcc63b83697[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:48:22 2022 +1100
+
+    distance is now being reported over network tables
+
+[33mcommit deef913d34e8de6674aece2c9128559eaa4e9d31[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:30:53 2022 +1100
+
+    removed dud method
+
+[33mcommit 0bf2c611ffc993a7e881581a991e70e98bbf1afb[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 20 15:13:52 2022 +1100
+
+    turret tracks
+
+[33mcommit 6ec69ff85fbca6b9ea52fb3924f6d07ae8d619a6[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 20 11:05:46 2022 +1100
+
+    added yaw offset
+
+[33mcommit 482ee1bec8782deb4b497062b0409c827797ffaf[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 17:18:08 2022 +1100
+
+    fixed vision estimation bugs
+
+[33mcommit eb9adf7de7ad4ee710de75459ce35d4c9579d7bd[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 16:34:49 2022 +1100
+
+    fixed unpacking dataclass
+
+[33mcommit 2e6698e7c1af1bcf3300dfe01be75f4a93476618[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 10:48:38 2022 +1100
+
+    changed way imu and odo are used by target estimator
+
+[33mcommit dd5bd1e72ac89ac13df63d8f803fba153e84346d[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Feb 17 11:53:28 2022 +1100
+
+    flipped turret motor, zero imu, changed pid
+
+[33mcommit 6d76dc0a92ab6d240c2111d0172b38206c0df371[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Feb 16 12:44:47 2022 +1100
+
+    added vision time compensation
+
+[33mcommit e74f3929316c206781da83d5c668c9e57083dcaa[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 14:24:49 2022 +1100
+
+    tweaks
+
+[33mcommit ad8cacbd0576fe69711cba6017a7b45dcd14732f[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Feb 4 00:29:40 2022 +1100
+
+    make target_estimator execute
+
+[33mcommit b7113e13d3d3c188dc650a8bc386a344c0cfdc66[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Feb 3 21:08:16 2022 +1100
+
+    target esimator
+
+[33mcommit d2042a0b6fe94d3ee5d45a727e273bdc3aa552a3[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Jan 26 17:06:50 2022 +1100
+
+    basic tracking
+
+[33mcommit d31253c1d335ea83f51d3725e816f9999618b614[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Jan 26 10:32:32 2022 +1100
+
+    created target estimator and made turning work
+
+[33mcommit 8ebbd5c99b2609b16bc6933690a092fac1202458[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Jan 24 14:49:35 2022 +1100
+
+    renamed vision to target estimator and run black
+
+[33mcommit b6dcd9e936cf4ea5517c734dd72a04c7ea859e8a[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Jan 23 13:40:26 2022 +1100
+
+    basic turret moving
+
+[33mcommit 1312566d6764b6f5be810d202c6434a5f0e54aef[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:20:43 2022 +1100
+
+    removed unrequired method
+
+[33mcommit 2a5d5c65918780dc81ce8d4a6c3c88dd5fe8eab4[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:20:11 2022 +1100
+
+    caught missed spelling error
+
+[33mcommit a7ceb972ea1276a3246c4ad73d6ecd65bbc1e639[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:17:10 2022 +1100
+
+    moved inversion of encoder for consistent units
+
+[33mcommit 4301c84b136f808636ba3a454079f7dd1abb0a2f[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:07:01 2022 +1100
+
+    attempting sync on enable for turret
+
+[33mcommit 5ebe3d34b75ebbdbf394db6febb71a88e9dfcf32[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:04:49 2022 +1100
+
+    removed print statement
+
+[33mcommit 422e80cedaf7f7bd2c8b056ac3034e1226b705ba[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 15:04:03 2022 +1100
+
+    addressed bad naming
+
+[33mcommit 6906e18c45ece5fea49408ca6dbf562eabdb3d9d[m
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sun Feb 20 15:02:10 2022 +1100
+
+    fix spelling error
+    
+    Co-authored-by: David Vo <auscompgeek@users.noreply.github.com>
+
+[33mcommit 314360a5c5cd309528b3933051124fc0b81fc470[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 20 12:37:59 2022 +1100
+
+    added software offset
+
+[33mcommit 9319bfe59798f1d69e503bc8d949b70552211543[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 20 11:46:57 2022 +1100
+
+    setdistance and update gear ratios
+
+[33mcommit a3c95ad78fe4a6aae76d5424f2393119122c4242[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sat Feb 19 10:52:36 2022 +1100
+
+    Absolute encoder
+
+[33mcommit 887683b4ae0b67595cc473e8d753fe712a705390[m
+Merge: c95df7e c174425
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sun Feb 20 14:46:52 2022 +1100
+
+    Merge pull request #43 from thedropbears/range-interpolation
+    
+    Range interpolation
+
+[33mcommit c17442531482073b2ea1b97654ce1747a8ab105f[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 14:45:56 2022 +1100
+
+    changed lookup variables names for clarity
+
+[33mcommit 90a214a55a14be49063d168cf6641448d02b65cb[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 14:34:39 2022 +1100
+
+    linter fixes
+
+[33mcommit c95df7e4d25bbe10cf31f27715d32e9aedd655b3[m
+Merge: 472666f 0200b1c
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Sun Feb 20 14:32:23 2022 +1100
+
+    Merge pull request #36 from thedropbears/fix/swerve_snap_clean
+    
+    Fix/swerve snap clean
+
+[33mcommit db264ac03f3b3cf87a181be842c3faba2a3d46a3[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sun Feb 20 03:31:27 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit e66088a7d3777ff148af3a104db5215c2f9b3711[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 14:10:30 2022 +1100
+
+    hacked together code to use lookup table and range values tuned
+
+[33mcommit 1cb89f28181b05cb6e0b92c03a025eba1178b835[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 20 12:51:41 2022 +1100
+
+    updated feed forward calculation params and p term for shooter
+
+[33mcommit c8b4ae1d575bdc553f1b9176c5f9f0dfbd613724[m
+Author: whert-dev <57214741+whert-dev@users.noreply.github.com>
+Date:   Sat Jan 29 04:45:02 2022 +0000
+
+    Fix range entries
+
+[33mcommit cf1e0b98991b971884982bd10c0cd20dd0bbfac4[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sat Jan 29 15:42:33 2022 +1100
+
+    Fill experimental data
+
+[33mcommit 662b648bb9e43746a50c00c7bf256b5a5a359184[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sat Jan 29 15:35:39 2022 +1100
+
+    Move shooter control to ShooterController, add motor speed interpolation based on range
+
+[33mcommit 472666f174f6d2071d222d61b7908f18cafad891[m
+Merge: c0b8632 39107d8
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 19 17:37:04 2022 +1100
+
+    Merge pull request #40 from thedropbears/indexer
+    
+    Indexer
+
+[33mcommit 39107d8aa7e1e0f894194b7d8ab6ed53fc83893c[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 17:33:40 2022 +1100
+
+    changed intake_speed to speed_mult
+
+[33mcommit b00f86fde11ad637fa4495dd71c44e34f4ad01e9[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 16:42:21 2022 +1100
+
+    address review comments
+
+[33mcommit cbe1b0678d292d7b582ccce778ba29931b895f19[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 16:28:14 2022 +1100
+
+    added second proximity
+
+[33mcommit c0b8632e406b25c381bd695088f9610977f038a5[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 19 16:13:45 2022 +1100
+
+    chassis: Use onboard voltage comp for drive (#38)
+
+[33mcommit 8b36a267f73ac8760db6b75df3479391dd213470[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 19 16:13:26 2022 +1100
+
+    Bump wpimath to 2022.3.1.1 (#39)
+
+[33mcommit f943f6e9727375318792a18eb4c62818b20311b3[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 19 16:04:16 2022 +1100
+
+    chassis: Reduce CAN status 1 frame rates (#37)
+
+[33mcommit a4d4f7934af27c075ea721b637fa3644b57d1234[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 16:01:03 2022 +1100
+
+    removed third motor and misc
+
+[33mcommit c319dfac8c173a8d1030832082f80bcc7cada5fa[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 14:08:11 2022 +1100
+
+    chagned sensor ports
+
+[33mcommit ffec212c82ff8f9e33f63ce7633d0bf5dd1a1cde[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 14:01:52 2022 +1100
+
+    removed piston stuff to test
+
+[33mcommit f2362f00c82e076a1dca14f1b4230c617fdef467[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 19 11:06:29 2022 +1100
+
+    added indexer controls to robot.py and minor changes
+
+[33mcommit dfc768003ae722de63a3d6d84e0ddcee646790af[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sat Feb 19 10:10:32 2022 +1100
+
+    Indexer controller
+
+[33mcommit cbf57c2ef28cb5f2adf028980895bb9916ce89ed[m
+Merge: d912eb6 235adfb
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Wed Feb 16 17:09:26 2022 +1100
+
+    Merge pull request #25 from thedropbears/auto-driver
+    
+    Auto driver
+
+[33mcommit 235adfbf9c95b5ef8e44fa5ed0edb0c89d45de08[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Feb 16 16:57:09 2022 +1100
+
+    made to just follow waypoints
+
+[33mcommit 8b96394fe249e6526ae3759a349d3c3a5be09e4a[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Tue Feb 15 20:05:27 2022 +1100
+
+    general cleanup
+
+[33mcommit e4d1bb14df60c7afd113f3daa8430d0ea1be4e6b[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Tue Feb 15 09:15:14 2022 +1100
+
+    changed math.radians to rot2d.fromDegrees
+
+[33mcommit 6c241a807e2a8954e45ad4e3c8943cf4f30365b9[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 14 19:40:48 2022 +1100
+
+    renamed field transform to goal pos
+
+[33mcommit 309d41110b652363e0a1ca890337f313dc4e38c0[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 14 16:06:41 2022 +1100
+
+    renamed zero encoders
+
+[33mcommit ad9fc307de63e6b0519398ed6bdee22ffdd9a812[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 14 16:06:21 2022 +1100
+
+    fixed setting odometry and regeneration of trapazoids
+
+[33mcommit d0286f57f329d04cd081abf7f7e271488e2633aa[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 13 17:18:24 2022 +1100
+
+    actually fixed chassis angle wrapping
+
+[33mcommit 7d5d2e4ce483827ad9aa75402570d5dcc10492d7[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 13 15:30:19 2022 +1100
+
+    re characterized and adjusted limits
+
+[33mcommit 5a2b018f3ab6134fce6c0d7d396bc6a49621ca42[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sun Feb 13 04:07:32 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit d1ee5c345d60c13bc95611605b633c82d3dc3ffd[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 13 15:07:13 2022 +1100
+
+    enable wrap around for rotation controller
+
+[33mcommit 0c2d5045709072fda74c8015ca8696218b9bddc8[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 13 14:32:35 2022 +1100
+
+    removed unused imports
+
+[33mcommit 7e38df12e8ac5fbd44dac9e4b1569f2245c78d3e[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Sun Feb 13 03:31:08 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 7512b0a2cfbc70d3f53a7ee2697b93261d545511[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 13 14:30:55 2022 +1100
+
+    removed broken call
+
+[33mcommit c0820b6a5e15d4759747616e61400dfab552765f[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 13 14:25:48 2022 +1100
+
+    created constant Transform2d for use in utility
+
+[33mcommit 6aec60be95384e2689ff50eec34fe6845c0f4fe0[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 13 14:15:10 2022 +1100
+
+    creating rotation2d instead of calling atan2
+
+[33mcommit 67b29909459c91d3ec3fa754fd0debf04ef529de[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Sun Feb 13 13:58:44 2022 +1100
+
+    renamed vague function
+
+[33mcommit 43a5d57f642b33bc7944713a6496afa74a34c0dc[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Feb 11 16:10:14 2022 +1100
+
+    split trap profile gen into function and tried to fix wrapping
+
+[33mcommit a943548d7cae76938f696d912ff3e82dcb00bd27[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Feb 9 14:53:01 2022 +1100
+
+    added more auto's + next_waypoints
+
+[33mcommit 4c4df52aca85622845f4ce9e0d1fcaf9269ded52[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Feb 9 12:12:32 2022 +1100
+
+    added 5 ball and improved stopping logic
+
+[33mcommit 665cd5bf574ba5519dd5f0d5afdff50b8476e72d[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 16:43:38 2022 +1100
+
+    added ball positions
+
+[33mcommit da09ed9b7b1fd1b1e721a8831aaa1e81d60ab4ee[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 11:08:10 2022 +1100
+
+    put vel on smartdashboard and added pre-stop
+
+[33mcommit 654a22a610270f38c94dc07cb199031a17480732[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 11:06:54 2022 +1100
+
+    added next_waypoint
+
+[33mcommit 75feda63a7e48bcd202e7c75cd7acc7503fb71a9[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 10:04:13 2022 +1100
+
+    fixed circular mean
+
+[33mcommit a3b3f3d4d13184f1cdf6e230f3e7d8ce33a1f0d9[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 6 12:30:38 2022 +1100
+
+    added autonomous path follower
+
+[33mcommit 0200b1ce03464c9fb9a2697f8cf7c98148913c2b[m
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Tue Feb 15 19:59:18 2022 +1100
+
+    Update components/chassis.py
+    
+    Co-authored-by: David Vo <auscompgeek@users.noreply.github.com>
+
+[33mcommit b8b479b90192c81c64acd7429edfc59b87f53e19[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Tue Feb 15 19:55:13 2022 +1100
+
+    removed last speed check since CAN call overhead no longer exists
+
+[33mcommit 2b7ac5bb221cecf0bd24b6f283be5b49a92711c8[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Tue Feb 15 19:52:17 2022 +1100
+
+    removed integrator call in snap
+
+[33mcommit d912eb6f2da435b8708bf44deb5b8c485e351169[m
+Merge: e5064ab 613827a
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Tue Feb 15 19:36:16 2022 +1100
+
+    Merge pull request #35 from thedropbears/fix/swerve_angle_snap
+    
+    added check to stop swerve modules from snapping on command
+
+[33mcommit 613827adeefa16f85cc8f6d61af42b7666954c77[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Tue Feb 15 19:33:02 2022 +1100
+
+    changed to comanding zero instead of setting neutral
+
+[33mcommit f8aea0e2b30acd202c20fe344939a6e83a59dda7[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Tue Feb 15 08:12:18 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 303e8b914a5b8ae79091adffa652d62206cefaab[m
+Author: Lucien Morey <lucienp@Live.com.au>
+Date:   Tue Feb 15 19:09:49 2022 +1100
+
+    added check to stop swerve modules from snapping once a zero command is recieved
+
+[33mcommit e5064ab423e0ebbc56640ac74bea79a3f01ada3c[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Mon Feb 14 19:53:53 2022 +1100
+
+    Add flake8 config (#32)
+
+[33mcommit 4819176ca70d53f1091f9bce41a54cc9f7c21e64[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Mon Feb 14 19:17:47 2022 +1100
+
+    robot: Log startup message at start of init (#34)
+
+[33mcommit 5082ead8ce5be613443f6172e4d10778d6db7dbf[m
+Merge: 07b9a9e fe0a8ff
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 12 16:53:11 2022 +1100
+
+    Merge pull request #30 from thedropbears/absolute-swerve
+    
+    Absolute swerve
+
+[33mcommit fe0a8ff34a82a4790586bba85371d331149a1f04[m
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 12 16:52:10 2022 +1100
+
+    changed swerve module commend
+    
+    Co-authored-by: David Vo <auscompgeek@users.noreply.github.com>
+
+[33mcommit 72e4f2c0dc24a84c7ea16ba82f58a408c477d68d[m
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 12 16:50:57 2022 +1100
+
+    made state optimise write over state
+    
+    Co-authored-by: David Vo <auscompgeek@users.noreply.github.com>
+
+[33mcommit 910bc42a9b95a6d4d2896b4a1983aff1b14d7a4f[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 12 16:17:53 2022 +1100
+
+    added encoder offset
+
+[33mcommit 0a3d6168eff0a69551cb87842393848b30c79272[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 15:12:58 2022 +1100
+
+    fixed encoder set position
+
+[33mcommit 9cfa1035ce69cc501527cc1686d5e1cf66ac270b[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 14:32:50 2022 +1100
+
+    fixed zeroing
+
+[33mcommit 86fe1c56a975a8ae973230d04a7f164b87b49477[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 6 23:08:03 2022 +1100
+
+    changed to TalonEncoder
+
+[33mcommit 5c03b8c67e3a6add67d416d949d36d173a99d553[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 6 16:45:56 2022 +1100
+
+    changed ids
+
+[33mcommit 406de0742919bd013820dd109b364be427f014a9[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 6 16:02:42 2022 +1100
+
+    added mag encoders
+
+[33mcommit 07b9a9e895ab5b24801280146d4cf79938ba22f2[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Tue Feb 8 12:57:14 2022 +1100
+
+    robot: Use SPI for navX (#31)
+
+[33mcommit 71b3dee38149de9b274eedb0668bed5e376607e9[m
+Merge: 3936c2e 2cabe8d
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Mon Feb 7 17:57:08 2022 +1100
+
+    Merge pull request #28 from thedropbears/turret-new
+    
+    Turret
+
+[33mcommit 2cabe8dce70344b858dec6c4e43590a89be96118[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 17:55:42 2022 +1100
+
+    added turret motor, removed soft limit, fixed gear ratio
+
+[33mcommit 3384b9beb57ae7eb148fe2bbdfe58bc63cbb7904[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 13:48:45 2022 +1100
+
+    added turret component
+
+[33mcommit 3936c2e36f0628fc791b4398b59a78e9bbe2a237[m
+Merge: ebaf921 6c8d9b0
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Mon Feb 7 09:15:42 2022 +1100
+
+    Merge pull request #24 from thedropbears/auto-utils
+    
+    Added path smoothing utils
+
+[33mcommit 6c8d9b0f2b3f7df35b516092883a354f23675588[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Feb 7 09:12:07 2022 +1100
+
+    chagned to snake case
+
+[33mcommit ebaf92109c0aedb1759eb86cef724f0133e05251[m
+Merge: af4f92c a79a88a
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sun Feb 6 19:32:30 2022 +1100
+
+    Merge pull request #27 from thedropbears/feeder-motor
+    
+    removed indexer feeder motor
+
+[33mcommit a79a88ac68c6ae28f43821374933cfd88b30da1d[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 6 16:27:43 2022 +1100
+
+    removed indexer feeder motor
+
+[33mcommit af4f92c871df0c5900cafac5fe545d41d36598c2[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Feb 6 16:06:50 2022 +1100
+
+    Bump dependencies for roboRIO v4 image (#26)
+
+[33mcommit 9d761147104c7170dbdb406203fc6e1c594f2ad8[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 6 13:00:14 2022 +1100
+
+    pr comments
+
+[33mcommit 60dd429d9e29a712356380eba121c8f06dfd6529[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Feb 6 12:19:34 2022 +1100
+
+    added path smoothing utils
+
+[33mcommit 60d5ad47cc4c8b281259ebb4ac6058dbaf23e3bd[m
+Merge: 641fcd2 329cccc
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 5 16:51:14 2022 +1100
+
+    Merge pull request #22 from thedropbears/fix-odo
+    
+    fixed odometry to use actual values
+
+[33mcommit 329cccc13422ec095714058f3de74f9abe02bec6[m
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Sat Feb 5 16:50:28 2022 +1100
+
+    Add swerve module get return type
+    
+    Co-authored-by: David Vo <auscompgeek@users.noreply.github.com>
+
+[33mcommit 6f2fc1eac28f9c6ea2e4b3bac1892fe66c70001e[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Feb 5 15:18:33 2022 +1100
+
+    fixed odometry to use actual values
+
+[33mcommit 641fcd2f564ae3c2830b131facfabad4ca8dab45[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 5 12:48:35 2022 +1100
+
+    Add TalonEncoder (#20)
+
+[33mcommit d78f9abb31185f23f9e0ae869bb56d918cc405ad[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Feb 5 12:46:43 2022 +1100
+
+    shooter: Use onboard voltage compensation (#21)
+
+[33mcommit 17725696950fe47bfc7ea0213beb1b6e1c9749cf[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Thu Feb 3 00:22:29 2022 +1100
+
+    Run pytest in GitHub Actions (#19)
+
+[33mcommit 0edd5d78168af33ce2c97334484cbd6dae779650[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Wed Feb 2 23:56:42 2022 +1100
+
+    scalers: scale_value: Remove exponent parameter (#18)
+
+[33mcommit 909e0885c0f8ebdca11693078f851d540d7e14d4[m
+Merge: 34be53a aa2f2cc
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Wed Feb 2 15:38:43 2022 +1100
+
+    Merge pull request #10 from thedropbears/swerve
+    
+    Swerve
+
+[33mcommit aa2f2ccc7d2daed741d8437ac227fba5b4b41cdc[m
+Author: James Ward <james@thedropbears.org.au>
+Date:   Wed Feb 2 15:38:18 2022 +1100
+
+    Update chassis dimensions
+
+[33mcommit 7ea0c502fdc8a2294edee01b222a634b1c7033fd[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Feb 2 14:31:30 2022 +1100
+
+    added odometry properly
+
+[33mcommit 90c42ecf4b690502c34bd28cdbaff1b895991403[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Wed Feb 2 02:58:50 2022 +0000
+
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+    
+    for more information, see https://pre-commit.ci
+
+[33mcommit 887d6aabe37f7ceb4043664b8919580ddc51c55b[m
+Merge: 83757d6 34be53a
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Wed Feb 2 13:58:42 2022 +1100
+
+    Merge branch 'main' into swerve
+
+[33mcommit 83757d6915dde4e3e2b4177c04dc5b29468354db[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Feb 2 13:53:07 2022 +1100
+
+    added odometry and utility tests
+
+[33mcommit 34be53a3ba29c23ed5b00447be665915c00e3eef[m
+Merge: dd6da2f c883a8d
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Tue Feb 1 15:26:20 2022 +1100
+
+    Merge pull request #16 from thedropbears/fix-statemachine
+    
+    Fix statemachine
+
+[33mcommit dd6da2fd05a88cfb8566263eed690379c614c61a[m
+Author: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Date:   Tue Feb 1 14:20:21 2022 +1100
+
+    [pre-commit.ci] pre-commit autoupdate (#17)
+    
+    updates:
+    - [github.com/psf/black: 21.12b0 → 22.1.0](https://github.com/psf/black/compare/21.12b0...22.1.0)
+
+[33mcommit c883a8d7fbc9323542c9c3d59163852f0f99dd15[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Jan 31 22:33:59 2022 +1100
+
+    comments fixes
+
+[33mcommit 0efc8317c3e713fa0d8e7622f53091e401042bd7[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Jan 31 18:10:25 2022 +1100
+
+    changed to neo 550 on intake
+
+[33mcommit decabcfb58c6b18a605628d209143d323bb15a4f[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Mon Jan 31 13:01:08 2022 +1100
+
+    Update RobotPy dependencies (#15)
+
+[33mcommit 07b12b8200393777551a3fa6cd0997e35dd86497[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Jan 30 23:17:36 2022 +1100
+
+    renamed motors, characterized drive, +misc
+
+[33mcommit de88d848de5b619bab0ab566414c9182e44a459b[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sun Jan 30 10:37:40 2022 +1100
+
+    began making statemachine nice
+
+[33mcommit 97c2f5c8608cf6956ab8aed9f120aa85d39b3499[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Jan 29 23:14:52 2022 +1100
+
+    renamed motors, added steer pid
+
+[33mcommit 66aee6f32cfe32e18199d1a6df3a625533dd3fa6[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Jan 29 16:37:41 2022 +1100
+
+    pre-commit: Run autoflake with --in-place (#14)
+
+[33mcommit 323d8ca6180a951f1b43f72068f201b202251446[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Jan 29 16:30:20 2022 +1100
+
+    removed CANCoder
+
+[33mcommit d9c24508e2639b420cdced245e586e821208b17a[m
+Merge: 9a8b010 85a49d6
+Author: whert-dev <57214741+whert-dev@users.noreply.github.com>
+Date:   Fri Jan 28 08:45:16 2022 +0000
+
+    Merge pull request #13 from thedropbears/intake-index
+    
+    Intake index
+
+[33mcommit 85a49d63e27852d18ba6a5e55f364b9c81ffa4c7[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Jan 28 19:34:27 2022 +1100
+
+    fixed state machine and shooter, tested
+
+[33mcommit 422c8ed3a1a969a9ede7764996e6f86fdaf23c58[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Jan 28 17:04:09 2022 +1100
+
+    converted to state machines
+
+[33mcommit 13fc953800f50ef820890d852dd2b6734a70ff23[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Jan 28 15:43:16 2022 +1100
+
+    split indexer.py, used enums for state, add reading time
+
+[33mcommit 9df49f761747e18fcfcc36d8075400c3c5828e4c[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Fri Jan 28 13:50:27 2022 +1100
+
+    added contorl
+
+[33mcommit ab32b303a565d85aa1a88b1699ffa24be97bdae5[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Jan 27 19:29:26 2022 +1100
+
+    use proximity sensor to detect ball
+
+[33mcommit cef5eed64853a9b5a85a985325fda695546fb8e6[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Jan 27 19:17:25 2022 +1100
+
+    added run motor commands
+
+[33mcommit 5f535e8d4fd2b2cbcbadbbeae1a97c39f3ef962f[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Jan 22 14:08:10 2022 +1100
+
+    initial intake-index code
+
+[33mcommit 8183423632c0c5835077e1e35da08c75a332539d[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Sat Jan 22 13:49:26 2022 +1100
+
+    removed indexer.py
+
+[33mcommit bae8bf0d5f0a31161fff480791d6a31dc0a246fd[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Jan 27 16:31:25 2022 +1100
+
+    updated swerve chassis
+
+[33mcommit 480b7cb6751bdc65b73209ab26e41bb65ff87eb1[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Jan 27 12:50:09 2022 +1100
+
+    updated module
+
+[33mcommit e5918c23e25c06289eb2b753e971dfc2b15afd21[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Jan 27 12:38:33 2022 +1100
+
+    copied falconswervetest
+
+[33mcommit 75a0f3806e5b8e93f555e422aa7a0004ac0342ab[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Thu Jan 27 11:57:42 2022 +1100
+
+    copied utilities
+
+[33mcommit 9a8b010394ca4054640b52452ac1bc5571dc9a49[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Thu Jan 27 11:48:01 2022 +1100
+
+    Add pipenv support (#7)
+    
+    * Add Pipfile for pipenv
+    
+    * README: Document pipenv usage
+
+[33mcommit fdcadc233e45f0a8cd2d58a59316bd52459d1d03[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Wed Jan 26 16:15:14 2022 +1100
+
+    Update dependencies (#6)
+
+[33mcommit a92a3b132d13cfa3c0c4c47da49da5bce2242e22[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Wed Jan 26 13:35:34 2022 +1100
+
+    robot: Log git info at beginning of init
+
+[33mcommit 098b69d859211dc4631e66d7b8b672a31505a139[m
+Merge: 3e066f6 5aeb882
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Wed Jan 26 12:50:24 2022 +1100
+
+    Merge pull request #5 from thedropbears/lucien_shooter
+    
+    Shooter
+
+[33mcommit 5aeb8823bf3023911d963ce08718a8932adbe3ba[m
+Merge: caf6868 3e066f6
+Author: OliverW10 <34265013+OliverW10@users.noreply.github.com>
+Date:   Wed Jan 26 12:43:26 2022 +1100
+
+    Merge branch 'main' into lucien_shooter
+
+[33mcommit caf6868c2c7dbed88ff8c4aa41b8983a5cf31bb0[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Wed Jan 26 12:41:55 2022 +1100
+
+    added feed forward and initial values
+
+[33mcommit 3e066f62d08e838bb7cec6324bddd2e104ebd4ea[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Tue Jan 25 16:36:41 2022 +1100
+
+    Log git commit info on robot init (#2)
+    
+    * Log git commit info on robot init
+    
+    * git: Only write if changed
+
+[33mcommit 503b8d2b183bdf10cbbfbaf2f889cec67ab98da2[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Tue Jan 25 16:36:10 2022 +1100
+
+    pre-commit: Add autoflake (#3)
+
+[33mcommit 5cd99ce69c594fc29f3f668ebcee23047d1907ff[m
+Author: oliverw10 <oliver@warrickfamily.com>
+Date:   Mon Jan 24 21:18:04 2022 +1100
+
+    initial tuning
+
+[33mcommit 40d876dec631dc85fcdd7665a5a3b53fca0aad21[m
+Author: Lucien Morey <lucienp@live.com.au>
+Date:   Mon Jan 24 16:39:36 2022 +1100
+
+    untuned velocity PID for flywheels
+
+[33mcommit e5e8fdbe756968052e33bc1b3f19f2566e9b6374[m
+Author: atomic-gong <oliver.alcaraz@thedropbears.org.au>
+Date:   Mon Jan 24 16:33:17 2022 +1100
+
+    Fixed a typo in the shooter.py file
+
+[33mcommit 4741beaef2d1e782e7eab46754f3dc0b7c02e951[m
+Author: atomic-gong <oliver.alcaraz@thedropbears.org.au>
+Date:   Mon Jan 24 15:07:17 2022 +1100
+
+    Feeder motors can now be controlled using the joystick
+
+[33mcommit 297acffbf493c933a8dd45ea543306aaa568a3a1[m
+Author: Lucien Morey <lucienp@live.com.au>
+Date:   Sun Jan 23 17:29:35 2022 +1100
+
+    added missing pass after botched rebase
+
+[33mcommit d419454f6664479fcc11430cbcc781bd4b149aa2[m
+Author: Lucien Morey <lucienp@live.com.au>
+Date:   Sun Jan 23 17:17:43 2022 +1100
+
+    switched to use falcons instead of neos
+
+[33mcommit ba86a50c5385741f2fb07aead0716244df33ef77[m
+Author: Lucien Morey <lucienp@live.com.au>
+Date:   Sun Jan 23 10:39:51 2022 +1100
+
+    shooter code with component
+
+[33mcommit 882f3a10b48f317d5efeba08794cc68dd3d4a5dc[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sun Jan 23 16:17:05 2022 +1100
+
+    Update robotpy-ctre to avoid segfaults (#4)
+
+[33mcommit 194ffd6a96cf2a4d1b9870d570452e8e749d5bc6[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Jan 22 16:25:17 2022 +1100
+
+    Make robot.py executable
+
+[33mcommit 2ae118327f8810ebb76f25235a3fa7143053269a[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Jan 22 16:22:49 2022 +1100
+
+    Remove trailing newline from .deploy_cfg
+
+[33mcommit 8ddc78f76c866dc1f1c319fde2bf8fbd3fd23171[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Jan 22 16:21:00 2022 +1100
+
+    Fix robotpy-wpilib-utilities version constraint
+
+[33mcommit 6e1a5d9286b04fdbf940bb50197034f54f05ef58[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Sat Jan 22 16:04:29 2022 +1100
+
+    Add deploy config
+
+[33mcommit 4991e793f7237959a32e658cf2501493266fbda4[m
+Merge: 4de0ad5 dc5b6d6
+Author: whert-dev <57214741+whert-dev@users.noreply.github.com>
+Date:   Sat Jan 22 01:00:15 2022 +0000
+
+    Merge pull request #1 from thedropbears/generic_logic
+    
+    Add a scaffolding for future logic
+
+[33mcommit dc5b6d630d277a939187e4b800f5b93c82884889[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sat Jan 22 11:58:12 2022 +1100
+
+    Remove unused import
+
+[33mcommit a048cf84aa39885befe3224224a5de86bbd505b0[m
+Author: whert-dev <krpmiha@gmail.com>
+Date:   Sat Jan 22 11:48:58 2022 +1100
+
+    Add a scaffolding for future logic
+
+[33mcommit 4de0ad577b407063e5d9edf1b1674d59251ae528[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Wed Jan 19 18:40:36 2022 +1100
+
+    gitignore: Fix newline at EOF
+
+[33mcommit 937f3f227684bb171916904a6e44ae7b37a64f25[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Wed Jan 19 18:40:30 2022 +1100
+
+    Add requirements files and more readme
+
+[33mcommit 4cf4709f9570fc7f8926c4eb698d1a113f5f27f3[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Wed Jan 19 18:27:28 2022 +1100
+
+    robot: Run black
+
+[33mcommit 501d9ab346ff370ba71da3861196bdc44f8191ed[m
+Author: David Vo <auscompgeek@users.noreply.github.com>
+Date:   Wed Jan 19 18:24:50 2022 +1100
+
+    Create .pre-commit-config.yaml
+
+[33mcommit 3c645c0fa42dc7b638777cf0b74ad219f2921a33[m
+Author: Lucien Morey <lucienp@live.com.au>
+Date:   Wed Jan 19 18:08:41 2022 +1100
+
+    added basic robot.py file
+
+[33mcommit 3be5c01969a0792939f319a317971d01f23e1efd[m
+Author: Lucien Morey <lucienp@live.com.au>
+Date:   Wed Jan 19 18:06:28 2022 +1100
+
+    updated gitignore to reflect last year
+
+[33mcommit 54fbb5e6dd10d05774987d1dbee7b6a11975dd18[m
+Author: LucienMorey <lucienp@live.com.au>
+Date:   Wed Jan 19 17:15:37 2022 +1100
+
+    Initial commit

@@ -51,8 +51,8 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    max_speed = 2.5
-    max_accel = 1.75
+    max_speed = 3.5
+    max_accel = 2.1
 
     ALLOWED_TRANS_ERROR = 0.2
     ALLOWED_ROT_ERROR = math.radians(20)
@@ -67,16 +67,16 @@ class AutoBase(AutonomousStateMachine):
         )
 
         self.drive_rotation_constraints = (
-            trajectory.TrapezoidProfileRadians.Constraints(2, 2)
+            trajectory.TrapezoidProfileRadians.Constraints(4, 4)
         )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
-            2, 0, 0, self.drive_rotation_constraints
+            4, 0, 0, self.drive_rotation_constraints
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(1, 0, 0.2),
-            controller.PIDController(1, 0, 0.2),
+            controller.PIDController(3, 0, 0.2),
+            controller.PIDController(3, 0, 0.2),
             rotation_controller,
         )
 
@@ -93,7 +93,7 @@ class AutoBase(AutonomousStateMachine):
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
     def setup(self) -> None:
-        field_goal = self.field.getObject("goal")
+        field_goal = self.field.getObject("auto_goal")
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
     def on_enable(self):
@@ -148,8 +148,10 @@ class AutoBase(AutonomousStateMachine):
             abs(translation_error) < self.ALLOWED_TRANS_ERROR
             and abs(rotation_error) < self.ALLOWED_ROT_ERROR
         )
+        is_stopped = self.chassis.translation_velocity.norm() < 0.2
         if self.trap_profile.isFinished(trap_time) and (
-            self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE or is_close
+            self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE
+            or (is_close and is_stopped)
         ):
             self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
             waypoint_type = self.waypoints[self.cur_waypoint].type
@@ -164,7 +166,7 @@ class AutoBase(AutonomousStateMachine):
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose_fake,
-            linearVelocityRef=linear_state.velocity * 0.15,  # used for feedforward
+            linearVelocityRef=linear_state.velocity * 0.2,  # used for feedforward
             angleRef=goal_rotation,
         )
         self.chassis.drive_local(
@@ -183,13 +185,12 @@ class AutoBase(AutonomousStateMachine):
     @state
     def pickup(self, state_tm: float, tm: float) -> None:
         """Waits until full"""
-        if self.indexer.ready_to_intake():
-            self.intake.deployed = True
-            self.indexer_control.wants_to_intake = True
+        self.intake.deployed = True
+        self.indexer_control.wants_to_intake = True
         if (
             self.indexer.has_cargo_in_chimney()
             and self.indexer.has_cargo_in_tunnel()
-            or state_tm > 6
+            or state_tm > 3
         ):
             self.next_state("move")
             self.move_next_waypoint(tm)
@@ -199,7 +200,7 @@ class AutoBase(AutonomousStateMachine):
         """Waits until empty"""
         self.shooter_control.fire()
         self.intake.deployed = False
-        if state_tm > 2 or not (
+        if state_tm > 2.5 or not (
             self.indexer.has_cargo_in_chimney()
             or self.indexer.has_cargo_in_tunnel()
             or self.indexer_control.current_state == "transferring_to_chimney"
@@ -249,24 +250,10 @@ class AutoBase(AutonomousStateMachine):
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
-# note these are positions of the balls, not where you should go to pick them up
-# so actual auto waypoints should be chosen manually, only using these as referances
-blue_balls = [
-    (-3.299, 2.116),  # left
-    (-3.219, -2.176),  # middle
-    (-0.681, -3.826),  # right
-    (-7.156, -3.010),  # terminal
-    (-7.924, -1.559),  # cargo line
-]
-red_balls = [
-    (-2.249, 3.169),  # left
-    (-3.771, -0.935),  # middle
-    (-0.850, -3792),  # right
-]
+
 # start positions
-right_mid_start = Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5))
-right_left_start = Pose2d(-1.846, -1.555, Rotation2d.fromDegrees(-133.5))
-left_mid_start = Pose2d(-2.273, 1.090, Rotation2d.fromDegrees(136.5))
+right_mid_start = Waypoint(-0.630, -2.334, Rotation2d.fromDegrees(-88.5))
+left_mid_start = Waypoint(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
 
 class TestAuto(AutoBase):
@@ -285,27 +272,68 @@ class TestAuto(AutoBase):
 
 
 class FiveBall(AutoBase):
-    """Auto starting middle of right tarmac, picking up balls 3, 2 and both at 4"""
+    """Auto starting middle of right tarmac, picking up balls 3, 2 and both at terminal"""
 
-    MODE_NAME = "Five Ball"
+    MODE_NAME = "Five Ball: Right - Terminal"
     DEFAULT = True
 
     def __init__(self):
         super().__init__(
             [
-                Waypoint(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)),  # start
+                right_mid_start,
                 Waypoint(
-                    -0.711, -3.3, Rotation2d.fromDegrees(-95), WaypointType.SHOOT
+                    -0.65, -3.5, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
                 ),  # 3
                 Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
                 Waypoint(
                     -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.1, -2.65, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -5.0, 0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
+            ]
+        )
+
+
+class FourBall(AutoBase):
+    """Auto starting middle of left tarmac, picking up ball 1 and both at terminal
+    In case we have a partner who can do a three ball"""
+
+    MODE_NAME = "4 Balls: Left - Terminal"
+
+    def __init__(self):
+        super().__init__(
+            [
+                left_mid_start,
+                Waypoint(
+                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                ),  # 1
+                Waypoint(
+                    -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                ),  # 4
+                Waypoint(
+                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                ),  # shoot
+            ]
+        )
+
+
+class TwoBall(AutoBase):
+    """Auto starting middle of left tarmac, picking up ball 1
+    In case we have a partner who can do a five ball
+    """
+
+    MODE_NAME = "2 Balls: Left"
+
+    def __init__(self):
+        super().__init__(
+            [
+                left_mid_start,
+                Waypoint(
+                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                ),  # 1
             ]
         )

@@ -1,5 +1,4 @@
 import ctre
-import wpilib
 import magicbot
 from wpimath.geometry import Translation2d
 
@@ -7,13 +6,11 @@ from utilities.ctre import FALCON_CPR
 
 
 class Shooter:
-    joystick: wpilib.Joystick
-
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
     motor_speed = 0.0
-    allowable_error = magicbot.tunable(20.0)
+    allowable_error = magicbot.tunable(2.0)
 
     MAX_RP100ms = 10
     pidF = 1023 / (2048 * MAX_RP100ms)

@@ -8,7 +8,7 @@ import navx
 import rev
 import math
 
-from components.leds import LEDScreen
+from components.leds import StatusLights
 from components.chassis import Chassis
 from components.hanger import Hanger
 from components.indexer import Indexer
@@ -16,6 +16,7 @@ from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
 from controllers.indexer import IndexerController
+from controllers.leds import LedController
 from components.vision import Vision
 
 from controllers.shooter import ShooterController
@@ -28,10 +29,11 @@ GIT_INFO = git.describe()
 
 
 class MyRobot(magicbot.MagicRobot):
+    led_control: LedController
     shooter_control: ShooterController
     indexer_control: IndexerController
 
-    leds: LEDScreen
+    status_lights: StatusLights
     chassis: Chassis
     hanger: Hanger
     intake: Intake
@@ -55,6 +57,7 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
+        self.leds = wpilib.AddressableLED(2)
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
@@ -88,11 +91,18 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
         self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
 
+        self.auto_shoot = False
+
     def autonomousInit(self) -> None:
-        pass
+        self.shooter_control.lead_shots = False
+        self.intake.auto_retract = False
+        self.auto_shoot = False
 
     def teleopInit(self) -> None:
+        self.intake.auto_retract = True
+        self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
+        self.auto_shoot = False
 
     def testInit(self) -> None:
         pass
@@ -114,7 +124,7 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-        spin_rate = 1.5
+        spin_rate = 2.0
         joystick_x = (
             -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
             * 4
@@ -126,7 +136,7 @@ class MyRobot(magicbot.MagicRobot):
             * throttle
         )
         joystick_z = (
-            -rescale_js(self.joystick.getZ(), deadzone=0.4, exponential=25.0)
+            -rescale_js(self.joystick.getZ(), deadzone=0.3, exponential=25.0)
             * spin_rate
         )
 
@@ -137,7 +147,17 @@ class MyRobot(magicbot.MagicRobot):
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
-        if self.joystick.getTrigger():
+        if self.joystick.getRawButtonPressed(11):
+            self.auto_shoot = True
+
+        if self.joystick.getRawButtonPressed(12):
+            self.auto_shoot = False
+
+        # reset heading to intake facing directly downfield
+        if self.joystick.getRawButtonPressed(9):
+            self.chassis.zero_yaw()
+
+        if self.joystick.getTrigger() or self.auto_shoot:
             self.shooter_control.fire()
 
         if self.joystick.getRawButtonPressed(2):
