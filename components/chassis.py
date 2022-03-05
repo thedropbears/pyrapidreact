@@ -289,8 +289,7 @@ class Chassis:
             + self.rotation_velocity * (1 - self.vel_avg_alpha)
         )
 
-        self.pose_history.appendleft(self.estimator.getEstimatedPosition())
-        self.field_obj.setPose(goal_to_field(self.pose_history[0]))
+        self.update_pose_history()
 
     def sync_all(self) -> None:
         for m in self.modules:
@@ -342,3 +341,7 @@ class Chassis:
             robot.translation() + offset.rotateBy(robot.rotation()),
             robot.rotation(),
         )
+
+    def update_pose_history(self) -> None:
+        self.pose_history.appendleft(self.estimator.getEstimatedPosition())
+        self.field_obj.setPose(goal_to_field(self.pose_history[0]))
