@@ -1,6 +1,7 @@
 from components.shooter import Shooter
 from components.indexer import Indexer
 from components.chassis import Chassis
+from components.turret import Turret
 from controllers.shooter import ShooterController
 from components.leds import StatusLights, LedStates
 
@@ -9,15 +10,16 @@ class LedController:
     indexer: Indexer
     chassis: Chassis
     shooter: Shooter
+    turret: Turret
     shooter_control: ShooterController
-    leds: StatusLights
+    status_lights: StatusLights
 
     def execute(self):
         if not self.indexer.has_cargo_in_chimney():
             self.status_lights.set(LedStates.NO_BALL)
         elif (
-            self.distance > self.shooter_control.MAX_DIST
-            or self.distance < self.shooter_control.MIN_DIST
+            self.shooter_control.distance > self.shooter_control.MAX_DIST
+            or self.shooter_control.distance < self.shooter_control.MIN_DIST
         ):
             self.status_lights.set(LedStates.RANGE)
         elif (
