@@ -20,7 +20,6 @@ from components.vision import Vision
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
-from utilities.ctre import TalonEncoder
 
 from utilities import git
 
@@ -90,10 +89,10 @@ class MyRobot(magicbot.MagicRobot):
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
-        self.chassis_1_encoder = TalonEncoder(ctre.TalonSRX(13), unitsPerRev=math.tau)
-        self.chassis_2_encoder = TalonEncoder(ctre.TalonSRX(20), unitsPerRev=math.tau)
-        self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
-        self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
+        self.chassis_1_encoder = ctre.CANCoder(1)
+        self.chassis_2_encoder = ctre.CANCoder(2)
+        self.chassis_3_encoder = ctre.CANCoder(3)
+        self.chassis_4_encoder = ctre.CANCoder(4)
 
     def autonomousInit(self) -> None:
         self.shooter_control.lead_shots = False
