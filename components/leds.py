@@ -81,9 +81,9 @@ class StatusLights:
 
     def execute(self) -> None:
         if self.is_flashing:
-            colour = self.flash_calc(self.colour)
+            colour = self.flash_calculation(self.colour)
         elif self.is_pulsing:
-            colour = self.pulse_calc(self.colour)
+            colour = self.pulse_calculation(self.colour)
         else:
             colour = self.colour
         self.single_led_data.setRGB(colour[0], colour[1], colour[2])
