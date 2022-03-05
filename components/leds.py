@@ -62,19 +62,21 @@ class StatusLights:
             self.colour = colour
         self.is_flashing = False
         self.is_pulsing = False
-    
+
     def pulse_calculation(self, colour):
         if self.pulse_multiplier >= self.MAX_PULSE:
             self.pulse_increasing = False
         elif self.pulse_multiplier <= self.MIN_PULSE:
             self.pulse_increasing = True
-        
-        self.pulse_multiplier += self.PULSE_CHANGE * (1 if self.pulse_increasing else -1)
-    
+
+        self.pulse_multiplier += self.PULSE_CHANGE * (
+            1 if self.pulse_increasing else -1
+        )
+
         return self.mult_tuple(colour, self.pulse_multiplier)
 
     def flash_calculation(self, colour):
-        if int(((time.time()-self.flash_timer)/self.FLASH_DELAY))%2:
+        if int(((time.time() - self.flash_timer) / self.FLASH_DELAY)) % 2:
             return colour
         else:
             return LedColours.OFF
