@@ -61,34 +61,29 @@ class StatusLights:
         self.is_flashing = False
         self.is_pulsing = False
     
-    def pulse_calc(self, colour):
-        if self.is_pulsing:
-            if self.pulse_multiplier >= self.MAX_PULSE:
-                self.pulse_increasing = False
-            elif self.pulse_multiplier <= self.MIN_PULSE:
-                self.pulse_increasing = True
-            
-            self.pulse_multiplier += self.PULSE_CHANGE * (1 if self.pulse_increasing else -1)
+    def pulse_calculation(self, colour):
+        if self.pulse_multiplier >= self.MAX_PULSE:
+            self.pulse_increasing = False
+        elif self.pulse_multiplier <= self.MIN_PULSE:
+            self.pulse_increasing = True
         
-            return self.mult_tuple(colour, self.pulse_multiplier)
-        else:
-            return colour
+        self.pulse_multiplier += self.PULSE_CHANGE * (1 if self.pulse_increasing else -1)
     
-    def flash_calc(self, colour):
-        if self.is_flashing:
-            if int(((time.time()-self.flash_timer)/self.FLASH_DELAY))%2:
-                return colour
-            else:
-                return LedColours.OFF
-        else:
+        return self.mult_tuple(colour, self.pulse_multiplier)
+
+    def flash_calculation(self, colour):
+        if int(((time.time()-self.flash_timer)/self.FLASH_DELAY))%2:
             return colour
-            
-    def set_colour(self, state: tuple) -> None:
-        self.colour = state
-        colour = self.flash_calc(self.colour)
-        colour = self.pulse_calc(colour)
-        self.single_led_data.setRGB(colour[0], colour[1], colour[2])
+        else:
+            return LedColours.OFF
 
     def execute(self) -> None:
+        if self.is_flashing:
+            colour = self.flash_calc(self.colour)
+        elif self.is_pulsing:
+            colour = self.pulse_calc(self.colour)
+        else:
+            colour = self.colour
+        self.single_led_data.setRGB(colour[0], colour[1], colour[2])
         self.set_colour(self.colour)
         self.leds.setData(self.leds_data)
