@@ -171,7 +171,7 @@ class MyRobot(magicbot.MagicRobot):
 
         # hold x and use left stick to slew turret
         if self.joystick.getPOV() != -1:
-            slew_x = math.sin(math.radians(self.joystick.getPOV(0)))*25
+            slew_x = math.sin(math.radians(self.joystick.getPOV(0))) * 25
             self.turret.slew_relative(slew_x)
 
         # joystick trigger to force fire
