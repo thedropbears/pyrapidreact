@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from sklearn.covariance import LedoitWolf
 import wpilib
 import magicbot
 import ctre
@@ -41,6 +40,8 @@ class MyRobot(magicbot.MagicRobot):
     shooter: Shooter
     turret: Turret
     vision: Vision
+
+    auto_shoot: shooter_control.auto_shoot
 
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
@@ -146,12 +147,6 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_field(joystick_x, joystick_y, joystick_z)
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
-
-        if self.joystick.getRawButtonPressed(11):
-            self.auto_shoot = True
-
-        if self.joystick.getRawButtonPressed(12):
-            self.auto_shoot = False
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):

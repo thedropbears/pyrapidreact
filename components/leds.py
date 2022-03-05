@@ -1,19 +1,13 @@
-from logging import raiseExceptions
 import wpilib
 import time
 from enum import Enum
 
-
 class LedStates(Enum):
-    NO_BALL = (255, 0, 0)
-    # turret wrong or flywheel wrong
-    TARGETING = (255, 160, 0)
-    # too close or too far
-    RANGE = (255, 160, 0)
-    SPEED = (255, 0, 150)
-    READY = (0, 255, 0)
-
-
+    RED = (255, 0, 0)
+    ORANGE = (255, 160, 0)
+    PINK = (255, 0, 150)
+    BLUE = (0,0,255)
+    GREEN = (0, 255, 0)
 
 class StatusLights:
     leds: wpilib.AddressableLED
@@ -23,9 +17,8 @@ class StatusLights:
 
         self.is_flashing = False
 
-        self.flash_on = True
-        self.FLASH_DELAY = 0.3
         self.flash_timer = time.time()
+        self.FLASH_DELAY = 0.3
 
         self.is_pulsing = False
 
@@ -44,19 +37,19 @@ class StatusLights:
         self.leds.setData(self.leds_data)
         self.leds.start()
     
-    def start_pulse(self):
+    def pulse(self):
         self.is_pulsing = True
         self.pulse_multiplier = 1
+        self.is_flashing = False
 
-    def stop_pulse(self):
-        self.is_pulsing = False
-
-    def start_flash(self):
+    def flash(self):
         self.is_flashing = True
         self.flash_timer = time.time()
-    
-    def stop_flash(self):
+        self.is_pulsing = False
+
+    def solid(self):
         self.is_flashing = False
+        self.is_pulsing = False
     
     def pulse_calc(self, colour):
         if self.is_pulsing:
@@ -73,14 +66,14 @@ class StatusLights:
     
     def flash_calc(self, colour):
         if self.is_flashing:
-            if self.flash_timer + self.FLASH_DELAY >= time.time():
-                self.flash_timer = time.time()
-                self.flash_on = not self.flash_on
-            return self.mult_tuple(colour, (1 if self.flash_on else 0))
+            if ((time.time()-self.flash_timer)/self.FLASH_DELAY)%2:
+                return self.mult_tuple(colour, 1)
+            else:
+                return self.mult_tuple(colour, 0)
         else:
             return colour
             
-    def set(self, state: LedStates) -> None:
+    def set_colour(self, state: tuple) -> None:
         colour = state.value
         colour = self.flash_calc(colour)
         colour = self.pulse_calc(colour)
