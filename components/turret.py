@@ -7,6 +7,8 @@ import magicbot
 import math
 from wpilib import DutyCycleEncoder, Timer
 
+from utilities.functions import constrain_angle
+
 
 class Turret:
     motor: ctre.TalonSRX
@@ -25,14 +27,15 @@ class Turret:
     pidIZone = 200
     pidD = 3  # 1.109
 
-    SLEW_CRUISE_VELOCITY = 6 * COUNTS_PER_TURRET_RADIAN / 10
+    SLEW_CRUISE_VELOCITY = 2 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.1)
 
     target = magicbot.tunable(0.0)
     control_loop_wait_time: float
 
     # max rotation either side of zero
-    MAX_ROTATION = math.radians(200)
+    MIN_ROTATION = math.radians(0)
+    MAX_ROTATION = math.radians(360)
 
     allowable_position_error = magicbot.tunable(math.radians(10))  # radians
     allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
@@ -69,10 +72,9 @@ class Turret:
         self.absolute_encoder.setDistancePerRotation(-math.tau)
 
     def on_disable(self) -> None:
-        self.has_synced = False
+        self.motor.set(ctre.TalonSRXControlMode.Disabled, 0)
 
-    def on_enable(self) -> None:
-        self.has_synced = False
+    def on_enable(self):
         self.try_sync()
 
     def try_sync(self) -> None:
@@ -90,7 +92,7 @@ class Turret:
         """
         while theta > cls.MAX_ROTATION:
             theta -= math.tau
-        while theta < -cls.MAX_ROTATION:
+        while theta < cls.MIN_ROTATION:
             theta += math.tau
         return theta
 
@@ -105,11 +107,13 @@ class Turret:
 
     def slew_relative(self, angle: float) -> None:
         """Slews relative to current turret position"""
-        self.slew_local(self.get_angle() + angle)
+        self.target = self.get_angle() + angle
 
     def slew_local(self, angle: float) -> None:
         """Slew to a robot relative angle"""
-        self.target = angle
+        # Make sure we account for overlap, so test if an overlapped angle is actually closer
+        delta = constrain_angle(angle - self.get_angle())
+        self.slew_relative(delta)
 
     @magicbot.feedback
     def get_angle(self) -> float:
@@ -130,7 +134,9 @@ class Turret:
     @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
         angle = self.absolute_encoder.getDistance() + self.abs_offset
-        return self.wrap_allowable_angle(angle)
+
+        angle %= math.tau
+        return angle
 
     def get_angle_at(self, t: float) -> float:
         loops_ago = int((Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)

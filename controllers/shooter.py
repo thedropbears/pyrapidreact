@@ -15,7 +15,7 @@ from components.chassis import Chassis
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 import wpilib
 from utilities.trajectory_generator import goal_to_field
-from utilities.functions import interpolate
+from utilities.functions import constrain_angle, interpolate
 
 
 class ShooterController(StateMachine):
@@ -61,33 +61,32 @@ class ShooterController(StateMachine):
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # adjust shot to hit while moving
-        if self.lead_shots:
-            effective_trans = cur_pose.translation()
-            for _ in range(3):
-                self.distance = effective_trans.distance(Translation2d())
-                flight_time: float = interpolate(
-                    self.distance, self.ranges_lookup, self.times_lookup
-                )
-                effective_trans = (
-                    cur_pose.translation()
-                    + self.chassis.translation_velocity * flight_time
-                )
-            self.field_effective_goal.setPose(
-                goal_to_field(
-                    Pose2d(effective_trans - cur_pose.translation(), Rotation2d(0))
-                )
+        flight_time = 0.0  # Only compensate for time of flight if told to...
+
+        for _ in range(3):
+            robot_movement = self.chassis.translation_velocity * flight_time
+            effective_pose = Pose2d(
+                cur_pose.translation() + robot_movement, cur_pose.rotation()
             )
-            # calculate angle and dist to target
-            effective_pose = Pose2d(effective_trans, cur_pose.rotation())
-        else:
-            effective_pose = cur_pose
             self.distance = effective_pose.translation().distance(Translation2d())
+            flight_time = interpolate(
+                self.distance, self.ranges_lookup, self.times_lookup
+            )
+            if not self.lead_shots:
+                # Only run once if we aren't compensating. This will mean ToF is considered to be zero (ie no compensation)
+                break
+
+        self.field_effective_goal.setPose(
+            goal_to_field(
+                Pose2d(-robot_movement.X(), -robot_movement.Y(), Rotation2d(0))
+            )
+        )
 
         turret_pose = self.chassis.robot_to_world(
             self.shooter.turret_offset, effective_pose
         )
         field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
-        angle = field_angle - cur_pose.rotation().radians()
+        angle = constrain_angle(field_angle - cur_pose.rotation().radians())
 
         self.turret.slew_local(angle)
 
@@ -120,6 +119,13 @@ class ShooterController(StateMachine):
 
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self) -> None:
+        if self.flywheels_running:
+            if self.interpolation_override:
+                self.shooter.motor_speed = self.flywheel_speed
+            else:
+                self.shooter.motor_speed = interpolate(
+                    self.distance, self.ranges_lookup, self.flywheel_speed_lookup
+                )
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
 
     @feedback
