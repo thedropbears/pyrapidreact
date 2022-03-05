@@ -1,4 +1,4 @@
-from magicbot.state_machine import StateMachine, state, timed_state
+from magicbot.state_machine import StateMachine, state
 from components.hanger import Hanger
 from components.turret import Turret
 from components.intake import Intake
@@ -23,6 +23,6 @@ class ClimbController(StateMachine):
         if state_tm > 1 and self.turret.get_error() < 0.2:
             self.next_state("")
 
-    @timed_state(duration=1, must_finish=True)
+    @state(must_finish=True)
     def raise_arms(self):
-        self.hang.release()
+        self.hanger.release()
