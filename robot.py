@@ -7,6 +7,7 @@ import navx
 import rev
 import math
 
+from components.leds import StatusLights
 from components.chassis import Chassis
 from components.hanger import Hanger
 from components.indexer import Indexer
@@ -14,6 +15,7 @@ from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
 from controllers.indexer import IndexerController
+from controllers.leds import LedController
 from components.vision import Vision
 
 from controllers.shooter import ShooterController
@@ -26,9 +28,11 @@ GIT_INFO = git.describe()
 
 
 class MyRobot(magicbot.MagicRobot):
+    led_control: LedController
     shooter_control: ShooterController
     indexer_control: IndexerController
 
+    status_lights: StatusLights
     chassis: Chassis
     hanger: Hanger
     intake: Intake
@@ -145,9 +149,11 @@ class MyRobot(magicbot.MagicRobot):
 
         if self.joystick.getRawButtonPressed(11):
             self.auto_shoot = True
+            self.status_lights.pulse()
 
         if self.joystick.getRawButtonPressed(12):
             self.auto_shoot = False
+            self.status_lights.solid()
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
