@@ -18,10 +18,10 @@ class ClimbController(StateMachine):
         self.shooter_control.track_target = False
         self.turret.slew_local(0)
         self.intake.auto_retract = False
-        self.intake._deployed = True
-        self.intake._running = False
-        if state_tm > 1 and self.turret.get_error() < 0.2:
-            self.next_state("")
+        self.intake.motor_enabled = False
+        self.intake.deployed = True
+        if state_tm > 1 and self.turret.is_on_target():
+            self.next_state("raise_arms")
 
     @state(must_finish=True)
     def raise_arms(self):

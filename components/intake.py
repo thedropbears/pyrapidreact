@@ -9,19 +9,10 @@ class Intake:
 
     auto_retract = True
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._last_cargo_presence = False
-        self._deployed = False
-        self._running = False
-
-    @property
-    def deployed(self):
-        return self._deployed
-
-    @deployed.setter
-    def deployed(self, value):
-        self._deployed = value
-        self._running = value
+        self.deployed = False
+        self.motor_enabled = True
 
     def setup(self) -> None:
         self.intake_motor.restoreFactoryDefaults()
@@ -34,15 +25,14 @@ class Intake:
     def execute(self) -> None:
         if self.has_cargo() and self.auto_retract:
             # If the breakbeam has fired we have a ball and we should retract
-            self._deployed = False
-            self._running = False
+            self.deployed = False
 
-        if self._deployed:
+        if self.deployed:
             self.intake_piston.set(wpilib.DoubleSolenoid.Value.kForward)
         else:
             self.intake_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
-        if self._running:
+        if self.deployed and self.motor_enabled:
             self.intake_motor.set(1.0)
         else:
             self.intake_motor.set(0.0)
