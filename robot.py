@@ -223,6 +223,12 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
+        if self.joystick.getRawButton(11):
+            self.hanger.winch()
+
+        if self.joystick.getRawButton(12):
+            self.hanger.payout()
+
         self.indexer_control.execute()
 
         self.chassis.execute()
