@@ -1,5 +1,7 @@
 from collections import deque
 from logging import Logger
+from typing import Deque
+
 import ctre
 import magicbot
 import math
@@ -37,12 +39,12 @@ class Turret:
 
     logger: Logger
 
-    def __init__(self):
-        self.angle_history = deque([], maxlen=100)
+    def __init__(self) -> None:
+        self.angle_history: Deque[float] = deque([], maxlen=100)
         self.has_synced = False
         self.abs_offset = 3.07
 
-    def setup(self):
+    def setup(self) -> None:
         self.motor.configFactoryDefault()
 
         # Positive motion is counterclockwise from above.
@@ -67,14 +69,14 @@ class Turret:
         )
         self.absolute_encoder.setDistancePerRotation(-math.tau)
 
-    def on_disable(self):
+    def on_disable(self) -> None:
         self.has_synced = False
 
-    def on_enable(self):
+    def on_enable(self) -> None:
         self.has_synced = False
         self.try_sync()
 
-    def try_sync(self):
+    def try_sync(self) -> None:
         if not self.has_synced and self.absolute_encoder.isConnected():
             self.motor.setSelectedSensorPosition(
                 self.absolute_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
@@ -111,7 +113,7 @@ class Turret:
         self.target = angle
 
     @magicbot.feedback
-    def get_angle(self):
+    def get_angle(self) -> float:
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
     def get_error(self) -> float:

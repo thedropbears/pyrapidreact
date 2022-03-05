@@ -49,10 +49,10 @@ class ShooterController(StateMachine):
     # and the it causes weird behavoir with wrapping
     lead_shots = tunable(True)
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.flywheels_running = False
 
-    def setup(self):
+    def setup(self) -> None:
         self.field_effective_goal = self.field.getObject("effective_goal")
         self.field_effective_goal.setPose(goal_to_field(Pose2d(0, 0, 0)))
 

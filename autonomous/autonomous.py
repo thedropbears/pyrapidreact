@@ -96,7 +96,7 @@ class AutoBase(AutonomousStateMachine):
         field_goal = self.field.getObject("auto_goal")
         field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
 
-    def on_enable(self):
+    def on_enable(self) -> None:
         self.chassis.set_pose(self.waypoints_poses[0])
 
         self.last_pose = self.waypoints[0].pose
@@ -107,7 +107,7 @@ class AutoBase(AutonomousStateMachine):
         super().on_enable()
 
     @state(first=True)
-    def startup(self):
+    def startup(self) -> None:
         if self.waypoints[0].type is WaypointType.SHOOT:
             self.next_state("firing")
         else:
@@ -259,7 +259,7 @@ left_mid_start = Waypoint(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 class TestAuto(AutoBase):
     MODE_NAME = "Test"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             [
                 Waypoint(0, 0, Rotation2d.fromDegrees(0)),
@@ -277,7 +277,7 @@ class FiveBall(AutoBase):
     MODE_NAME = "Five Ball: Right - Terminal"
     DEFAULT = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             [
                 right_mid_start,
@@ -304,7 +304,7 @@ class FourBall(AutoBase):
 
     MODE_NAME = "4 Balls: Left - Terminal"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             [
                 left_mid_start,
@@ -328,7 +328,7 @@ class TwoBall(AutoBase):
 
     MODE_NAME = "2 Balls: Left"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             [
                 left_mid_start,
