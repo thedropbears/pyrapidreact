@@ -132,10 +132,7 @@ class Turret:
     def absolute_encoder_reading(self) -> float:
         angle = self.absolute_encoder.getDistance() + self.abs_offset
 
-        while angle > math.tau:
-            angle -= math.tau
-        while angle < 0:
-            angle += math.tau
+        angle %= math.tau
         return angle
 
     def get_angle_at(self, t: float) -> float:
