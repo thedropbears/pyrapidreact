@@ -59,7 +59,9 @@ class MyRobot(magicbot.MagicRobot):
 
         self.turret_motor = ctre.TalonSRX(15)
         self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)
-        self.turret_cable_piston = wpilib.Solenoid(wpilib.PneumaticsModuleType.CTREPCM, 4)
+        self.turret_cable_piston = wpilib.Solenoid(
+            wpilib.PneumaticsModuleType.CTREPCM, 4
+        )
 
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
         self.intake_piston = wpilib.DoubleSolenoid(
@@ -102,7 +104,6 @@ class MyRobot(magicbot.MagicRobot):
 
     def testInit(self) -> None:
         self.turret.target = self.turret.get_angle()
-        pass
 
     def disabledPeriodic(self) -> None:
         wpilib.SmartDashboard.putNumberArray(
