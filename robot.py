@@ -46,6 +46,8 @@ class MyRobot(magicbot.MagicRobot):
 
         self.imu = navx.AHRS.create_spi()
 
+        self.leds = wpilib.AddressableLED(2)
+
         self.chassis_1_drive = ctre.TalonFX(1)
         self.chassis_1_steer = ctre.TalonFX(2)
         self.chassis_2_drive = ctre.TalonFX(3)
@@ -93,8 +95,6 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
         self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
 
-        self.shooter_control.auto_shoot = False
-
     def autonomousInit(self) -> None:
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
@@ -120,6 +120,8 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis.update_pose_history()
         self.turret.try_sync()
         self.vision.execute()
+        self.led_control.execute()
+        self.status_lights.execute()
 
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
@@ -153,7 +155,7 @@ class MyRobot(magicbot.MagicRobot):
 
         if self.joystick.getRawButtonPressed(12):
             self.shooter_control.auto_shoot = False
-            self.status_lights.solid()
+            self.status_lights.stop_pulse()
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
@@ -203,6 +205,8 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter.execute()
         self.turret.execute()
         self.vision.execute()
+        self.led_control.execute()
+        self.status_lights.execute()
 
 
 if __name__ == "__main__":
