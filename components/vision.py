@@ -34,7 +34,7 @@ class VisionData:
 class Vision:
     """Communicates with raspberry pi to get vision data"""
 
-    SYSTEM_LAG_THRESHOLD = 0.200
+    PONG_DELAY_THRESHOLD = 0.500
     turret: Turret
     chassis: Chassis
 
@@ -134,7 +134,7 @@ class Vision:
 
     @feedback
     def is_ready(self) -> bool:
-        return self.system_lag_calculation() < self.SYSTEM_LAG_THRESHOLD
+        return Timer.getFPGATimestamp() - self.last_pong < self.PONG_DELAY_THRESHOLD
 
     @feedback
     def system_lag_calculation(self) -> float:
