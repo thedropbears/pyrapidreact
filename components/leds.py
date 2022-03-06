@@ -4,11 +4,11 @@ from enum import Enum
 
 
 class LedColours(Enum):
-    RED = (255, 0, 0)
-    ORANGE = (255, 160, 0)
-    PINK = (255, 0, 150)
-    BLUE = (0, 0, 255)
-    GREEN = (0, 255, 0)
+    RED = (102, 0, 0)
+    ORANGE = (102, 64, 0)
+    PINK = (102, 0, 60)
+    BLUE = (0, 0, 102)
+    GREEN = (0, 102, 0)
     OFF = (0, 0, 0)
 
 
@@ -33,8 +33,6 @@ class StatusLights:
         self.PULSE_CHANGE = 0.02
 
         self.colour = (0, 0, 0)
-
-        self.brightness = 0.4
 
     def mult_tuple(self, arg1: tuple[int, int, int], arg2: float):
         return (int(arg1[0] * arg2), int(arg1[1] * arg2), int(arg1[2] * arg2))
@@ -94,7 +92,6 @@ class StatusLights:
             colour = self.pulse_calculation(self.colour)
         else:
             colour = self.colour
-        colour = self.mult_tuple(colour, self.brightness)
         # colour = self.pulse_calculation(self.colour)
         self.single_led_data.setRGB(colour[0], colour[1], colour[2])
         self.leds.setData(self.leds_data)
