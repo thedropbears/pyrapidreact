@@ -8,7 +8,7 @@ class Hanger:
     climb_motor: ctre.TalonFX
 
     GEAR_RATIO = 1 / 35.0
-    PULLEY_CIRCUMFERANCE = 0.04
+    PULLEY_CIRCUMFERENCE = 0.04
 
     winch_dir = 0
     winch_power = tunable(0)
@@ -26,7 +26,7 @@ class Hanger:
         )
         self.climb_motor.setNeutralMode(ctre.NeutralMode.Brake)
         self.climb_motor.configSelectedFeedbackCoefficient(
-            self.GEAR_RATIO * self.PULLEY_CIRCUMFERANCE / FALCON_CPR, 0, 10
+            self.GEAR_RATIO * self.PULLEY_CIRCUMFERENCE / FALCON_CPR, 0, 10
         )
 
     def on_disable(self) -> None:
