@@ -14,7 +14,7 @@ class LedController:
     status_lights: StatusLights
     vision: Vision
 
-    def execute(self):
+    def execute(self) -> None:
         if not self.vision.is_ready():
             if not self.status_lights.is_flashing:
                 self.status_lights.flash(LedColours.PINK)
