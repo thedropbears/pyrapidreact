@@ -13,7 +13,6 @@ from utilities.functions import constrain_angle
 class Turret:
     motor: ctre.TalonSRX
     absolute_encoder: DutyCycleEncoder
-
     cable_piston: Solenoid
 
     # Constants for Talon on the turret
