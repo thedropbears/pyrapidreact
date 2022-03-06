@@ -156,7 +156,7 @@ class ShooterController(StateMachine):
         target_angle = self.turret.get_angle() + self.vision.angle()
         self.turret.slew_local(target_angle)
 
-        if self.vision.target_age > 1 and self.vision.expects_target():
+        if self.vision.target_age() > 1 and self.vision.expects_target():
             self.next_state("tracking")
 
     @feedback

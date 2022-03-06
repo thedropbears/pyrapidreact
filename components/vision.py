@@ -70,7 +70,8 @@ class Vision:
         # if we're sure we lost the target
         self.lost_target = False
         self.has_target = False
-        self.target_age = 0.0
+        # how long we've gone without losing the target
+        self.target_since = Timer.getFPGATimestamp()
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
@@ -102,7 +103,7 @@ class Vision:
             data[0], data[1], data[2], data[3] + self.get_clocks_offset()
         )
         if self.vision_data.timestamp == self.last_data_timestamp:
-            self.target_age = 0.0
+            self.target_since = Timer.getFPGATimestamp()
             self.has_target = False
             if (
                 self.expects_target()
@@ -111,7 +112,6 @@ class Vision:
                 self.lost_target = True
             return
 
-        self.target_age += 1 / 50
         self.lost_target = False
         self.has_target = True
         self.last_data_timestamp = self.vision_data.timestamp
@@ -152,6 +152,9 @@ class Vision:
     @feedback
     def is_ready(self) -> bool:
         return self.system_lag_calculation() < self.SYSTEM_LAG_THRESHOLD
+
+    def target_age(self) -> float:
+        return Timer.getFPGATimestamp() - self.target_since
 
     @feedback
     def system_lag_calculation(self) -> float:
