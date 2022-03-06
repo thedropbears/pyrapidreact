@@ -51,12 +51,10 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    # max_speed = 3.5
-    # max_accel = 2.1
-    max_speed = 1.0
-    max_accel = 1.0
+    max_speed = 3.5
+    max_accel = 2.1
 
-    ALLOWED_TRANS_ERROR = 0.2
+    ALLOWED_TRANS_ERROR = 0.1
     ALLOWED_ROT_ERROR = math.radians(20)
 
     def __init__(self, waypoints: List[Waypoint]):
@@ -77,8 +75,8 @@ class AutoBase(AutonomousStateMachine):
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(3, 0, 0.2),
-            controller.PIDController(3, 0, 0.2),
+            controller.PIDController(2, 0, 0.2),
+            controller.PIDController(2, 0, 0.2),
             rotation_controller,
         )
 
@@ -150,7 +148,7 @@ class AutoBase(AutonomousStateMachine):
             abs(translation_error) < self.ALLOWED_TRANS_ERROR
             and abs(rotation_error) < self.ALLOWED_ROT_ERROR
         )
-        is_stopped = self.chassis.translation_velocity.norm() < 0.2
+        is_stopped = self.chassis.translation_velocity.norm() < 0.5
         if self.trap_profile.isFinished(trap_time) and (
             self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE
             or (is_close and is_stopped)
@@ -288,10 +286,10 @@ class FiveBall(AutoBase):
                 ),  # 3
                 Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
                 Waypoint(
-                    -2.7, -2.5, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
+                    -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.3, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.9, -2.2, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
                     -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
