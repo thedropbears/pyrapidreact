@@ -90,14 +90,14 @@ class Vision:
         if data is None:
             return
 
+        if data[3] <= self.last_data_timestamp:
+            return
+        self.last_data_timestamp = data[3]
+
         # add clock offset to vision timestamp
         self.vision_data = VisionData(
             data[0], data[1], data[2], data[3] + self.get_clocks_offset()
         )
-        if self.vision_data.timestamp == self.last_data_timestamp:
-            return
-
-        self.last_data_timestamp = self.vision_data.timestamp
 
         # Get vision pose estimate
         # work out where the vision data was taken from based on histories
