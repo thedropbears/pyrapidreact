@@ -36,3 +36,6 @@ class LedController:
         #     self.status_lights.solid(LedColours.PINK)
         else:
             self.status_lights.solid(LedColours.GREEN)
+
+        if self.shooter_control.auto_shoot:
+            self.status_lights.pulse()
