@@ -70,7 +70,7 @@ class Vision:
         # if we're sure we lost the target
         self.lost_target = False
         self.has_target = True
-        self.target_age = 0
+        self.target_age = 0.0
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
@@ -102,7 +102,7 @@ class Vision:
             data[0], data[1], data[2], data[3] + self.get_clocks_offset()
         )
         if self.vision_data.timestamp == self.last_data_timestamp:
-            self.target_age = 0
+            self.target_age = 0.0
             self.has_target = False
             if (
                 self.expects_target()

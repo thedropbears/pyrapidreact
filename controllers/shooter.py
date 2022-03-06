@@ -138,7 +138,8 @@ class ShooterController(StateMachine):
     @state(must_finish=True)
     def scanning(self) -> None:
         """Look for a vision target"""
-        if self.vision.has_target and self.vision.vision_data.fitness > 0.5:
+        vis_data = self.vision.get_data()
+        if self.vision.has_target and vis_data is not None and vis_data.fitness > 0.5:
             self.next_state("comfirming")
             return
         # just slew counter clockwise slowly for now
