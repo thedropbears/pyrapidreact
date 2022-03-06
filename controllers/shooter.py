@@ -140,7 +140,7 @@ class ShooterController(StateMachine):
         """Look for a vision target"""
         vis_data = self.vision.get_data()
         if self.vision.has_target and vis_data is not None and vis_data.fitness > 0.5:
-            self.next_state("comfirming")
+            self.next_state("confirming")
             return
         # just slew counter clockwise slowly for now
         self.turret.slew_relative(self.scan_speed / 50)
