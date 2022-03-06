@@ -51,8 +51,10 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    max_speed = 3.5
-    max_accel = 2.1
+    # max_speed = 3.5
+    # max_accel = 2.1
+    max_speed = 1.0
+    max_accel = 1.0
 
     ALLOWED_TRANS_ERROR = 0.2
     ALLOWED_ROT_ERROR = math.radians(20)
@@ -166,7 +168,7 @@ class AutoBase(AutonomousStateMachine):
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose_fake,
-            linearVelocityRef=linear_state.velocity * 0.2,  # used for feedforward
+            linearVelocityRef=linear_state.velocity * 0.1,  # used for feedforward
             angleRef=goal_rotation,
         )
         self.chassis.drive_local(
@@ -282,17 +284,17 @@ class FiveBall(AutoBase):
             [
                 right_mid_start,
                 Waypoint(
-                    -0.65, -3.5, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                    -0.65, -3.55, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
                 ),  # 3
                 Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
                 Waypoint(
-                    -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
+                    -2.7, -2.5, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.3, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
             ]
         )
