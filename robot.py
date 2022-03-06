@@ -102,9 +102,6 @@ class MyRobot(magicbot.MagicRobot):
         self.indexer_control.ignore_colour = False
         self.auto_shoot = False
 
-    def testInit(self) -> None:
-        self.turret.target = self.turret.get_angle()
-
     def disabledPeriodic(self) -> None:
         wpilib.SmartDashboard.putNumberArray(
             "swerve_encoder_adjusted",

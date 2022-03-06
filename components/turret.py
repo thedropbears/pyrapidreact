@@ -89,6 +89,7 @@ class Turret:
             self.motor.setSelectedSensorPosition(
                 self.absolute_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
             )
+            self.target = self.get_angle()
             self.has_synced = True
 
     @classmethod
