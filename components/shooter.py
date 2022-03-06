@@ -53,12 +53,22 @@ class Shooter:
                 ctre.StatusFrameEnhanced.Status_1_General, 250, 10
             )
 
+    def on_disable(self) -> None:
+        self._stop_motors()
+
     def execute(self) -> None:
         # XXX: mypy type inference bug?
         speed_rps: float = self.motor_speed
-        speed = speed_rps * self.RPS_TO_CTRE_UNITS
-        self.right_motor.set(ctre.ControlMode.Velocity, speed)
-        self.left_motor.set(ctre.ControlMode.Velocity, speed)
+        if speed_rps:
+            speed = speed_rps * self.RPS_TO_CTRE_UNITS
+            self.right_motor.set(ctre.ControlMode.Velocity, speed)
+            self.left_motor.set(ctre.ControlMode.Velocity, speed)
+        else:
+            self._stop_motors()
+
+    def _stop_motors(self) -> None:
+        self.left_motor.set(ctre.ControlMode.Disabled, 0)
+        self.right_motor.set(ctre.ControlMode.Disabled, 0)
 
     @feedback
     def actual_velocity(self) -> float:
