@@ -16,7 +16,7 @@ class StatusLights:
     leds: wpilib.AddressableLED
 
     def __init__(self):
-        self.led_length = 280  # TODO: check length
+        self.led_length = 289  # TODO: check length
         self.sync_time = 10000
 
         self.is_flashing = False
