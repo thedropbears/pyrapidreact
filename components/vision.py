@@ -45,6 +45,7 @@ class Vision:
     gate_innovation = tunable(False)
     # how long we are allowed to not see a target when we expect to before we start scanning
     timeout = 10
+    horiz_fov = math.radians(40)
 
     def __init__(self) -> None:
 
@@ -68,6 +69,7 @@ class Vision:
         self.fuse_vision_observations = tunable(True)
         # if we're sure we lost the target
         self.lost_target = False
+        self.has_target = True
         self.target_age = 0
 
     def setup(self) -> None:
@@ -102,11 +104,14 @@ class Vision:
         if self.vision_data.timestamp == self.last_data_timestamp:
             self.target_age = 0
             self.has_target = False
-            if self.expects_target() and Timer.getFPGATimestamp() - self.last_data_timestamp > self.timeout:
+            if (
+                self.expects_target()
+                and Timer.getFPGATimestamp() - self.last_data_timestamp > self.timeout
+            ):
                 self.lost_target = True
             return
 
-        self.target_age += 1
+        self.target_age += 1 / 50
         self.lost_target = False
         self.has_target = True
         self.last_data_timestamp = self.vision_data.timestamp
@@ -169,13 +174,15 @@ class Vision:
 
     def get_clocks_offset(self) -> float:
         return self.latency_entry.getDouble(0)
-    
+
     @feedback
     def expects_target(self):
         """Calculates if we expect to see a target"""
         estimator_pose = self.chassis.get_pose()
         expected_angle = math.atan2(-estimator_pose.Y(), -estimator_pose.X())
-        robot_angle = expected_angle - estimator_pose.rotation().radians()
+        camera_angle = estimator_pose.rotation().radians() + self.turret.get_angle()
+        distance = self.chassis.get_pose().translation().norm()
+        return abs(camera_angle - expected_angle) < self.horiz_fov and distance > 3
 
 
 def pose_from_vision(

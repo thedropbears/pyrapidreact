@@ -51,6 +51,7 @@ class ShooterController(StateMachine):
     # dont want to lead shots in auto beacuse we are shoot on the move
     # and the it causes weird behavoir with wrapping
     lead_shots = tunable(True)
+    scan_speed = 0.5  # radians per second
 
     def __init__(self) -> None:
         self.flywheels_running = False
@@ -62,7 +63,8 @@ class ShooterController(StateMachine):
     @default_state
     def tracking(self) -> None:
         if self.vision.lost_target:
-            self.next_state("")
+            self.next_state("scanning")
+
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # adjust shot to hit while moving
@@ -132,11 +134,29 @@ class ShooterController(StateMachine):
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
                 )
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
-    
+
     @state(must_finish=True)
     def scanning(self) -> None:
-        if self.vision.has_target:
-            self.turret.slew_local(angle)
+        """Look for a vision target"""
+        if self.vision.has_target and self.vision.vision_data.fitness > 0.5:
+            self.next_state("comfirming")
+            return
+        # just slew counter clockwise slowly for now
+        self.turret.slew_relative(self.scan_speed / 50)
+
+    @state(must_finish=True)
+    def comfirming(self) -> None:
+        """Looks at vision target to make sure its real and to let estimator adjust"""
+        if not self.vision.has_target:
+            self.next_state("scanning")
+            return
+
+        # angle of target, robot relative
+        target_angle = self.turret.get_angle() + self.vision.angle()
+        self.turret.slew_local(target_angle)
+
+        if self.vision.target_age > 1 and self.vision.expects_target():
+            self.next_state("tracking")
 
     @feedback
     def distance_to_goal(self) -> float:
