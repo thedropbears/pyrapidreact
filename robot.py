@@ -7,6 +7,7 @@ import navx
 import rev
 import math
 
+from components.leds import StatusLights
 from components.chassis import Chassis
 from components.hanger import Hanger
 from components.indexer import Indexer
@@ -14,6 +15,7 @@ from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
 from controllers.indexer import IndexerController
+from controllers.leds import LedController
 from components.vision import Vision
 
 from controllers.shooter import ShooterController
@@ -26,9 +28,11 @@ GIT_INFO = git.describe()
 
 
 class MyRobot(magicbot.MagicRobot):
+    led_control: LedController
     shooter_control: ShooterController
     indexer_control: IndexerController
 
+    status_lights: StatusLights
     chassis: Chassis
     hanger: Hanger
     intake: Intake
@@ -37,10 +41,12 @@ class MyRobot(magicbot.MagicRobot):
     turret: Turret
     vision: Vision
 
-    def createObjects(self) -> None:
+    def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
 
         self.imu = navx.AHRS.create_spi()
+
+        self.leds = wpilib.AddressableLED(2)
 
         self.chassis_1_drive = ctre.TalonFX(1)
         self.chassis_1_steer = ctre.TalonFX(2)
@@ -89,18 +95,16 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
         self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
 
-        self.auto_shoot = False
-
     def autonomousInit(self) -> None:
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
-        self.auto_shoot = False
+        self.shooter_control.auto_shoot = False
 
     def teleopInit(self) -> None:
         self.intake.auto_retract = True
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
-        self.auto_shoot = False
+        self.shooter_control.auto_shoot = False
 
     def disabledPeriodic(self) -> None:
         wpilib.SmartDashboard.putNumberArray(
@@ -116,6 +120,8 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis.update_pose_history()
         self.turret.try_sync()
         self.vision.execute()
+        self.led_control.execute()
+        self.status_lights.execute()
 
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
@@ -144,16 +150,18 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
         if self.joystick.getRawButtonPressed(11):
-            self.auto_shoot = True
+            self.shooter_control.auto_shoot = True
+            self.status_lights.pulse()
 
         if self.joystick.getRawButtonPressed(12):
-            self.auto_shoot = False
+            self.shooter_control.auto_shoot = False
+            self.status_lights.stop_pulse()
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
             self.chassis.zero_yaw()
 
-        if self.joystick.getTrigger() or self.auto_shoot:
+        if self.joystick.getTrigger() or self.shooter_control.auto_shoot:
             self.shooter_control.fire()
 
         if self.joystick.getRawButtonPressed(2):
@@ -197,6 +205,8 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter.execute()
         self.turret.execute()
         self.vision.execute()
+        self.led_control.execute()
+        self.status_lights.execute()
 
 
 if __name__ == "__main__":

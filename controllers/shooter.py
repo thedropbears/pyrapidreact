@@ -40,7 +40,7 @@ class ShooterController(StateMachine):
     MAX_DIST = 8
     MIN_DIST = 2.5
 
-    MAX_SPEED = 2.0
+    MAX_SPEED = 1.0
     MAX_ROTATION = 3.0
 
     _wants_to_fire = will_reset_to(False)
@@ -49,7 +49,9 @@ class ShooterController(StateMachine):
     # and the it causes weird behavoir with wrapping
     lead_shots = tunable(True)
 
-    def __init__(self) -> None:
+    auto_shoot = False
+
+    def __init__(self):
         self.flywheels_running = False
 
     def setup(self) -> None:
