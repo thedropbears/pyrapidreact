@@ -90,14 +90,14 @@ class Vision:
         if data is None:
             return
 
+        if data[3] <= self.last_data_timestamp:
+            return
+        self.last_data_timestamp = data[3]
+
         # add clock offset to vision timestamp
         self.vision_data = VisionData(
             data[0], data[1], data[2], data[3] + self.get_clocks_offset()
         )
-        if self.vision_data.timestamp == self.last_data_timestamp:
-            return
-
-        self.last_data_timestamp = self.vision_data.timestamp
 
         # Get vision pose estimate
         # work out where the vision data was taken from based on histories
@@ -124,7 +124,7 @@ class Vision:
                 return
             # Come up with a position std dev from the fitness reported
             # When the target is near the edge, the estimate of range is worse
-            pos_std_dev = 0.1 + 0.5 * (1.0 - self.vision_data.fitness)
+            pos_std_dev = 0.2 * (1.0 - self.vision_data.fitness)
             # TODO Can we be smarter and find different values for x and y based on robot orientation?
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
