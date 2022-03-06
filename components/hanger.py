@@ -44,5 +44,5 @@ class Hanger:
     def payout(self) -> None:
         self.winch_dir = 1
 
-    # def release(self) -> None:
-    #     self.climb_position = 1.8
+    def is_raised(self) -> None:
+        return abs(self.climb_motor.getSelectedSensorPosition()) > 1.8
