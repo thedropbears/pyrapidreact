@@ -1,6 +1,7 @@
 import wpilib
 import time
 from enum import Enum
+from typing import Optional, Tuple
 
 
 class LedColours(Enum):
@@ -15,7 +16,7 @@ class LedColours(Enum):
 class StatusLights:
     leds: wpilib.AddressableLED
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.led_length = 289  # TODO: check length
         self.sync_time = 10000
 
@@ -26,7 +27,7 @@ class StatusLights:
 
         self.is_pulsing = False
 
-        self.pulse_multiplier = 1
+        self.pulse_multiplier = 1.0
         self.pulse_increasing = False
         self.MAX_PULSE = 1
         self.MIN_PULSE = 0
@@ -34,7 +35,7 @@ class StatusLights:
 
         self.colour = (0, 0, 0)
 
-    def mult_tuple(self, arg1: tuple[int, int, int], arg2: float):
+    def mult_tuple(self, arg1: Tuple[int, int, int], arg2: float):
         return (int(arg1[0] * arg2), int(arg1[1] * arg2), int(arg1[2] * arg2))
 
     def setup(self) -> None:
@@ -45,29 +46,29 @@ class StatusLights:
         self.leds.setData(self.leds_data)
         self.leds.start()
 
-    def pulse(self, colour=None):
-        if not colour == None:
+    def pulse(self, colour: Optional[LedColours] = None) -> None:
+        if colour is not None:
             self.colour = colour.value
         self.is_pulsing = True
         # self.pulse_multiplier = 1
         self.is_flashing = False
 
-    def flash(self, colour=None):
-        if not colour == None:
+    def flash(self, colour: Optional[LedColours] = None) -> None:
+        if colour is not None:
             self.colour = colour.value
         self.is_flashing = True
         self.flash_timer = time.time()
         self.is_pulsing = False
 
-    def solid(self, colour=None):
-        if not colour == None:
+    def solid(self, colour: Optional[LedColours] = None) -> None:
+        if colour is not None:
             self.colour = colour.value
         self.is_flashing = False
 
-    def stop_pulse(self):
+    def stop_pulse(self) -> None:
         self.is_pulsing = False
 
-    def pulse_calculation(self, colour):
+    def pulse_calculation(self, colour: Tuple[int, int, int]) -> Tuple[int, int, int]:
         if self.pulse_multiplier >= self.MAX_PULSE:
             self.pulse_increasing = False
         elif self.pulse_multiplier <= self.MIN_PULSE:
@@ -79,7 +80,7 @@ class StatusLights:
 
         return self.mult_tuple(colour, self.pulse_multiplier)
 
-    def flash_calculation(self, colour):
+    def flash_calculation(self, colour: Tuple[int, int, int]) -> Tuple[int, int, int]:
         if int(((time.time() - self.flash_timer) / self.FLASH_DELAY)) % 2:
             return colour
         else:
