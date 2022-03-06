@@ -69,7 +69,7 @@ class Vision:
         self.fuse_vision_observations = tunable(True)
         # if we're sure we lost the target
         self.lost_target = False
-        self.has_target = True
+        self.has_target = False
         self.target_age = 0.0
 
     def setup(self) -> None:
