@@ -113,13 +113,13 @@ class Turret:
             self.target * self.COUNTS_PER_TURRET_RADIAN,
         )
 
-        self.cable_piston.set(not self.is_piston_extended)
         if self.is_piston_extended:
             if abs(constrain_angle(self.get_angle())) > self.PISTON_CONTRACT_THRESHOLD:
                 self.is_piston_extended = False
         else:
             if abs(constrain_angle(self.get_angle())) < self.PISTON_EXTEND_THRESHOLD:
                 self.is_piston_extended = True
+        self.cable_piston.set(not self.is_piston_extended)
 
     def slew_relative(self, angle: float) -> None:
         """Slews relative to current turret position"""
