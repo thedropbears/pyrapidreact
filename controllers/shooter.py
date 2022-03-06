@@ -51,7 +51,11 @@ class ShooterController(StateMachine):
 
     auto_shoot = False
 
-    def __init__(self):
+    failsafe_active = will_reset_to(False)
+    # Assumes it is touching the launchpad closest to the goal
+    FAILSAFE_POSE = Pose2d(-4.502, 1.492, 0)
+
+    def __init__(self) -> None:
         self.flywheels_running = False
 
     def setup(self) -> None:
@@ -60,29 +64,32 @@ class ShooterController(StateMachine):
 
     @default_state
     def tracking(self) -> None:
-        cur_pose = self.chassis.estimator.getEstimatedPosition()
+        if not self.failsafe_active:
+            cur_pose = self.chassis.estimator.getEstimatedPosition()
 
-        # adjust shot to hit while moving
-        flight_time = 0.0  # Only compensate for time of flight if told to...
+            # adjust shot to hit while moving
+            flight_time = 0.0  # Only compensate for time of flight if told to...
 
-        for _ in range(3):
-            robot_movement = self.chassis.translation_velocity * flight_time
-            effective_pose = Pose2d(
-                cur_pose.translation() + robot_movement, cur_pose.rotation()
-            )
-            self.distance = effective_pose.translation().distance(Translation2d())
-            flight_time = interpolate(
-                self.distance, self.ranges_lookup, self.times_lookup
-            )
-            if not self.lead_shots:
-                # Only run once if we aren't compensating. This will mean ToF is considered to be zero (ie no compensation)
-                break
+            for _ in range(3):
+                robot_movement = self.chassis.translation_velocity * flight_time
+                effective_pose = Pose2d(
+                    cur_pose.translation() + robot_movement, cur_pose.rotation()
+                )
+                self.distance = effective_pose.translation().distance(Translation2d())
+                flight_time = interpolate(
+                    self.distance, self.ranges_lookup, self.times_lookup
+                )
+                if not self.lead_shots:
+                    # Only run once if we aren't compensating. This will mean ToF is considered to be zero (ie no compensation)
+                    break
 
-        self.field_effective_goal.setPose(
-            goal_to_field(
-                Pose2d(-robot_movement.X(), -robot_movement.Y(), Rotation2d(0))
+            self.field_effective_goal.setPose(
+                goal_to_field(
+                    Pose2d(-robot_movement.X(), -robot_movement.Y(), Rotation2d(0))
+                )
             )
-        )
+        else:
+            cur_pose = effective_pose = self.FAILSAFE_POSE
 
         turret_pose = self.chassis.robot_to_world(
             self.shooter.turret_offset, effective_pose
