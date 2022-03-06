@@ -146,7 +146,7 @@ class ShooterController(StateMachine):
         self.turret.slew_relative(self.scan_speed / 50)
 
     @state(must_finish=True)
-    def comfirming(self) -> None:
+    def confirming(self) -> None:
         """Looks at vision target to make sure its real and to let estimator adjust"""
         if not self.vision.has_target:
             self.next_state("scanning")
