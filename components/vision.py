@@ -134,7 +134,7 @@ class Vision:
 
     @feedback
     def is_ready(self) -> bool:
-        return self.system_lag_calculation() < self.SYSTEM_LAG_THRESHOLD
+        return Timer.getFPGATimestamp() - self.last_pong < 0.5
 
     @feedback
     def system_lag_calculation(self) -> float:
