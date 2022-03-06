@@ -34,6 +34,8 @@ class StatusLights:
 
         self.colour = (0, 0, 0)
 
+        self.brightness = 0.4
+
     def mult_tuple(self, arg1: tuple[int, int, int], arg2: float):
         return (int(arg1[0] * arg2), int(arg1[1] * arg2), int(arg1[2] * arg2))
 
@@ -92,6 +94,7 @@ class StatusLights:
             colour = self.pulse_calculation(self.colour)
         else:
             colour = self.colour
+        colour = self.mult_tuple(colour, self.brightness)
         # colour = self.pulse_calculation(self.colour)
         self.single_led_data.setRGB(colour[0], colour[1], colour[2])
         self.leds.setData(self.leds_data)
