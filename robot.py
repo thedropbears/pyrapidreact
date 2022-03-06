@@ -101,6 +101,7 @@ class MyRobot(magicbot.MagicRobot):
         self.auto_shoot = False
 
     def testInit(self) -> None:
+        self.turret.target = self.turret.get_angle()
         pass
 
     def disabledPeriodic(self) -> None:
@@ -173,8 +174,7 @@ class MyRobot(magicbot.MagicRobot):
 
         # hold x and use left stick to slew turret
         if self.joystick.getPOV() != -1:
-            slew_x = math.sin(math.radians(self.joystick.getPOV(0))) * 25
-            self.turret.slew_relative(slew_x)
+            self.turret.target += math.sin(math.radians(self.joystick.getPOV(0))) * 0.03
 
         # joystick trigger to force fire
         if self.joystick.getTrigger():
@@ -190,7 +190,7 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
-        self.indexer_control.execute()
+        # self.indexer_control.execute()
 
         self.chassis.execute()
         self.hanger.execute()

@@ -29,23 +29,23 @@ class Turret:
     pidIZone = 200
     pidD = 3  # 1.109
 
-    SLEW_CRUISE_VELOCITY = 2 * COUNTS_PER_TURRET_RADIAN / 10
+    SLEW_CRUISE_VELOCITY = 3 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.1)
 
-    target = magicbot.tunable(0.0)
+    target = magicbot.tunable(math.pi / 2)
     control_loop_wait_time: float
 
     # max rotation either side of zero
-    MIN_ROTATION = math.radians(0)
-    MAX_ROTATION = math.radians(360)
+    MIN_ROTATION = math.radians(-15)
+    MAX_ROTATION = math.radians(375)
 
     allowable_position_error = magicbot.tunable(math.radians(10))  # radians
     allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
 
-    PISTON_EXTEND_THRESHOLD = math.radians(80)
-    PISTON_CONTRACT_THRESHOLD = math.radians(100)
+    PISTON_EXTEND_THRESHOLD = math.radians(50)
+    PISTON_CONTRACT_THRESHOLD = math.radians(60)
 
-    is_piston_fired = False
+    is_piston_extended = False
 
     logger: Logger
 
@@ -112,13 +112,13 @@ class Turret:
             self.target * self.COUNTS_PER_TURRET_RADIAN,
         )
 
-        self.cable_piston.set(self.is_piston_fired)
-        if self.is_piston_fired:
-            if constrain_angle(self.get_angle()) > self.PISTON_CONTRACT_THRESHOLD:
-                self.is_piston_fired = False
+        self.cable_piston.set(not self.is_piston_extended)
+        if self.is_piston_extended:
+            if abs(constrain_angle(self.get_angle())) > self.PISTON_CONTRACT_THRESHOLD:
+                self.is_piston_extended = False
         else:
-            if constrain_angle(self.get_angle()) < self.PISTON_EXTEND_THRESHOLD:
-                self.is_piston_fired = True
+            if abs(constrain_angle(self.get_angle())) < self.PISTON_EXTEND_THRESHOLD:
+                self.is_piston_extended = True
 
     def slew_relative(self, angle: float) -> None:
         """Slews relative to current turret position"""
