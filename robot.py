@@ -120,7 +120,7 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-        spin_rate = 2.0
+        spin_rate = 3.0
         joystick_x = (
             -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
             * 4

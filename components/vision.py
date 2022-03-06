@@ -124,7 +124,7 @@ class Vision:
                 return
             # Come up with a position std dev from the fitness reported
             # When the target is near the edge, the estimate of range is worse
-            pos_std_dev = 0.1 + 0.5 * (1.0 - self.vision_data.fitness)
+            pos_std_dev = 0.2 * (1.0 - self.vision_data.fitness)
             # TODO Can we be smarter and find different values for x and y based on robot orientation?
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
