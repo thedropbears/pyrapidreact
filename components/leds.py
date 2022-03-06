@@ -32,9 +32,9 @@ class StatusLights:
         self.MIN_PULSE = 0
         self.PULSE_CHANGE = 0.02
 
-        self.colour = (0,0,0)
+        self.colour = (0, 0, 0)
 
-    def mult_tuple(self, arg1: tuple[int,int,int], arg2: float):
+    def mult_tuple(self, arg1: tuple[int, int, int], arg2: float):
         return (int(arg1[0] * arg2), int(arg1[1] * arg2), int(arg1[2] * arg2))
 
     def setup(self) -> None:
@@ -49,7 +49,7 @@ class StatusLights:
         if not colour == None:
             self.colour = colour
         self.is_pulsing = True
-        #self.pulse_multiplier = 1
+        # self.pulse_multiplier = 1
         self.is_flashing = False
 
     def flash(self, colour=None):
@@ -63,7 +63,7 @@ class StatusLights:
         if not colour == None:
             self.colour = colour
         self.is_flashing = False
-    
+
     def stop_pulse(self):
         self.is_pulsing = False
 
