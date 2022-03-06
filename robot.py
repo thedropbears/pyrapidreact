@@ -59,6 +59,9 @@ class MyRobot(magicbot.MagicRobot):
 
         self.turret_motor = ctre.TalonSRX(15)
         self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)
+        self.turret_cable_piston = wpilib.Solenoid(
+            wpilib.PneumaticsModuleType.CTREPCM, 4
+        )
 
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
         self.intake_piston = wpilib.DoubleSolenoid(
@@ -98,9 +101,6 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.auto_shoot = False
-
-    def testInit(self) -> None:
-        pass
 
     def disabledPeriodic(self) -> None:
         wpilib.SmartDashboard.putNumberArray(
@@ -172,8 +172,7 @@ class MyRobot(magicbot.MagicRobot):
 
         # hold x and use left stick to slew turret
         if self.joystick.getPOV() != -1:
-            slew_x = math.sin(math.radians(self.joystick.getPOV(0))) * 25
-            self.turret.slew_relative(slew_x)
+            self.turret.target += math.sin(math.radians(self.joystick.getPOV(0))) * 0.03
 
         # joystick trigger to force fire
         if self.joystick.getTrigger():
