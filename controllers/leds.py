@@ -3,6 +3,7 @@ from components.indexer import Indexer
 from components.chassis import Chassis
 from controllers.shooter import ShooterController
 from components.leds import StatusLights, LedColours
+from components.vision import Vision
 
 
 class LedController:
@@ -11,9 +12,13 @@ class LedController:
     shooter: Shooter
     shooter_control: ShooterController
     status_lights: StatusLights
+    vision: Vision
 
     def execute(self):
-        if not self.indexer.has_cargo_in_chimney():
+        if not self.vision.is_ready():
+            if not self.status_lights.is_flashing:
+                self.status_lights.flash(LedColours.PINK.value)
+        elif not self.indexer.has_cargo_in_chimney():
             if not self.status_lights.is_flashing:
                 self.status_lights.flash(LedColours.ORANGE.value)
         elif (
