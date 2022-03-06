@@ -42,6 +42,8 @@ class Vision:
     TURRET_OFFSET = 0.15  # m from robot centre to turret centre, measured from CAD
 
     field: wpilib.Field2d
+
+    fuse_vision_observations = tunable(True)
     gate_innovation = tunable(False)
 
     def __init__(self) -> None:
@@ -62,8 +64,6 @@ class Vision:
         self.last_data_timestamp = Timer.getFPGATimestamp()  # timestamp of last data
 
         self.vision_data: Optional[VisionData] = None
-
-        self.fuse_vision_observations = tunable(True)
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
