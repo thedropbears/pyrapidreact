@@ -191,7 +191,7 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
-        # self.indexer_control.execute()
+        self.indexer_control.execute()
 
         self.chassis.execute()
         self.hanger.execute()
