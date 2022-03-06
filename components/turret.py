@@ -5,7 +5,7 @@ from typing import Deque
 import ctre
 import magicbot
 import math
-from wpilib import DutyCycleEncoder, Timer
+from wpilib import DutyCycleEncoder, Timer, Solenoid
 
 from utilities.functions import constrain_angle
 
@@ -13,6 +13,8 @@ from utilities.functions import constrain_angle
 class Turret:
     motor: ctre.TalonSRX
     absolute_encoder: DutyCycleEncoder
+
+    cable_piston: Solenoid
 
     # Constants for Talon on the turret
     COUNTS_PER_MOTOR_REV = 4096
@@ -39,6 +41,11 @@ class Turret:
 
     allowable_position_error = magicbot.tunable(math.radians(10))  # radians
     allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
+
+    PISTON_EXTEND_THRESHOLD = math.radians(80)
+    PISTON_CONTRACT_THRESHOLD = math.radians(100)
+
+    is_piston_fired = False
 
     logger: Logger
 
@@ -104,6 +111,14 @@ class Turret:
             ctre.ControlMode.MotionMagic,
             self.target * self.COUNTS_PER_TURRET_RADIAN,
         )
+
+        self.cable_piston.set(self.is_piston_fired)
+        if self.is_piston_fired:
+            if constrain_angle(self.get_angle()) > self.PISTON_CONTRACT_THRESHOLD:
+                self.is_piston_fired = False
+        else:
+            if constrain_angle(self.get_angle()) < self.PISTON_EXTEND_THRESHOLD:
+                self.is_piston_fired = True
 
     def slew_relative(self, angle: float) -> None:
         """Slews relative to current turret position"""
