@@ -243,8 +243,6 @@ class Chassis:
         )
         self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
 
-        self.field_obj = self.field.getObject("estimator_pose")
-
         self.control_rate = 1 / self.control_loop_wait_time
 
     def drive_field(self, vx: float, vy: float, omega: float) -> None:
@@ -343,5 +341,6 @@ class Chassis:
         )
 
     def update_pose_history(self) -> None:
-        self.pose_history.appendleft(self.estimator.getEstimatedPosition())
-        self.field_obj.setPose(goal_to_field(self.pose_history[0]))
+        pose = self.estimator.getEstimatedPosition()
+        self.pose_history.appendleft(pose)
+        self.field.setRobotPose(goal_to_field(pose))
