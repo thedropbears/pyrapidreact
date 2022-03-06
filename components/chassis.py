@@ -170,6 +170,9 @@ class Chassis:
 
     vel_avg_alpha = 0.2
 
+    # failsafe assumes it is touching the launchpad closest to the goal
+    FAILSAFE_POSE = Pose2d(-4.502, 1.492, 0)
+
     def __init__(self) -> None:
         self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
         self.translation_velocity = Translation2d()
@@ -296,6 +299,10 @@ class Chassis:
     def set_pose(self, pose: Pose2d) -> None:
         self.pose_history = deque([pose], maxlen=100)
         self.estimator.resetPosition(pose, self.imu.getRotation2d())
+
+    def set_pose_failsafe(self):
+        """Sets the pose to the right side of hanger"""
+        self.set_pose(self.FAILSAFE_POSE)
 
     def zero_yaw(self) -> None:
         """Sets pose to current pose but with a heading of zero"""

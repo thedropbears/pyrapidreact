@@ -175,7 +175,7 @@ class MyRobot(magicbot.MagicRobot):
 
         # Failsafe
         if self.codriver.getAButton():
-            self.shooter_control.failsafe_active = True
+            self.chassis.set_pose_failsafe()
 
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
