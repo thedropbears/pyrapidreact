@@ -22,7 +22,7 @@ class StatusLights:
 
         self.is_flashing = False
 
-        self.flash_timer = time.time()
+        self.flash_timer = time.monotonic()
         self.FLASH_DELAY = 0.4
 
         self.is_pulsing = False
@@ -81,7 +81,7 @@ class StatusLights:
         return self.mult_tuple(colour, self.pulse_multiplier)
 
     def flash_calculation(self, colour: Tuple[int, int, int]) -> Tuple[int, int, int]:
-        if int(((time.time() - self.flash_timer) / self.FLASH_DELAY)) % 2:
+        if int((time.monotonic() - self.flash_timer) / self.FLASH_DELAY) % 2:
             return colour
         else:
             return LedColours.OFF.value
