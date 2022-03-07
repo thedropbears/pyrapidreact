@@ -54,7 +54,7 @@ class AutoBase(AutonomousStateMachine):
     max_speed = 3.5
     max_accel = 2.1
 
-    ALLOWED_TRANS_ERROR = 0.2
+    ALLOWED_TRANS_ERROR = 0.1
     ALLOWED_ROT_ERROR = math.radians(20)
 
     def __init__(self, waypoints: List[Waypoint]):
@@ -75,8 +75,8 @@ class AutoBase(AutonomousStateMachine):
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(3, 0, 0.2),
-            controller.PIDController(3, 0, 0.2),
+            controller.PIDController(2, 0, 0.2),
+            controller.PIDController(2, 0, 0.2),
             rotation_controller,
         )
 
@@ -148,7 +148,7 @@ class AutoBase(AutonomousStateMachine):
             abs(translation_error) < self.ALLOWED_TRANS_ERROR
             and abs(rotation_error) < self.ALLOWED_ROT_ERROR
         )
-        is_stopped = self.chassis.translation_velocity.norm() < 0.2
+        is_stopped = self.chassis.translation_velocity.norm() < 0.5
         if self.trap_profile.isFinished(trap_time) and (
             self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE
             or (is_close and is_stopped)
@@ -166,7 +166,7 @@ class AutoBase(AutonomousStateMachine):
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose_fake,
-            linearVelocityRef=linear_state.velocity * 0.2,  # used for feedforward
+            linearVelocityRef=linear_state.velocity * 0.1,  # used for feedforward
             angleRef=goal_rotation,
         )
         self.chassis.drive_local(
@@ -257,7 +257,7 @@ left_mid_start = Waypoint(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
 
 class TestAuto(AutoBase):
-    MODE_NAME = "Test"
+    MODE_NAME = "test"
 
     def __init__(self) -> None:
         super().__init__(
@@ -282,17 +282,17 @@ class FiveBall(AutoBase):
             [
                 right_mid_start,
                 Waypoint(
-                    -0.65, -3.5, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                    -0.65, -3.55, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
                 ),  # 3
                 Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
                 Waypoint(
-                    -2.9, -2.378, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
+                    -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.75, -2.3, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -6.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
             ]
         )
@@ -302,20 +302,20 @@ class FourBall(AutoBase):
     """Auto starting middle of left tarmac, picking up ball 1 and both at terminal
     In case we have a partner who can do a three ball"""
 
-    MODE_NAME = "4 Balls: Left - Terminal"
+    MODE_NAME = "Four Ball: Left - Terminal"
 
     def __init__(self) -> None:
         super().__init__(
             [
                 left_mid_start,
                 Waypoint(
-                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                    -3.1, 1.8, Rotation2d.fromDegrees(130), WaypointType.SHOOT
                 ),  # 1
                 Waypoint(
                     -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -5.5, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -5.0, 0.0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
             ]
         )
@@ -326,14 +326,14 @@ class TwoBall(AutoBase):
     In case we have a partner who can do a five ball
     """
 
-    MODE_NAME = "2 Balls: Left"
+    MODE_NAME = "Two Ball: Left"
 
     def __init__(self) -> None:
         super().__init__(
             [
                 left_mid_start,
                 Waypoint(
-                    -3.1, -1.8, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
+                    -3.1, 1.8, Rotation2d.fromDegrees(130), WaypointType.SHOOT
                 ),  # 1
             ]
         )
