@@ -60,7 +60,7 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
-        self.codriver = wpilib.XboxController(0)
+        self.codriver = wpilib.XboxController(1)
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
@@ -111,15 +111,6 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.auto_shoot = False
 
     def disabledPeriodic(self) -> None:
-        wpilib.SmartDashboard.putNumberArray(
-            "swerve_encoder_adjusted",
-            [module.get_angle() for module in self.chassis.modules],
-        )
-        # absolute encoder readings without offset
-        wpilib.SmartDashboard.putNumberArray(
-            "swerve_relative_encoder",
-            [module.get_motor_angle() for module in self.chassis.modules],
-        )
         self.turret.update_angle_history()
         self.chassis.update_odometry()
         self.chassis.update_pose_history()
@@ -185,11 +176,11 @@ class MyRobot(magicbot.MagicRobot):
             self.climb_control.engage()
 
         right_trigger = self.codriver.getRightTriggerAxis()
-        if right_trigger > 0.4:
+        if right_trigger > 0.2:
             self.hanger.winch(right_trigger)
 
         left_trigger = self.codriver.getLeftTriggerAxis()
-        if left_trigger:
+        if left_trigger > 0.2:
             self.hanger.payout(left_trigger)
 
     def testPeriodic(self) -> None:
@@ -225,11 +216,23 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
-        if self.joystick.getRawButton(11):
-            self.hanger.winch()
+        # lower intake without running it
+        if self.codriver.getLeftBumper():
+            self.intake.motor_enabled = False
+            self.intake.deployed = not self.intake.deployed
+            self.intake.auto_retract = False
 
-        if self.joystick.getRawButton(12):
-            self.hanger.payout()
+        # Climb
+        if self.codriver.getYButton():
+            self.climb_control.engage()
+
+        right_trigger = self.codriver.getRightTriggerAxis()
+        if right_trigger > 0.2:
+            self.hanger.winch(right_trigger)
+
+        left_trigger = self.codriver.getLeftTriggerAxis()
+        if left_trigger > 0.2:
+            self.hanger.payout(left_trigger)
 
         self.indexer_control.execute()
 
