@@ -42,3 +42,8 @@ class Intake:
         result = current and self._last_cargo_presence
         self._last_cargo_presence = current
         return result
+
+    def deploy_without_running(self) -> None:
+        self.auto_retract = False
+        self.deployed = True
+        self.motor_enabled = False

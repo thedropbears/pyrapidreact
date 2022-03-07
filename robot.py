@@ -30,9 +30,9 @@ GIT_INFO = git.describe()
 
 class MyRobot(magicbot.MagicRobot):
     led_control: LedController
+    climb_control: ClimbController
     shooter_control: ShooterController
     indexer_control: IndexerController
-    climb_control: ClimbController
 
     status_lights: StatusLights
     chassis: Chassis
@@ -234,6 +234,7 @@ class MyRobot(magicbot.MagicRobot):
         if left_trigger > 0.2:
             self.hanger.payout(left_trigger)
 
+        self.climb_control.execute()
         self.indexer_control.execute()
 
         self.chassis.execute()
