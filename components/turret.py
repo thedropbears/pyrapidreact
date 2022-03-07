@@ -38,7 +38,7 @@ class Turret:
     MIN_ROTATION = math.radians(-15)
     MAX_ROTATION = math.radians(375)
 
-    allowable_position_error = magicbot.tunable(math.radians(10))  # radians
+    allowable_position_error = magicbot.tunable(math.radians(8))  # radians
     allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
 
     PISTON_EXTEND_THRESHOLD = math.radians(50)
