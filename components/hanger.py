@@ -13,7 +13,7 @@ class Hanger:
 
     winch_speed = tunable(0.2)  # max speed m/s
     # positive releases rope, negative pulls
-    target_position = tunable(0, writeDefault=True)
+    target_position = tunable(0.0, writeDefault=True)
 
     def setup(self) -> None:
         self.climb_motor.configFactoryDefault()
