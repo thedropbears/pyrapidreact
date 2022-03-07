@@ -184,6 +184,16 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getPOV() != -1:
             self.turret.target += math.sin(math.radians(self.joystick.getPOV(0))) * 0.03
 
+        # use buttons next to pov hat to command a step response from turret
+        if self.joystick.getRawButtonPressed(3):
+            self.turret.target += math.radians(45)
+        if self.joystick.getRawButtonPressed(4):
+            self.turret.target += math.radians(-45)
+        if self.joystick.getRawButtonPressed(5):
+            self.turret.target += math.radians(90)
+        if self.joystick.getRawButtonPressed(6):
+            self.turret.target += math.radians(-90)
+
         # joystick trigger to force fire
         if self.joystick.getTrigger():
             self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
