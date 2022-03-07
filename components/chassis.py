@@ -265,13 +265,8 @@ class Chassis:
             state = SwerveModuleState.optimize(state, module.get_rotation())
             module.set(state)
         self.kinematics.desaturateWheelSpeeds
-        self.estimator.update(
-            self.imu.getRotation2d(),
-            self.modules[0].get(),
-            self.modules[1].get(),
-            self.modules[2].get(),
-            self.modules[3].get(),
-        )
+
+        self.update_odometry()
 
         cur_trans_vel = (
             self.estimator.getEstimatedPosition().translation()
@@ -347,7 +342,15 @@ class Chassis:
             robot.rotation(),
         )
 
+    def update_odometry(self) -> None:
+        self.estimator.update(
+            self.imu.getRotation2d(),
+            self.modules[0].get(),
+            self.modules[1].get(),
+            self.modules[2].get(),
+            self.modules[3].get(),
+        )
+        self.field.setRobotPose(goal_to_field(self.get_pose()))
+
     def update_pose_history(self) -> None:
-        pose = self.estimator.getEstimatedPosition()
-        self.pose_history.appendleft(pose)
-        self.field.setRobotPose(goal_to_field(pose))
+        self.pose_history.appendleft(self.get_pose())
