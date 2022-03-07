@@ -151,11 +151,9 @@ class MyRobot(magicbot.MagicRobot):
 
         if self.joystick.getRawButtonPressed(11):
             self.shooter_control.auto_shoot = True
-            self.status_lights.pulse()
 
         if self.joystick.getRawButtonPressed(12):
             self.shooter_control.auto_shoot = False
-            self.status_lights.stop_pulse()
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
