@@ -171,6 +171,10 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
+        # Failsafe
+        if self.codriver.getAButton():
+            self.chassis.set_pose_failsafe()
+
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0, 1)

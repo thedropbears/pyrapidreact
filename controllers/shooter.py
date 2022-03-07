@@ -51,7 +51,7 @@ class ShooterController(StateMachine):
 
     auto_shoot = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.flywheels_running = False
 
     def setup(self) -> None:
