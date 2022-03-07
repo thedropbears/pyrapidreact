@@ -184,11 +184,13 @@ class MyRobot(magicbot.MagicRobot):
         if self.codriver.getYButton():
             self.climb_control.engage()
 
-        if self.codriver.getRightTriggerAxis():
-            self.hanger.winch()
+        right_trigger = self.codriver.getRightTriggerAxis()
+        if right_trigger > 0.4:
+            self.hanger.winch(right_trigger)
 
-        if self.codriver.getLeftTriggerAxis():
-            self.hanger.payout()
+        left_trigger = self.codriver.getLeftTriggerAxis()
+        if left_trigger:
+            self.hanger.payout(left_trigger)
 
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed

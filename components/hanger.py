@@ -1,6 +1,6 @@
 import ctre
 from utilities.ctre import FALCON_CPR
-from magicbot import tunable
+from magicbot import tunable, feedback
 
 
 class Hanger:
@@ -10,8 +10,8 @@ class Hanger:
     GEAR_RATIO = 1 / 35.0
     PULLEY_CIRCUMFERENCE = 0.04
 
-    winch_dir = 0
-    winch_power = tunable(0)
+    winch_speed = tunable(0.2)  # max speed m/s
+    target_position = tunable(0)  # positive releases rope, negative pulls
 
     def setup(self) -> None:
         # TODO: check
@@ -24,6 +24,7 @@ class Hanger:
         self.climb_motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.IntegratedSensor, 0, 10
         )
+        self.climb_motor.setSelectedSensorPosition(0)
         self.climb_motor.setNeutralMode(ctre.NeutralMode.Brake)
         self.climb_motor.configSelectedFeedbackCoefficient(
             self.GEAR_RATIO * self.PULLEY_CIRCUMFERENCE / FALCON_CPR, 0, 10
@@ -33,16 +34,14 @@ class Hanger:
         self.climb_motor.set(ctre.ControlMode.Disabled, 0)
 
     def execute(self) -> None:
-        self.climb_motor.set(
-            ctre.ControlMode.PercentOutput, self.winch_dir * self.winch_power
-        )
-        self.winch_dir = 0
+        self.climb_motor.set(ctre.ControlMode.Position, self.climb_position)
 
-    def winch(self) -> None:
-        self.winch_dir = -1
+    def winch(self, speed: float) -> None:
+        self.target_position -= speed * self.winch_speed / 50
 
-    def payout(self) -> None:
-        self.winch_dir = 1
+    def payout(self, speed: float) -> None:
+        self.target_position += speed * self.winch_speed / 50
 
-    def is_raised(self) -> None:
-        return abs(self.climb_motor.getSelectedSensorPosition()) > 1.8
+    @feedback
+    def get_position(self) -> float:
+        return self.climb_motor.getSelectedSensorPosition()
