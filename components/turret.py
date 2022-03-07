@@ -38,8 +38,7 @@ class Turret:
     MIN_ROTATION = math.radians(-15)
     MAX_ROTATION = math.radians(375)
 
-    allowable_position_error = magicbot.tunable(math.radians(8))  # radians
-    allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
+    allowable_velocity_error = magicbot.tunable(0.1)  # turret rev/s
 
     PISTON_EXTEND_THRESHOLD = math.radians(50)
     PISTON_CONTRACT_THRESHOLD = math.radians(60)
@@ -137,9 +136,9 @@ class Turret:
     def get_error(self) -> float:
         return self.get_angle() - self.target
 
-    def is_on_target(self) -> bool:
+    def is_on_target(self, allowable_error: float) -> bool:
         return (
-            abs(self.get_error()) < self.allowable_position_error
+            abs(self.get_error()) < allowable_error
             and abs(self.motor.getSelectedSensorVelocity())
             < self.allowable_velocity_error
             * self.COUNTS_PER_TURRET_REV

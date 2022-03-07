@@ -45,6 +45,7 @@ class ShooterController(StateMachine):
     MAX_SPEED = 2.0  # m/s
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
+    ALLOWABLE_TURRET_ERROR = 0.5  # m, ring is 1.22m diameter
 
     # firing limits for auto shoot mode
     AUTO_MAX_DIST = 7.5
@@ -52,6 +53,7 @@ class ShooterController(StateMachine):
     AUTO_MAX_SPEED = 1.0  # m/s
     AUTO_MAX_ROTATION = 1.0  # rad/s
     AUTO_MAX_ACCEL = 0.2  # G
+    AUTO_ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
@@ -123,7 +125,9 @@ class ShooterController(StateMachine):
             if (
                 self.indexer.has_cargo_in_chimney()
                 and self.shooter.is_at_speed()
-                and self.turret.is_on_target()
+                and self.turret.is_on_target(
+                    math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
+                )
                 and self.distance > self.AUTO_MIN_DIST
                 and self.distance < self.AUTO_MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.AUTO_MAX_SPEED
@@ -136,7 +140,9 @@ class ShooterController(StateMachine):
                 self._wants_to_fire
                 and self.indexer.has_cargo_in_chimney()
                 and self.shooter.is_at_speed()
-                and self.turret.is_on_target()
+                and self.turret.is_on_target(
+                    math.atan(self.AUTO_ALLOWABLE_TURRET_ERROR / self.distance)
+                )
                 and self.distance > self.MIN_DIST
                 and self.distance < self.MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.MAX_SPEED
