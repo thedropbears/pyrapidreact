@@ -15,6 +15,9 @@ class Hanger:
     # positive releases rope, negative pulls
     target_position = tunable(0.0, writeDefault=True)
 
+    def __init__(self) -> None:
+        self.enabled = False
+
     def setup(self) -> None:
         self.climb_motor.configFactoryDefault()
         self.climb_motor.setInverted(ctre.TalonFXInvertType.CounterClockwise)
@@ -38,10 +41,12 @@ class Hanger:
         )
 
     def winch(self, speed: float) -> None:
-        self.target_position -= speed * self.winch_speed / 50
+        if self.enabled:
+            self.target_position -= speed * self.winch_speed / 50
 
     def payout(self, speed: float) -> None:
-        self.target_position += speed * self.winch_speed / 50
+        if self.enabled:
+            self.target_position += speed * self.winch_speed / 50
 
     @feedback
     def get_position(self) -> float:

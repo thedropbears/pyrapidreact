@@ -172,7 +172,7 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.set_pose_failsafe()
 
         # Climb
-        if self.codriver.getYButton():
+        if self.codriver.getLeftBumper() and self.codriver.getRightBumper():
             self.climb_control.engage()
 
         right_trigger = self.codriver.getRightTriggerAxis()

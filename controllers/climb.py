@@ -25,6 +25,7 @@ class ClimbController(StateMachine):
 
     @state(must_finish=True)
     def raise_arms(self) -> None:
+        self.hanger.enabled = True
         self.hanger.payout(1)
         if self.hanger.is_raised():
             self.done()
