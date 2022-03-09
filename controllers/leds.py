@@ -16,11 +16,11 @@ class LedController:
 
     def execute(self) -> None:
         if not self.vision.is_ready():
-            if not self.status_lights.is_flashing:
-                self.status_lights.flash(LedColours.PINK)
+            # if not self.status_lights.is_flashing:
+            self.status_lights.flash(LedColours.PINK)
         elif not self.indexer.has_cargo_in_chimney():
-            if not self.status_lights.is_flashing:
-                self.status_lights.flash(LedColours.ORANGE)
+            # if not self.status_lights.is_flashing:
+            self.status_lights.flash(LedColours.ORANGE)
         elif (
             self.shooter_control.distance > self.shooter_control.MAX_DIST
             or self.shooter_control.distance < self.shooter_control.MIN_DIST
