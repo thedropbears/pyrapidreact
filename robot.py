@@ -64,7 +64,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_right_motor = ctre.TalonFX(10)
 
         self.turret_motor = ctre.TalonSRX(15)
-        self.turret_absolute_encoder = wpilib.DutyCycleEncoder(10)
+        self.turret_absolute_encoder = wpilib.DutyCycleEncoder(10)  # navX pin 0
         self.turret_cable_piston = wpilib.Solenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 4
         )
