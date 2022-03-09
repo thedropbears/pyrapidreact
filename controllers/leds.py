@@ -16,24 +16,21 @@ class LedController:
 
     def execute(self) -> None:
         if not self.vision.is_ready():
-            self.status_lights.flash(LedColours.PINK)
+            self.status_lights.pulse(LedColours.PINK)
         elif not self.indexer.has_cargo_in_chimney():
-            self.status_lights.flash(LedColours.ORANGE)
-        elif (
-            self.shooter_control.distance > self.shooter_control.MAX_DIST
-            or self.shooter_control.distance < self.shooter_control.MIN_DIST
-        ):
-            self.status_lights.solid(LedColours.BLUE)
+            self.status_lights.pulse(LedColours.ORANGE)
+        elif self.shooter_control.in_range():
+            self.status_lights.pulse(LedColours.BLUE)
         elif (
             self.chassis.translation_velocity.norm() > self.shooter_control.MAX_SPEED
             or self.chassis.rotation_velocity.radians()
             > self.shooter_control.MAX_ROTATION
         ):
-            self.status_lights.solid(LedColours.RED)
+            self.status_lights.pulse(LedColours.RED)
         # elif not self.shooter.is_at_speed() or not self.turret.is_on_target():
         #     self.status_lights.solid(LedColours.PINK)
         else:
-            self.status_lights.solid(LedColours.GREEN)
+            self.status_lights.pulse(LedColours.GREEN)
 
         if self.shooter_control.auto_shoot:
             self.status_lights.pulse()

@@ -163,5 +163,8 @@ class ShooterController(StateMachine):
     def distance_to_goal(self) -> float:
         return self.distance
 
+    def in_range(self) -> bool:
+        return self.distance < self.MAX_DIST and self.distance > self.MIN_DIST
+
     def fire(self) -> None:
         self._wants_to_fire = True
