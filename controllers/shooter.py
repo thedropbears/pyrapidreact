@@ -74,7 +74,7 @@ class ShooterController(StateMachine):
             flight_time = interpolate(
                 self.distance, self.ranges_lookup, self.times_lookup
             )
-            if not self.lead_shots:
+            if not self.lead_shots or self.distance < self.MIN_DIST:
                 # Only run once if we aren't compensating. This will mean ToF is considered to be zero (ie no compensation)
                 break
 
