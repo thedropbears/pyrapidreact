@@ -111,14 +111,25 @@ class SwerveModule:
         target_displacement = constrain_angle(
             desired_state.angle.radians() - current_angle
         )
-        target_angle = target_displacement + current_angle
+        flipped_target_displacement = constrain_angle(
+            desired_state.angle.radians() - math.pi - current_angle
+        )
+        if abs(target_displacement) < abs(flipped_target_displacement):
+            target_angle = target_displacement + current_angle
+            # rescale the speed target based on how close we are to being correctly aligned
+            target_speed = desired_state.speed * math.cos(target_displacement) ** 2
+            speed_volt = self.drive_ff.calculate(target_speed)
+        else:
+            target_angle = flipped_target_displacement + current_angle
+            # rescale the speed target based on how close we are to being correctly aligned
+            target_speed = (
+                -desired_state.speed * math.cos(flipped_target_displacement) ** 2
+            )
+            speed_volt = self.drive_ff.calculate(target_speed)
+
         self.steer.set(
             ctre.ControlMode.Position, target_angle * self.STEER_RAD_TO_SENSOR
         )
-
-        # rescale the speed target based on how close we are to being correctly aligned
-        target_speed = desired_state.speed * math.cos(target_displacement) ** 2
-        speed_volt = self.drive_ff.calculate(target_speed)
         self.drive.set(
             ctre.ControlMode.Velocity,
             target_speed * self.METRES_TO_DRIVE_UNITS / 10,
