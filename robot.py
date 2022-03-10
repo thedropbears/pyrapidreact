@@ -161,7 +161,7 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getRawButtonPressed(9):
             self.chassis.zero_yaw()
 
-        if self.joystick.getTrigger() or self.shooter_control.auto_shoot:
+        if self.joystick.getTrigger():
             self.shooter_control.fire()
 
         if self.joystick.getRawButtonPressed(2):
