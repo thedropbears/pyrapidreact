@@ -29,9 +29,9 @@ class StatusLights:
 
         self.pulse_multiplier = 1.0
         self.pulse_increasing = False
-        self.MAX_PULSE = 1
-        self.MIN_PULSE = 0
-        self.PULSE_CHANGE = 0.02
+        self.MAX_PULSE = 1.0
+        self.MIN_PULSE = 0.1
+        self.PULSE_CHANGE = 0.01
 
         self.colour = (0, 0, 0)
 
