@@ -222,7 +222,7 @@ class Chassis:
             self.imu.getRotation2d(),
             Pose2d(0, 0, 0),
             self.kinematics,
-            stateStdDevs=(0.05, 0.05, math.radians(5)),
+            stateStdDevs=(0.1, 0.1, math.radians(5)),
             localMeasurementStdDevs=(0.01,),
             visionMeasurementStdDevs=(0.5, 0.5, 0.2),
         )

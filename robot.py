@@ -98,12 +98,14 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
+        self.vision.max_std_dev = 0.5
 
     def teleopInit(self) -> None:
         self.intake.auto_retract = True
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
+        self.vision.max_std_dev = 0.2
 
     def disabledPeriodic(self) -> None:
         wpilib.SmartDashboard.putNumberArray(
