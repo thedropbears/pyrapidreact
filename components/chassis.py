@@ -200,6 +200,7 @@ class Chassis:
                 self.chassis_3_drive,
                 self.chassis_3_steer,
                 self.chassis_3_encoder,
+                drive_reversed=True,
             ),
             SwerveModule(
                 self.width / 2,
@@ -207,6 +208,7 @@ class Chassis:
                 self.chassis_4_drive,
                 self.chassis_4_steer,
                 self.chassis_4_encoder,
+                drive_reversed=True,
             ),
         ]
 
