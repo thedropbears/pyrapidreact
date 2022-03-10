@@ -22,13 +22,13 @@ class Turret:
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
     # pidF = 0.71901 / 12 * 1023 / 10 * math.tau / COUNTS_PER_MOTOR_REV
-    pidF = 1
-    pidP = 2
+    pidF = 0.15
+    pidP = 0.7
     pidI = 0.0
     pidIZone = 200
-    pidD = 3  # 1.109
+    pidD = 0.0  # 1.109
 
-    SLEW_CRUISE_VELOCITY = 3 * COUNTS_PER_TURRET_RADIAN / 10
+    SLEW_CRUISE_VELOCITY = 5 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.1)
 
     target = magicbot.tunable(math.pi / 2)
@@ -38,8 +38,7 @@ class Turret:
     MIN_ROTATION = math.radians(-15)
     MAX_ROTATION = math.radians(375)
 
-    allowable_position_error = magicbot.tunable(math.radians(10))  # radians
-    allowable_velocity_error = magicbot.tunable(0.25)  # turret rev/s
+    allowable_velocity_error = magicbot.tunable(0.1)  # turret rev/s
 
     PISTON_EXTEND_THRESHOLD = math.radians(50)
     PISTON_CONTRACT_THRESHOLD = math.radians(60)
@@ -50,7 +49,7 @@ class Turret:
 
     def __init__(self) -> None:
         self.angle_history: Deque[float] = deque([], maxlen=100)
-        self.has_synced = False
+        self.sync_count = 0
         self.abs_offset = 3.07
 
     def setup(self) -> None:
@@ -84,12 +83,16 @@ class Turret:
         self.try_sync()
 
     def try_sync(self) -> None:
-        if not self.has_synced and self.absolute_encoder.isConnected():
-            self.motor.setSelectedSensorPosition(
-                self.absolute_encoder_reading() * self.COUNTS_PER_TURRET_RADIAN
-            )
-            self.target = self.get_angle()
-            self.has_synced = True
+        if self.absolute_encoder.isConnected():
+            self.sync_count += 1
+            if self.sync_count == 150:
+                angle = self.absolute_encoder_reading()
+                err = self.motor.setSelectedSensorPosition(
+                    angle * self.COUNTS_PER_TURRET_RADIAN
+                )
+                if err != ctre.ErrorCode.OK:
+                    self.sync_count -= 1
+                self.target = angle
 
     @classmethod
     def wrap_allowable_angle(cls, theta: float) -> float:
@@ -137,9 +140,9 @@ class Turret:
     def get_error(self) -> float:
         return self.get_angle() - self.target
 
-    def is_on_target(self) -> bool:
+    def is_on_target(self, allowable_error: float) -> bool:
         return (
-            abs(self.get_error()) < self.allowable_position_error
+            abs(self.get_error()) < allowable_error
             and abs(self.motor.getSelectedSensorVelocity())
             < self.allowable_velocity_error
             * self.COUNTS_PER_TURRET_REV

@@ -17,7 +17,6 @@ from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
 
 from utilities.functions import constrain_angle
-from utilities.ctre import TalonEncoder
 from wpimath.controller import SimpleMotorFeedforwardMeters
 from utilities.trajectory_generator import goal_to_field
 
@@ -42,8 +41,7 @@ class SwerveModule:
         y: float,
         drive: ctre.TalonFX,
         steer: ctre.TalonFX,
-        encoder: TalonEncoder,
-        encoder_offset: float = 0,
+        encoder: ctre.CANCoder,
         steer_reversed=True,
         drive_reversed=False,
     ):
@@ -64,7 +62,12 @@ class SwerveModule:
         )
 
         self.encoder = encoder
-        self.encoder_offset = constrain_angle(encoder_offset)
+        encoder.configFeedbackCoefficient(
+            math.tau / 4096,
+            "rad",
+            ctre.SensorTimeBase.PerSecond,
+            timeoutMs=10,
+        )
 
         self.drive = drive
         self.drive.configFactoryDefault()
@@ -81,13 +84,10 @@ class SwerveModule:
         # Reduce CAN status frame rates
         steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
         drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
-        encoder.talon.setStatusFramePeriod(
-            ctre.StatusFrameEnhanced.Status_1_General, 250, 10
-        )
 
     def get_angle(self) -> float:
         """Gets steer angle from absolute encoder"""
-        return self.encoder.getPosition() + self.encoder_offset
+        return self.encoder.getAbsolutePosition()
 
     def get_motor_angle(self) -> float:
         """Gets steer angle from motor's integrated relative encoder"""
@@ -152,10 +152,10 @@ class Chassis:
     chassis_4_drive: ctre.TalonFX
     chassis_4_steer: ctre.TalonFX
 
-    chassis_1_encoder: TalonEncoder
-    chassis_2_encoder: TalonEncoder
-    chassis_3_encoder: TalonEncoder
-    chassis_4_encoder: TalonEncoder
+    chassis_1_encoder: ctre.CANCoder
+    chassis_2_encoder: ctre.CANCoder
+    chassis_3_encoder: ctre.CANCoder
+    chassis_4_encoder: ctre.CANCoder
 
     imu: navx.AHRS
 
@@ -179,20 +179,6 @@ class Chassis:
         self.rotation_velocity = Rotation2d()
 
     def setup(self) -> None:
-        # mag encoder only
-        self.chassis_1_encoder.talon.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
-        )
-        self.chassis_2_encoder.talon.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
-        )
-        self.chassis_3_encoder.talon.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
-        )
-        self.chassis_4_encoder.talon.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10
-        )
-
         self.modules = [
             SwerveModule(
                 self.width / 2,
@@ -200,7 +186,6 @@ class Chassis:
                 self.chassis_1_drive,
                 self.chassis_1_steer,
                 self.chassis_1_encoder,
-                encoder_offset=-4.612,
             ),
             SwerveModule(
                 -self.width / 2,
@@ -208,7 +193,6 @@ class Chassis:
                 self.chassis_2_drive,
                 self.chassis_2_steer,
                 self.chassis_2_encoder,
-                encoder_offset=-1.725,
             ),
             SwerveModule(
                 -self.width / 2,
@@ -216,7 +200,6 @@ class Chassis:
                 self.chassis_3_drive,
                 self.chassis_3_steer,
                 self.chassis_3_encoder,
-                encoder_offset=-5.051,
             ),
             SwerveModule(
                 self.width / 2,
@@ -224,7 +207,6 @@ class Chassis:
                 self.chassis_4_drive,
                 self.chassis_4_steer,
                 self.chassis_4_encoder,
-                encoder_offset=-0.854,
             ),
         ]
 
@@ -240,7 +222,7 @@ class Chassis:
             self.imu.getRotation2d(),
             Pose2d(0, 0, 0),
             self.kinematics,
-            stateStdDevs=(0.05, 0.05, math.radians(5)),
+            stateStdDevs=(0.1, 0.1, math.radians(5)),
             localMeasurementStdDevs=(0.01,),
             visionMeasurementStdDevs=(0.5, 0.5, 0.2),
         )

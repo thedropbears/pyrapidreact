@@ -14,6 +14,7 @@ from magicbot import (
 from components.chassis import Chassis
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 import wpilib
+import navx
 from utilities.trajectory_generator import goal_to_field
 from utilities.functions import constrain_angle, interpolate
 
@@ -24,6 +25,7 @@ class ShooterController(StateMachine):
     indexer: Indexer
     intake: Intake
     chassis: Chassis
+    imu: navx.AHRS
 
     # If set to true, flywheel speed is set from tunable
     # Otherwise it is calculated from the interpolation table
@@ -40,8 +42,18 @@ class ShooterController(StateMachine):
     MAX_DIST = 8
     MIN_DIST = 2.5
 
-    MAX_SPEED = 1.0
-    MAX_ROTATION = 3.0
+    MAX_SPEED = 2.0  # m/s
+    MAX_ROTATION = 2.0  # rad/s
+    MAX_ACCEL = 0.3  # G
+    ALLOWABLE_TURRET_ERROR = 0.5  # m, ring is 1.22m diameter
+
+    # firing limits for automatic shoot mode
+    AUTO_MAX_DIST = 7.5
+    AUTO_MIN_DIST = 3
+    AUTO_MAX_SPEED = 1.0  # m/s
+    AUTO_MAX_ROTATION = 1.0  # rad/s
+    AUTO_MAX_ACCEL = 0.2  # G
+    AUTO_ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
@@ -75,7 +87,7 @@ class ShooterController(StateMachine):
             flight_time = interpolate(
                 self.distance, self.ranges_lookup, self.times_lookup
             )
-            if not self.lead_shots:
+            if not self.lead_shots or self.distance < self.MIN_DIST:
                 # Only run once if we aren't compensating. This will mean ToF is considered to be zero (ie no compensation)
                 break
 
@@ -108,18 +120,35 @@ class ShooterController(StateMachine):
                 self.shooter.motor_speed = interpolate(
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
                 )
+        accel = math.hypot(
+            self.imu.getWorldLinearAccelX(), self.imu.getWorldLinearAccelY()
+        )
+        if self.indexer.has_cargo_in_chimney() and self.shooter.is_at_speed():
+            if (
+                self._wants_to_fire
+                and self.turret.is_on_target(
+                    math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
+                )
+                and self.distance > self.MIN_DIST
+                and self.distance < self.MAX_DIST
+                and self.chassis.translation_velocity.norm() < self.MAX_SPEED
+                and self.chassis.rotation_velocity.radians() < self.MAX_ROTATION
+                and accel < self.MAX_ACCEL
+            ):
+                self.next_state("firing")
 
-        if (
-            self._wants_to_fire
-            and self.indexer.has_cargo_in_chimney()
-            and self.shooter.is_at_speed()
-            and self.turret.is_on_target()
-            and self.distance > self.MIN_DIST
-            and self.distance < self.MAX_DIST
-            and self.chassis.translation_velocity.norm() < self.MAX_SPEED
-            and self.chassis.rotation_velocity.radians() < self.MAX_ROTATION
-        ):
-            self.next_state("firing")
+            if (
+                self.auto_shoot
+                and self.turret.is_on_target(
+                    math.atan(self.AUTO_ALLOWABLE_TURRET_ERROR / self.distance)
+                )
+                and self.distance > self.AUTO_MIN_DIST
+                and self.distance < self.AUTO_MAX_DIST
+                and self.chassis.translation_velocity.norm() < self.AUTO_MAX_SPEED
+                and self.chassis.rotation_velocity.radians() < self.AUTO_MAX_ROTATION
+                and accel < self.AUTO_MAX_ACCEL
+            ):
+                self.next_state("firing")
 
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self) -> None:

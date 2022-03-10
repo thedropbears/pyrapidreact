@@ -34,7 +34,7 @@ class VisionData:
 class Vision:
     """Communicates with raspberry pi to get vision data"""
 
-    PONG_DELAY_THRESHOLD = 0.500
+    PONG_DELAY_THRESHOLD = 1.000
     turret: Turret
     chassis: Chassis
 
@@ -44,7 +44,7 @@ class Vision:
     field: wpilib.Field2d
 
     fuse_vision_observations = tunable(True)
-    gate_innovation = tunable(False)
+    gate_innovation = tunable(True)
 
     def __init__(self) -> None:
 
@@ -64,6 +64,7 @@ class Vision:
         self.last_data_timestamp = Timer.getFPGATimestamp()  # timestamp of last data
 
         self.vision_data: Optional[VisionData] = None
+        self.max_std_dev = 0.5
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
@@ -120,11 +121,11 @@ class Vision:
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
-            if self.gate_innovation and innovation > 1.0:
+            if self.gate_innovation and innovation > 3.0:
                 return
             # Come up with a position std dev from the fitness reported
             # When the target is near the edge, the estimate of range is worse
-            pos_std_dev = 0.2 * (1.0 - self.vision_data.fitness)
+            pos_std_dev = self.max_std_dev * (1.0 - self.vision_data.fitness)
             # TODO Can we be smarter and find different values for x and y based on robot orientation?
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,

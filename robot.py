@@ -21,7 +21,6 @@ from components.vision import Vision
 
 from controllers.shooter import ShooterController
 from utilities.scalers import rescale_js, scale_value
-from utilities.ctre import TalonEncoder
 
 from utilities import git
 
@@ -66,7 +65,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_right_motor = ctre.TalonFX(10)
 
         self.turret_motor = ctre.TalonSRX(15)
-        self.turret_absolute_encoder = wpilib.DutyCycleEncoder(0)
+        self.turret_absolute_encoder = wpilib.DutyCycleEncoder(10)  # navX pin 0
         self.turret_cable_piston = wpilib.Solenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 4
         )
@@ -74,7 +73,7 @@ class MyRobot(magicbot.MagicRobot):
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
         self.intake_piston = wpilib.DoubleSolenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 0, 2
-        )  # TODO check port numbers
+        )
         self.indexer_tunnel_motor = rev.CANSparkMax(
             2, rev.CANSparkMax.MotorType.kBrushless
         )
@@ -86,7 +85,7 @@ class MyRobot(magicbot.MagicRobot):
         self.tunnel_break_beam = wpilib.DigitalInput(1)
         self.cat_flap_piston = wpilib.DoubleSolenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 1, 3
-        )  # TODO correct port numbers
+        )
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
         self.climb_motor = ctre.TalonFX(22)
@@ -94,21 +93,23 @@ class MyRobot(magicbot.MagicRobot):
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
-        self.chassis_1_encoder = TalonEncoder(ctre.TalonSRX(13), unitsPerRev=math.tau)
-        self.chassis_2_encoder = TalonEncoder(ctre.TalonSRX(20), unitsPerRev=math.tau)
-        self.chassis_3_encoder = TalonEncoder(ctre.TalonSRX(18), unitsPerRev=math.tau)
-        self.chassis_4_encoder = TalonEncoder(ctre.TalonSRX(14), unitsPerRev=math.tau)
+        self.chassis_1_encoder = ctre.CANCoder(1)
+        self.chassis_2_encoder = ctre.CANCoder(2)
+        self.chassis_3_encoder = ctre.CANCoder(3)
+        self.chassis_4_encoder = ctre.CANCoder(4)
 
     def autonomousInit(self) -> None:
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
+        self.vision.max_std_dev = 0.5
 
     def teleopInit(self) -> None:
         self.intake.auto_retract = True
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
+        self.vision.max_std_dev = 0.2
 
     def disabledPeriodic(self) -> None:
         self.turret.update_angle_history()
@@ -155,7 +156,7 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getRawButtonPressed(9):
             self.chassis.zero_yaw()
 
-        if self.joystick.getTrigger() or self.shooter_control.auto_shoot:
+        if self.joystick.getTrigger():
             self.shooter_control.fire()
 
         if self.joystick.getRawButtonPressed(2):
