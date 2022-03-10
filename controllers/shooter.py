@@ -64,7 +64,7 @@ class ShooterController(StateMachine):
     auto_shoot = False
 
     def __init__(self) -> None:
-        self.flywheels_running = False
+        self.flywheels_running = True
         self.track_target = True
 
     def setup(self) -> None:
@@ -105,13 +105,6 @@ class ShooterController(StateMachine):
 
         if self.track_target:
             self.turret.slew_local(angle)
-
-        if (
-            self.indexer.has_cargo_in_chimney()
-            or self.indexer.has_cargo_in_tunnel()
-            or self.intake.deployed
-        ):
-            self.flywheels_running = True
 
         if self.flywheels_running:
             if self.interpolation_override:

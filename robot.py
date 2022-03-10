@@ -229,10 +229,12 @@ class MyRobot(magicbot.MagicRobot):
 
         right_trigger = self.codriver.getRightTriggerAxis()
         if right_trigger > 0.2:
+            self.hanger.enabled = True
             self.hanger.winch(right_trigger)
 
         left_trigger = self.codriver.getLeftTriggerAxis()
         if left_trigger > 0.2:
+            self.hanger.enabled = True
             self.hanger.payout(left_trigger)
 
         self.climb_control.execute()
