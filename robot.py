@@ -101,7 +101,7 @@ class MyRobot(magicbot.MagicRobot):
         self.vision.max_std_dev = 0.5
 
     def teleopInit(self) -> None:
-        self.leds.display_morse = False
+        self.status_lights.display_morse = False
         self.intake.auto_retract = True
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
