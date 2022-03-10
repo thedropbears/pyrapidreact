@@ -71,7 +71,7 @@ class MyRobot(magicbot.MagicRobot):
         self.intake_motor = rev.CANSparkMax(9, rev.CANSparkMax.MotorType.kBrushless)
         self.intake_piston = wpilib.DoubleSolenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 0, 2
-        )  # TODO check port numbers
+        )
         self.indexer_tunnel_motor = rev.CANSparkMax(
             2, rev.CANSparkMax.MotorType.kBrushless
         )
@@ -83,7 +83,7 @@ class MyRobot(magicbot.MagicRobot):
         self.tunnel_break_beam = wpilib.DigitalInput(1)
         self.cat_flap_piston = wpilib.DoubleSolenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 1, 3
-        )  # TODO correct port numbers
+        )
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
         self.field = wpilib.Field2d()
@@ -106,15 +106,15 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.auto_shoot = False
 
     def disabledPeriodic(self) -> None:
-        wpilib.SmartDashboard.putNumberArray(
-            "swerve_encoder_adjusted",
-            [module.get_angle() for module in self.chassis.modules],
-        )
+        # wpilib.SmartDashboard.putNumberArray(
+        #     "swerve_encoder_adjusted",
+        #     [module.get_angle() for module in self.chassis.modules],
+        # )
         # absolute encoder readings without offset
-        wpilib.SmartDashboard.putNumberArray(
-            "swerve_relative_encoder",
-            [module.get_motor_angle() for module in self.chassis.modules],
-        )
+        # wpilib.SmartDashboard.putNumberArray(
+        #     "swerve_relative_encoder",
+        #     [module.get_motor_angle() for module in self.chassis.modules],
+        # )
         self.turret.update_angle_history()
         self.chassis.update_odometry()
         self.chassis.update_pose_history()

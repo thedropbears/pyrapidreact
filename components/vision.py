@@ -34,7 +34,7 @@ class VisionData:
 class Vision:
     """Communicates with raspberry pi to get vision data"""
 
-    PONG_DELAY_THRESHOLD = 0.500
+    PONG_DELAY_THRESHOLD = 1.000
     turret: Turret
     chassis: Chassis
 
