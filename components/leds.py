@@ -6,7 +6,6 @@ from typing import Optional, Tuple
 
 MAX_BRIGHTNESS = 200  # Between 0-255 of Value on HSV scale
 
-
 class LedColours(Enum):
     # Use HSV to get nicer fading
     RED = (0, 255, MAX_BRIGHTNESS)
