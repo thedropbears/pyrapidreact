@@ -50,14 +50,13 @@ class StatusLights:
         if colour is not None:
             self.colour = colour.value
         self.is_pulsing = True
-        # self.pulse_multiplier = 1
         self.is_flashing = False
 
     def flash(self, colour: Optional[LedColours] = None) -> None:
         if colour is not None:
             self.colour = colour.value
         self.is_flashing = True
-        self.flash_timer = time.time()
+        self.flash_timer = time.monotonic()
         self.is_pulsing = False
 
     def solid(self, colour: Optional[LedColours] = None) -> None:
@@ -91,6 +90,5 @@ class StatusLights:
             colour = self.pulse_calculation()
         else:
             colour = self.colour
-        # colour = self.pulse_calculation(self.colour)
         self.single_led_data.setRGB(colour[0], colour[1], colour[2])
         self.leds.setData(self.leds_data)
