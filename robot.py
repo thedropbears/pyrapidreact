@@ -101,11 +101,15 @@ class MyRobot(magicbot.MagicRobot):
         self.vision.max_std_dev = 0.5
 
     def teleopInit(self) -> None:
+        self.leds.display_morse = False
         self.intake.auto_retract = True
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
         self.vision.max_std_dev = 0.2
+
+    def disabledInit(self) -> None:
+        self.status_lights.choose_morse_message()
 
     def disabledPeriodic(self) -> None:
         # wpilib.SmartDashboard.putNumberArray(
