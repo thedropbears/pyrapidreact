@@ -4,12 +4,16 @@ from enum import Enum
 from typing import Optional, Tuple
 
 
+MAX_BRIGHTNESS = 200  # Between 0-255 of Value on HSV scale
+
+
 class LedColours(Enum):
-    RED = (255, 0, 0)
-    ORANGE = (255, 160, 0)
-    PINK = (255, 0, 150)
-    BLUE = (0, 0, 255)
-    GREEN = (0, 255, 0)
+    # Use HSV to get nicer fading
+    RED = (0, 255, MAX_BRIGHTNESS)
+    ORANGE = (30, 255, MAX_BRIGHTNESS)
+    PINK = (150, 255, MAX_BRIGHTNESS)
+    BLUE = (120, 255, MAX_BRIGHTNESS)
+    GREEN = (60, 255, MAX_BRIGHTNESS)
     OFF = (0, 0, 0)
 
 
@@ -17,8 +21,7 @@ class StatusLights:
     leds: wpilib.AddressableLED
 
     def __init__(self) -> None:
-        self.led_length = 289  # TODO: check length
-        self.sync_time = 10000
+        self.led_length = 262
 
         self.is_flashing = False
 
@@ -35,13 +38,12 @@ class StatusLights:
 
         self.colour = (0, 0, 0)
 
-    def mult_tuple(self, arg1: Tuple[int, int, int], arg2: float):
-        return (int(arg1[0] * arg2), int(arg1[1] * arg2), int(arg1[2] * arg2))
+    def fade(self, brightness: float) -> Tuple[int, int, int]:
+        return (self.colour[0], self.colour[1], round(self.colour[2] * brightness))
 
     def setup(self) -> None:
         self.leds.setLength(self.led_length)
-        self.single_led_data = wpilib.AddressableLED.LEDData(255, 0, 150)
-        self.leds.setSyncTime(self.sync_time)
+        self.single_led_data = wpilib.AddressableLED.LEDData()
         self.leds_data = [self.single_led_data] * self.led_length
         self.leds.setData(self.leds_data)
         self.leds.start()
@@ -67,15 +69,17 @@ class StatusLights:
 
     def pulse_calculation(self) -> Tuple[int, int, int]:
         if self.pulse_multiplier >= self.MAX_PULSE:
+            self.pulse_multiplier = self.MAX_PULSE
             self.pulse_increasing = False
         elif self.pulse_multiplier <= self.MIN_PULSE:
+            self.pulse_multiplier = self.MIN_PULSE
             self.pulse_increasing = True
 
         self.pulse_multiplier += self.PULSE_CHANGE * (
             1 if self.pulse_increasing else -1
         )
 
-        return self.mult_tuple(self.colour, self.pulse_multiplier)
+        return self.fade(self.pulse_multiplier)
 
     def flash_calculation(self) -> Tuple[int, int, int]:
         if int((time.monotonic() - self.flash_timer) / self.FLASH_DELAY) % 2:
@@ -90,5 +94,5 @@ class StatusLights:
             colour = self.pulse_calculation()
         else:
             colour = self.colour
-        self.single_led_data.setRGB(colour[0], colour[1], colour[2])
+        self.single_led_data.setHSV(colour[0], colour[1], colour[2])
         self.leds.setData(self.leds_data)
