@@ -17,6 +17,7 @@ from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
 
 from utilities.functions import constrain_angle
+from utilities.ctre import FALCON_CPR
 from wpimath.controller import SimpleMotorFeedforwardMeters
 from utilities.trajectory_generator import goal_to_field
 
@@ -26,14 +27,13 @@ class SwerveModule:
     STEER_GEAR_RATIO = (14 / 50) * (10 / 60)
     WHEEL_CIRCUMFERENCE = 4 * 2.54 / 100 * math.pi
 
-    METRES_TO_DRIVE_UNITS = 2048 / WHEEL_CIRCUMFERENCE / DRIVE_GEAR_RATIO
-    DRIVE_SENSOR_TO_METRES = 1 / METRES_TO_DRIVE_UNITS
+    DRIVE_MOTOR_REV_TO_METRES = WHEEL_CIRCUMFERENCE * DRIVE_GEAR_RATIO
+    METRES_TO_DRIVE_COUNTS = FALCON_CPR / DRIVE_MOTOR_REV_TO_METRES
+    DRIVE_COUNTS_TO_METRES = DRIVE_MOTOR_REV_TO_METRES / FALCON_CPR
 
-    STEER_SENSOR_TO_RAD = math.tau / 2048 * STEER_GEAR_RATIO
-    STEER_RAD_TO_SENSOR = 1 / STEER_SENSOR_TO_RAD
-
-    SLEW_CRUISE_VELOCITY = 400  # rpm
-    CRUISE_ACCELERATION = 200  # rpm/s
+    STEER_MOTOR_REV_TO_RAD = math.tau * STEER_GEAR_RATIO
+    STEER_COUNTS_TO_RAD = STEER_MOTOR_REV_TO_RAD / FALCON_CPR
+    STEER_RAD_TO_COUNTS = FALCON_CPR / STEER_MOTOR_REV_TO_RAD
 
     def __init__(
         self,
@@ -55,7 +55,7 @@ class SwerveModule:
         self.steer.config_kI(0, 0, 10)
         self.steer.config_kD(0, 5.6805, 10)
         self.steer.configAllowableClosedloopError(
-            0, self.STEER_RAD_TO_SENSOR * math.radians(3)
+            0, self.STEER_RAD_TO_COUNTS * math.radians(3)
         )
         self.steer.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.IntegratedSensor, 0, 10
@@ -85,20 +85,20 @@ class SwerveModule:
         steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
         drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
 
-    def get_angle(self) -> float:
+    def get_absolute_angle(self) -> float:
         """Gets steer angle from absolute encoder"""
         return self.encoder.getAbsolutePosition()
 
-    def get_motor_angle(self) -> float:
+    def get_unconstrained_angle(self) -> float:
         """Gets steer angle from motor's integrated relative encoder"""
-        return self.steer.getSelectedSensorPosition() * self.STEER_SENSOR_TO_RAD
+        return self.steer.getSelectedSensorPosition() * self.STEER_COUNTS_TO_RAD
 
     def get_rotation(self) -> Rotation2d:
         """Get the angle of the module."""
-        return Rotation2d(self.get_motor_angle())
+        return Rotation2d(self.get_unconstrained_angle())
 
     def get_speed(self) -> float:
-        return self.drive.getSelectedSensorVelocity() * self.DRIVE_SENSOR_TO_METRES * 10
+        return self.drive.getSelectedSensorVelocity() * self.DRIVE_COUNTS_TO_METRES * 10
 
     def set(self, desired_state: SwerveModuleState):
 
@@ -107,13 +107,13 @@ class SwerveModule:
             self.steer.set(ctre.ControlMode.Velocity, 0)
             return
 
-        current_angle = self.get_angle()
+        current_angle = self.get_unconstrained_angle()
         target_displacement = constrain_angle(
             desired_state.angle.radians() - current_angle
         )
         target_angle = target_displacement + current_angle
         self.steer.set(
-            ctre.ControlMode.Position, target_angle * self.STEER_RAD_TO_SENSOR
+            ctre.ControlMode.Position, target_angle * self.STEER_RAD_TO_COUNTS
         )
 
         # rescale the speed target based on how close we are to being correctly aligned
@@ -121,14 +121,14 @@ class SwerveModule:
         speed_volt = self.drive_ff.calculate(target_speed)
         self.drive.set(
             ctre.ControlMode.Velocity,
-            target_speed * self.METRES_TO_DRIVE_UNITS / 10,
+            target_speed * self.METRES_TO_DRIVE_COUNTS / 10,
             ctre.DemandType.ArbitraryFeedForward,
             speed_volt / 12,
         )
 
     def sync_steer_encoders(self) -> None:
         self.steer.setSelectedSensorPosition(
-            self.get_angle() * self.STEER_RAD_TO_SENSOR
+            self.get_absolute_angle() * self.STEER_RAD_TO_COUNTS
         )
 
     def get(self) -> SwerveModuleState:
