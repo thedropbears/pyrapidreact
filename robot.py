@@ -149,6 +149,11 @@ class MyRobot(magicbot.MagicRobot):
         else:
             self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
 
+        pov = self.joystick.getPOV()
+        # pov gives -1 if not pressed and angle in degrees clockwise positive otherwise
+        if pov != -1:
+            self.chassis.snap_to_angle(math.radians(360 - pov))
+
         if self.joystick.getRawButtonPressed(11):
             self.shooter_control.auto_shoot = True
 

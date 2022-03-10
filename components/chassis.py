@@ -13,11 +13,15 @@ from wpimath.kinematics import (
     ChassisSpeeds,
     SwerveModuleState,
 )
+from wpimath import trajectory
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
 
 from utilities.functions import constrain_angle
-from wpimath.controller import SimpleMotorFeedforwardMeters
+from wpimath.controller import (
+    SimpleMotorFeedforwardMeters,
+    ProfiledPIDControllerRadians,
+)
 from utilities.trajectory_generator import goal_to_field
 
 
@@ -178,6 +182,14 @@ class Chassis:
         self.translation_velocity = Translation2d()
         self.rotation_velocity = Rotation2d()
 
+        drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(
+            1, 1
+        )
+        self.rotation_controller = ProfiledPIDControllerRadians(
+            4, 0, 0, drive_rotation_constraints
+        )
+        self.rotation_controller.enableContinuousInput(-math.pi, math.pi)
+
     def setup(self) -> None:
         self.modules = [
             SwerveModule(
@@ -240,6 +252,13 @@ class Chassis:
     def drive_local(self, vx: float, vy: float, omega: float) -> None:
         """Robot oriented drive commands"""
         self.chassis_speeds = ChassisSpeeds(vx, vy, omega)
+
+    def snap_to_angle(self, angle: float):
+        """Must be held, angle in radians"""
+        self.rotation_controller.setGoal(angle)
+        self.chassis_speeds.omega = self.rotation_controller.calculate(
+            self.get_rotation().radians()
+        )
 
     def execute(self) -> None:
         self.desired_states = self.kinematics.toSwerveModuleStates(self.chassis_speeds)
