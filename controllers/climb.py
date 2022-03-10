@@ -20,7 +20,7 @@ class ClimbController(StateMachine):
         self.shooter_control.flywheels_running = False
         self.turret.slew_local(math.pi)
         self.intake.deploy_without_running()
-        if state_tm > 5 and self.turret.is_on_target():
+        if state_tm > 5 and self.turret.is_on_target(math.radians(15)):
             self.next_state("raise_arms")
 
     @state(must_finish=True)
