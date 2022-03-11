@@ -129,7 +129,6 @@ class ShooterController(StateMachine):
                 and self.chassis.translation_velocity.norm() < self.MAX_SPEED
                 and self.chassis.rotation_velocity.radians() < self.MAX_ROTATION
                 and accel < self.MAX_ACCEL
-                and abs(self.vision.angle()) < pi / 36
             ):
                 self.next_state("firing")
 
