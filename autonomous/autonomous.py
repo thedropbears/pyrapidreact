@@ -52,7 +52,7 @@ class AutoBase(AutonomousStateMachine):
     logger: logging.Logger
 
     max_speed = 3.5
-    max_accel = 2.1
+    max_accel = 1.5
 
     ALLOWED_TRANS_ERROR = 0.1
     ALLOWED_ROT_ERROR = math.radians(20)
@@ -83,7 +83,7 @@ class AutoBase(AutonomousStateMachine):
         # all in meters along straight line path
         self.total_length = trajectory_generator.total_length(self.waypoints_poses)
         # how far around the current position is used to smooth the path
-        self.look_around = 0.3
+        self.look_around = 0.1
         # the index of the waypoint we are currently going towards or at
         self.cur_waypoint = 0
 
@@ -289,10 +289,10 @@ class FiveBall(AutoBase):
                     -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.5, -2.3, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -8.1, -2.6, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
-                    -6.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
+                    -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
             ]
         )

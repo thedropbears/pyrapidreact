@@ -40,6 +40,8 @@ class MyRobot(magicbot.MagicRobot):
     turret: Turret
     vision: Vision
 
+    lock_motion_while_shooting = magicbot.tunable(False)
+
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
 
@@ -129,7 +131,7 @@ class MyRobot(magicbot.MagicRobot):
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
         spin_rate = 3.0
         # Don't update these values while firing
-        if self.shooter_control.current_state != "firing":
+        if not self.lock_motion_while_shooting or self.shooter_control.current_state != "firing":
             joystick_x = (
                 -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
                 * 4
@@ -174,6 +176,9 @@ class MyRobot(magicbot.MagicRobot):
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
+
+        if self.codriver.getBButtonPressed():
+            self.indexer_control.engage("forced_clearing", force=True)
 
         # Failsafe
         if self.codriver.getAButton():
@@ -233,6 +238,9 @@ class MyRobot(magicbot.MagicRobot):
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
+
+        if self.codriver.getBButtonPressed():
+            self.indexer_control.engage("forced_clearing", force=True)
 
         # lower intake without running it
         if self.codriver.getLeftBumper():

@@ -57,6 +57,8 @@ class IndexerController(StateMachine):
             if not colour.is_valid() and state_tm < 0.5:
                 return
             if colour.is_opposition() and not self.ignore_colour:
+                self.next_state("clearing")
+                """
                 if (
                     self.indexer.has_trapped_cargo
                     or self.indexer.has_cargo_in_chimney()
@@ -64,6 +66,7 @@ class IndexerController(StateMachine):
                     self.next_state("clearing")
                 else:
                     self.next_state("trapping")
+                """
             else:
                 # It is our ball so we have finished this process
                 # The "stopped" state will work out if it needs to move the ball into the chimney
@@ -71,6 +74,11 @@ class IndexerController(StateMachine):
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def clearing(self) -> None:
+        self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
+
+    @timed_state(duration=0.5, next_state="stopping", must_finish=True)
+    def forced_clearing(self) -> None:
+        self.indexer.run_chimney_motor(Indexer.Direction.BACKWARDS)
         self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
 
     @timed_state(duration=10.0, next_state="stopping", must_finish=True)

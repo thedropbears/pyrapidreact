@@ -147,13 +147,13 @@ class Indexer:
         self._chimney_direction = direction
 
     def get_cargo_colour(self) -> CargoColour:
-
+        ALPHA = 0.7
         colour = self.colour_sensor.getRawColor()
 
         # In testing, the value of blue when we have red cargo never went above 600
         if colour.red > 1000 or colour.blue > 1000:
-            self.red_total += colour.red
-            self.blue_total += colour.blue
+            self.red_total = self.red_total * (1.0 - ALPHA) + colour.red * ALPHA
+            self.blue_total = self.blue_total * (1.0 - ALPHA) + colour.blue * ALPHA
 
         if self.blue_total > self.red_total:
             return CargoColour.BLUE
