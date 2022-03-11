@@ -289,7 +289,7 @@ class FiveBall(AutoBase):
                     -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -7.75, -2.3, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.5, -2.3, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
                     -6.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
