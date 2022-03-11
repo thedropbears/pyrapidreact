@@ -177,7 +177,11 @@ class MyRobot(magicbot.MagicRobot):
             self.turret.slew_local(math.pi)
             self.intake.deploy_without_running()
 
-        if self.intake.deployed and not self.intake.motor_enabled and abs(self.turret.get_error()) < math.pi / 18:
+        if (
+            self.intake.deployed
+            and not self.intake.motor_enabled
+            and abs(self.turret.get_error()) < math.pi / 18
+        ):
             right_trigger = self.codriver.getRightTriggerAxis()
             if right_trigger > 0.2:
                 self.hanger.enabled = True
