@@ -151,7 +151,7 @@ class Indexer:
         colour = self.colour_sensor.getRawColor()
 
         # In testing, the value of blue when we have red cargo never went above 600
-        if colour.red > 700 or colour.blue > 700:
+        if colour.red > 1000 or colour.blue > 1000:
             self.red_total += colour.red
             self.blue_total += colour.blue
 

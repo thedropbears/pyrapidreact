@@ -1,6 +1,6 @@
 import rev
 import wpilib
-from magicbot import feedback
+from magicbot import feedback, tunable
 
 
 class Intake:
@@ -8,10 +8,10 @@ class Intake:
     intake_motor: rev.CANSparkMax
     intake_piston: wpilib.DoubleSolenoid
 
-    auto_retract = True
+    auto_retract = tunable(True)
 
     def __init__(self):
-        self._last_cargo_presence = False
+        self._last_cargo_presence = 0
         self.deployed = False
         self.motor_enabled = True
 
@@ -39,10 +39,11 @@ class Intake:
             self.intake_motor.set(0.0)
 
     def has_cargo(self) -> bool:
-        current = self._intake_limit.get()
-        result = current and self._last_cargo_presence
-        self._last_cargo_presence = current
-        return result
+        if self._intake_limit.get():
+            self._last_cargo_presence += 1
+        else:
+            self._last_cargo_presence = 0
+        return self._last_cargo_presence > 3
 
     def deploy_without_running(self) -> None:
         self.auto_retract = False

@@ -57,6 +57,8 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
+        self.recorded_joystick_state = (0.0, 0.0, 0.0)
+        self.recorded_is_local_driving = False
         self.codriver = wpilib.XboxController(1)
 
         self.shooter_left_motor = ctre.TalonFX(11)
@@ -100,7 +102,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
-        self.vision.max_std_dev = 0.5
+        self.vision.max_std_dev = 2
 
     def teleopInit(self) -> None:
         self.status_lights.display_morse = False
@@ -108,7 +110,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
-        self.vision.max_std_dev = 0.2
+        self.vision.max_std_dev = 0.5
 
     def disabledInit(self) -> None:
         self.status_lights.choose_morse_message()
@@ -126,27 +128,30 @@ class MyRobot(magicbot.MagicRobot):
         # handle chassis inputs
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
         spin_rate = 3.0
-        joystick_x = (
-            -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
-            * 4
-            * throttle
-        )
-        joystick_y = (
-            -rescale_js(self.joystick.getX(), deadzone=0.1, exponential=1.5)
-            * 4
-            * throttle
-        )
-        joystick_z = (
-            -rescale_js(self.joystick.getZ(), deadzone=0.3, exponential=25.0)
-            * spin_rate
-        )
+        # Don't update these values while firing
+        if self.shooter_control.current_state != "firing":
+            joystick_x = (
+                -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
+                * 4
+                * throttle
+            )
+            joystick_y = (
+                -rescale_js(self.joystick.getX(), deadzone=0.1, exponential=1.5)
+                * 4
+                * throttle
+            )
+            joystick_z = (
+                -rescale_js(self.joystick.getZ(), deadzone=0.3, exponential=25.0)
+                * spin_rate
+            )
+            self.recorded_joystick_state = (joystick_x, joystick_y, joystick_z)
+            self.recorded_is_local_driving = self.joystick.getRawButton(6)
 
-        # if joystick_x or joystick_y or joystick_z:
-        # Drive in field oriented mode unless button 6 is held
-        if not self.joystick.getRawButton(6):
-            self.chassis.drive_field(joystick_x, joystick_y, joystick_z)
+        # Drive in field oriented mode unless button 6 is pressed
+        if self.recorded_is_local_driving:
+            self.chassis.drive_local(*self.recorded_joystick_state)
         else:
-            self.chassis.drive_local(joystick_x, joystick_y, joystick_z)
+            self.chassis.drive_field(*self.recorded_joystick_state)
 
         if self.joystick.getRawButtonPressed(11):
             self.shooter_control.auto_shoot = True
