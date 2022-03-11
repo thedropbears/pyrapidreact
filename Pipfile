@@ -13,6 +13,7 @@ robotpy-rev = "~=2022.0.1"
 robotpy-wpilib-utilities = "~=2022.0.1"
 robotpy-wpimath = "~=2022.3.1.1"
 wpilib = "~=2022.3.1"
+robotpy-wpiutil = "~=2022.4.1.1"
 
 [dev-packages]
 hypothesis = "*"
