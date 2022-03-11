@@ -64,7 +64,8 @@ class ShooterController(StateMachine):
     auto_shoot = False
 
     def __init__(self) -> None:
-        self.flywheels_running = False
+        self.flywheels_running = True
+        self.track_target = True
 
     def setup(self) -> None:
         self.field_effective_goal = self.field.getObject("effective_goal")
@@ -102,14 +103,8 @@ class ShooterController(StateMachine):
         field_angle = math.atan2(-turret_pose.Y(), -turret_pose.X())
         angle = constrain_angle(field_angle - cur_pose.rotation().radians())
 
-        self.turret.slew_local(angle)
-
-        if (
-            self.indexer.has_cargo_in_chimney()
-            or self.indexer.has_cargo_in_tunnel()
-            or self.intake.deployed
-        ):
-            self.flywheels_running = True
+        if self.track_target:
+            self.turret.slew_local(angle)
 
         if self.flywheels_running:
             if self.interpolation_override:

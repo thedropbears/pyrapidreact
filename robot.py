@@ -57,7 +57,7 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_steer = ctre.TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
-        self.codriver = wpilib.XboxController(0)
+        self.codriver = wpilib.XboxController(1)
 
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
@@ -86,6 +86,8 @@ class MyRobot(magicbot.MagicRobot):
         )
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
 
+        self.climb_motor = ctre.TalonFX(22)
+
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
 
@@ -112,15 +114,6 @@ class MyRobot(magicbot.MagicRobot):
         self.status_lights.choose_morse_message()
 
     def disabledPeriodic(self) -> None:
-        # wpilib.SmartDashboard.putNumberArray(
-        #     "swerve_encoder_adjusted",
-        #     [module.get_angle() for module in self.chassis.modules],
-        # )
-        # absolute encoder readings without offset
-        # wpilib.SmartDashboard.putNumberArray(
-        #     "swerve_relative_encoder",
-        #     [module.get_motor_angle() for module in self.chassis.modules],
-        # )
         self.turret.update_angle_history()
         self.chassis.update_odometry()
         self.chassis.update_pose_history()
@@ -181,6 +174,28 @@ class MyRobot(magicbot.MagicRobot):
         if self.codriver.getAButton():
             self.chassis.set_pose_failsafe()
 
+        # Climb
+        if self.codriver.getLeftBumper() and self.codriver.getRightBumper():
+            self.shooter_control.track_target = False
+            self.shooter_control.flywheels_running = False
+            self.turret.slew_local(math.pi)
+            self.intake.deploy_without_running()
+
+        if (
+            self.intake.deployed
+            and not self.intake.motor_enabled
+            and abs(self.turret.get_error()) < math.pi / 18
+        ):
+            right_trigger = self.codriver.getRightTriggerAxis()
+            if right_trigger > 0.2:
+                self.hanger.enabled = True
+                self.hanger.winch(right_trigger)
+
+            left_trigger = self.codriver.getLeftTriggerAxis()
+            if left_trigger > 0.2:
+                self.hanger.enabled = True
+                self.hanger.payout(left_trigger)
+
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0, 1)
@@ -213,6 +228,22 @@ class MyRobot(magicbot.MagicRobot):
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
+
+        # lower intake without running it
+        if self.codriver.getLeftBumper():
+            self.intake.motor_enabled = False
+            self.intake.deployed = not self.intake.deployed
+            self.intake.auto_retract = False
+
+        right_trigger = self.codriver.getRightTriggerAxis()
+        if right_trigger > 0.2:
+            self.hanger.enabled = True
+            self.hanger.winch(right_trigger)
+
+        left_trigger = self.codriver.getLeftTriggerAxis()
+        if left_trigger > 0.2:
+            self.hanger.enabled = True
+            self.hanger.payout(left_trigger)
 
         self.indexer_control.execute()
 
