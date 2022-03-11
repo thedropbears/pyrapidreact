@@ -14,7 +14,6 @@ from components.indexer import Indexer
 from components.intake import Intake
 from components.shooter import Shooter
 from components.turret import Turret
-from controllers.climb import ClimbController
 from controllers.indexer import IndexerController
 from controllers.leds import LedController
 from components.vision import Vision
@@ -29,7 +28,6 @@ GIT_INFO = git.describe()
 
 class MyRobot(magicbot.MagicRobot):
     led_control: LedController
-    climb_control: ClimbController
     shooter_control: ShooterController
     indexer_control: IndexerController
 
@@ -174,15 +172,21 @@ class MyRobot(magicbot.MagicRobot):
 
         # Climb
         if self.codriver.getLeftBumper() and self.codriver.getRightBumper():
-            self.climb_control.engage()
+            self.shooter_control.track_target = False
+            self.shooter_control.flywheels_running = False
+            self.turret.slew_local(math.pi)
+            self.intake.deploy_without_running()
 
-        right_trigger = self.codriver.getRightTriggerAxis()
-        if right_trigger > 0.2:
-            self.hanger.winch(right_trigger)
+        if self.intake.deployed and not self.intake.motor_enabled and abs(self.turret.get_error()) < math.pi / 18:
+            right_trigger = self.codriver.getRightTriggerAxis()
+            if right_trigger > 0.2:
+                self.hanger.enabled = True
+                self.hanger.winch(right_trigger)
 
-        left_trigger = self.codriver.getLeftTriggerAxis()
-        if left_trigger > 0.2:
-            self.hanger.payout(left_trigger)
+            left_trigger = self.codriver.getLeftTriggerAxis()
+            if left_trigger > 0.2:
+                self.hanger.enabled = True
+                self.hanger.payout(left_trigger)
 
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
@@ -223,10 +227,6 @@ class MyRobot(magicbot.MagicRobot):
             self.intake.deployed = not self.intake.deployed
             self.intake.auto_retract = False
 
-        # Climb
-        if self.codriver.getYButton():
-            self.climb_control.engage()
-
         right_trigger = self.codriver.getRightTriggerAxis()
         if right_trigger > 0.2:
             self.hanger.enabled = True
@@ -237,7 +237,6 @@ class MyRobot(magicbot.MagicRobot):
             self.hanger.enabled = True
             self.hanger.payout(left_trigger)
 
-        self.climb_control.execute()
         self.indexer_control.execute()
 
         self.chassis.execute()
