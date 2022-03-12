@@ -183,7 +183,10 @@ class AutoBase(AutonomousStateMachine):
         self.last_pose = goal_pose
 
         # Shoot in the end of autonoumous if we can
-        if wpilib.DriverStation.getMatchTime() <= 1.0 and self.indexer.has_cargo_in_chimney():
+        if (
+            wpilib.DriverStation.getMatchTime() <= 1.0
+            and self.indexer.has_cargo_in_chimney()
+        ):
             self.next_state("firing")
 
     @state
@@ -199,7 +202,10 @@ class AutoBase(AutonomousStateMachine):
             self.next_state("move")
             self.move_next_waypoint(tm)
 
-        if wpilib.DriverStation.getMatchTime() <= 1.0 and self.indexer.has_cargo_in_chimney():
+        if (
+            wpilib.DriverStation.getMatchTime() <= 1.0
+            and self.indexer.has_cargo_in_chimney()
+        ):
             self.next_state("firing")
 
     @state

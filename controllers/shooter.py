@@ -69,7 +69,13 @@ class ShooterController(StateMachine):
     def __init__(self) -> None:
         self.flywheels_running = True
         self.track_target = True
-        self.log_file = open("./1.log" if wpilib.RobotBase.isSimulation() else "/home/lvuser/py/shooting_positions.log", "a")
+        self.log_file = open(
+            "./1.log"
+            if wpilib.RobotBase.isSimulation()
+            else "/home/lvuser/py/shooting_positions.log",
+            "a",
+        )
+
     def on_enable(self):
         print(time.ctime(), file=self.log_file, flush=True)
 
@@ -152,7 +158,11 @@ class ShooterController(StateMachine):
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self, initial_call) -> None:
         if initial_call:
-            print(f"{wpilib.DriverStation.getMatchTime()} {self.chassis.get_pose()}", file=self.log_file, flush=True)
+            print(
+                f"{wpilib.DriverStation.getMatchTime()} {self.chassis.get_pose()}",
+                file=self.log_file,
+                flush=True,
+            )
         if self.flywheels_running:
             if self.interpolation_override:
                 self.shooter.motor_speed = self.flywheel_speed
