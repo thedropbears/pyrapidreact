@@ -52,7 +52,7 @@ class AutoBase(AutonomousStateMachine):
     logger: logging.Logger
 
     max_speed = 3.5
-    max_accel = 1.5
+    max_accel = 1.9
 
     ALLOWED_TRANS_ERROR = 0.1
     ALLOWED_ROT_ERROR = math.radians(20)
@@ -182,6 +182,10 @@ class AutoBase(AutonomousStateMachine):
 
         self.last_pose = goal_pose
 
+        # Shoot in the end of autonoumous if we can
+        if wpilib.DriverStation.getMatchTime() <= 1.0 and self.indexer.has_cargo_in_chimney():
+            self.next_state("firing")
+
     @state
     def pickup(self, state_tm: float, tm: float) -> None:
         """Waits until full"""
@@ -194,6 +198,9 @@ class AutoBase(AutonomousStateMachine):
         ):
             self.next_state("move")
             self.move_next_waypoint(tm)
+
+        if wpilib.DriverStation.getMatchTime() <= 1.0 and self.indexer.has_cargo_in_chimney():
+            self.next_state("firing")
 
     @state
     def firing(self, state_tm: float, tm: float) -> None:
@@ -289,7 +296,7 @@ class FiveBall(AutoBase):
                     -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -8.1, -2.6, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -8.4, -2.8, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
                 Waypoint(
                     -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT

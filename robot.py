@@ -104,7 +104,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
-        self.vision.max_std_dev = 2
+        self.vision.max_std_dev = 1
 
     def teleopInit(self) -> None:
         self.status_lights.display_morse = False
@@ -156,10 +156,10 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_field(*self.recorded_joystick_state)
 
         if self.joystick.getRawButtonPressed(11):
-            self.shooter_control.auto_shoot = True
+            self.shooter_control.lead_shots = True
 
         if self.joystick.getRawButtonPressed(12):
-            self.shooter_control.auto_shoot = False
+            self.shooter_control.lead_shots = False
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
@@ -269,7 +269,6 @@ class MyRobot(magicbot.MagicRobot):
         self.vision.execute()
         self.led_control.execute()
         self.status_lights.execute()
-
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
