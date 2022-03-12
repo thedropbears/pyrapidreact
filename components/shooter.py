@@ -70,11 +70,9 @@ class Shooter:
         self.left_motor.set(ctre.ControlMode.Disabled, 0)
         self.right_motor.set(ctre.ControlMode.Disabled, 0)
 
-    @feedback
     def actual_velocity(self) -> float:
         return self.left_motor.getSelectedSensorVelocity() * self.CTRE_UNITS_TO_RPS
 
-    @feedback
     def flywheel_error(self) -> float:
         return self.motor_speed - self.actual_velocity()
 

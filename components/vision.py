@@ -76,7 +76,6 @@ class Vision:
         """
         return self.vision_data
 
-    @feedback
     def angle(self) -> float:
         # just feedback for debugging
         if self.vision_data is None:
@@ -137,7 +136,6 @@ class Vision:
     def is_ready(self) -> bool:
         return Timer.getFPGATimestamp() - self.last_pong < self.PONG_DELAY_THRESHOLD
 
-    @feedback
     def system_lag_calculation(self) -> float:
         if self.vision_data is not None:
             return Timer.getFPGATimestamp() - self.vision_data.timestamp

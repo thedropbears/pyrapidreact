@@ -99,7 +99,6 @@ class Indexer:
     def has_cargo_in_tunnel(self) -> bool:
         return not self.tunnel_break_beam.get()
 
-    @feedback
     def last_cargo_was_opposition(self) -> bool:
         if wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kBlue:
             return self.red_total > self.blue_total
@@ -107,7 +106,6 @@ class Indexer:
             return self.blue_total > self.red_total
         return True
 
-    @feedback
     def ready_to_intake(self) -> bool:
         # We cannot have a cargo in the tunnel, and we can't already have two cargo (one in chimney and one trapped)
         if self.has_cargo_in_tunnel() or (
@@ -117,20 +115,16 @@ class Indexer:
 
         return True
 
-    @feedback
     def get_colours(self) -> str:
         raw = self.colour_sensor.getRawColor()
         return f"r{raw.red:.3f}, g{raw.green:.3f}, b{raw.blue:.3f}"
 
-    @feedback
     def get_proximity(self) -> float:
         return self.colour_sensor.getProximity()
 
-    @feedback
     def red_value(self) -> int:
         return self.red_total
 
-    @feedback
     def blue_value(self) -> int:
         return self.blue_total
 

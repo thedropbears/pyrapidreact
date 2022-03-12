@@ -48,7 +48,6 @@ class Hanger:
         if self.enabled:
             self.target_position += speed * self.winch_speed / 50
 
-    @feedback
     def get_position(self) -> float:
         return self.climb_motor.getSelectedSensorPosition() * self.COUNTS_TO_M
 

@@ -50,10 +50,8 @@ class Intake:
         self.deployed = True
         self.motor_enabled = False
 
-    @feedback
     def is_deployed(self):
         return self.deployed
 
-    @feedback
     def is_motor_enabled(self):
         return self.motor_enabled

@@ -133,7 +133,6 @@ class Turret:
         delta = constrain_angle(angle - self.get_angle())
         self.slew_relative(delta)
 
-    @magicbot.feedback
     def get_angle(self) -> float:
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
@@ -149,7 +148,6 @@ class Turret:
             / 10  # Convert to counts/100ms
         )
 
-    @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
         angle = self.absolute_encoder.getDistance() + self.abs_offset
 
