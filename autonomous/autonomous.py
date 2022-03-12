@@ -52,7 +52,7 @@ class AutoBase(AutonomousStateMachine):
     logger: logging.Logger
 
     max_speed = 3.5
-    max_accel = 1.9
+    max_accel = 3.0
 
     ALLOWED_TRANS_ERROR = 0.1
     ALLOWED_ROT_ERROR = math.radians(20)
@@ -67,7 +67,7 @@ class AutoBase(AutonomousStateMachine):
         )
 
         self.drive_rotation_constraints = (
-            trajectory.TrapezoidProfileRadians.Constraints(4, 4)
+            trajectory.TrapezoidProfileRadians.Constraints(8, 8)
         )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
@@ -296,8 +296,9 @@ class FiveBall(AutoBase):
                     -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -8.4, -2.8, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -8.0, -2.5, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
+                Waypoint(-7.5, -2.2, Rotation2d.fromDegrees(-136)),
                 Waypoint(
                     -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
