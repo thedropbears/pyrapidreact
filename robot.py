@@ -157,9 +157,13 @@ class MyRobot(magicbot.MagicRobot):
 
         if self.joystick.getRawButtonPressed(11):
             self.shooter_control.lead_shots = True
-
         if self.joystick.getRawButtonPressed(12):
             self.shooter_control.lead_shots = False
+
+        if self.joystick.getRawButtonPressed(7):
+            self.indexer_control.ignore_colour = True
+        if self.joystick.getRawButtonPressed(8):
+            self.indexer_control.ignore_colour = False
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
@@ -179,6 +183,8 @@ class MyRobot(magicbot.MagicRobot):
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
+
+        self.indexer_control.catflap_active = self.codriver.getXButton()
 
         # Failsafe
         if self.codriver.getAButton():
@@ -219,6 +225,8 @@ class MyRobot(magicbot.MagicRobot):
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
+
+        self.indexer_control.catflap_active = self.codriver.getXButton()
 
         # lower intake without running it
         if self.codriver.getLeftBumper():
