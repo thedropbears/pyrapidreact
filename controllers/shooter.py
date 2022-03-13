@@ -38,12 +38,12 @@ class ShooterController(StateMachine):
     distance = 0.0
     # fmt: off
     ranges_lookup =         (3.0,  3.5, 4.0,  4.5,  5.0,  5.5,  6.0,  6.5,  7.0,  7.5,  8.0)
-    flywheel_speed_lookup = (28.0, 28.5,30.0, 32.5, 36.0, 38.5, 41.0, 42.5, 43.0, 44.5, 46.0)
+    flywheel_speed_lookup = (27.5, 28.0,30.0, 32.5, 36.0, 38.5, 41.0, 42.5, 43.5, 45.0, 47.0)
     times_lookup =          (0.45, 0.475, 0.5,0.55, 0.6, 0.65,  0.7,  0.75, 0.8,  0.9,  1.0)
     # fmt: on
 
     MAX_DIST = 8
-    MIN_DIST = 2.5
+    MIN_DIST = 2.75
 
     MAX_SPEED = 2.0  # m/s
     MAX_ROTATION = 2.0  # rad/s
@@ -69,7 +69,7 @@ class ShooterController(StateMachine):
     def __init__(self) -> None:
         self.flywheels_running = True
         self.track_target = True
-        self.log_file = open("./1.log" if wpilib.RobotBase.isSimulation() else "/home/lvuser/py/shooting_positions.log", "a")
+        self.log_file = open("./1.log" if wpilib.RobotBase.isSimulation() else "/home/lvuser/shooting_positions.log", "a")
     def on_enable(self):
         print(time.ctime(), file=self.log_file, flush=True)
 
@@ -152,7 +152,10 @@ class ShooterController(StateMachine):
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self, initial_call) -> None:
         if initial_call:
-            print(f"{wpilib.DriverStation.getMatchTime()} {self.chassis.get_pose()}", file=self.log_file, flush=True)
+            try:
+                print(f"{wpilib.DriverStation.getMatchTime()} {self.chassis.get_pose()} {self.shooter.actual_velocity()} {self.vision.get_data().distance}", file=self.log_file, flush=True)
+            except:
+                print(f"Failed to log", file=self.log_file, flush=True)
         if self.flywheels_running:
             if self.interpolation_override:
                 self.shooter.motor_speed = self.flywheel_speed

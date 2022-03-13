@@ -183,7 +183,7 @@ class AutoBase(AutonomousStateMachine):
         self.last_pose = goal_pose
 
         # Shoot in the end of autonoumous if we can
-        if wpilib.DriverStation.getMatchTime() <= 1.0 and self.indexer.has_cargo_in_chimney():
+        if wpilib.DriverStation.getMatchTime() <= 2.5 and self.indexer.has_cargo_in_chimney():
             self.next_state("firing")
 
     @state
@@ -194,12 +194,14 @@ class AutoBase(AutonomousStateMachine):
         if (
             self.indexer.has_cargo_in_chimney()
             and self.indexer.has_cargo_in_tunnel()
-            or state_tm > 3
+            or state_tm > 1.5
         ):
             self.next_state("move")
+            # Assume the robot is well position after it starts moving after waiting for pickup
+            self.waypoints_poses[self.cur_waypoint] = self.waypoints[self.cur_waypoint] = self.chassis.get_pose()
             self.move_next_waypoint(tm)
 
-        if wpilib.DriverStation.getMatchTime() <= 1.0 and self.indexer.has_cargo_in_chimney():
+        if wpilib.DriverStation.getMatchTime() <= 2.5 and self.indexer.has_cargo_in_chimney():
             self.next_state("firing")
 
     @state
@@ -292,13 +294,13 @@ class FiveBall(AutoBase):
                     -0.65, -3.55, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
                 ),  # 3
                 Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
+                Waypoint(-4.2, -2.3, Rotation2d.fromDegrees(-206)), # 2
                 Waypoint(
-                    -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
-                ),  # 2
+                    -4.2, -2.7, Rotation2d.fromDegrees(-136), WaypointType.SHOOT
+                ),
                 Waypoint(
-                    -8.0, -2.5, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -7.85, -2.35, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
-                Waypoint(-7.5, -2.2, Rotation2d.fromDegrees(-136)),
                 Waypoint(
                     -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
