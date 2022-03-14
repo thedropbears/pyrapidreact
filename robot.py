@@ -119,8 +119,8 @@ class MyRobot(magicbot.MagicRobot):
 
     def disabledPeriodic(self) -> None:
         self.turret.update_angle_history()
-        self.chassis.update_odometry()
-        self.chassis.update_pose_history()
+        # self.chassis.update_odometry()
+        # self.chassis.update_pose_history()
         self.turret.try_sync()
         self.vision.execute()
         self.led_control.execute()
