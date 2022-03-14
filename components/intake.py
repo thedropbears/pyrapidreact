@@ -1,6 +1,6 @@
 import rev
 import wpilib
-from magicbot import feedback, tunable
+from magicbot import tunable
 
 
 class Intake:
@@ -9,6 +9,7 @@ class Intake:
     intake_piston: wpilib.DoubleSolenoid
 
     auto_retract = tunable(True)
+    invert_direction = tunable(False)
 
     def __init__(self):
         self._last_cargo_presence = 0
@@ -17,7 +18,7 @@ class Intake:
 
     def setup(self) -> None:
         self.intake_motor.restoreFactoryDefaults()
-        self.intake_motor.setInverted(True)
+        self.intake_motor.setInverted(False)
         self._intake_limit = self.intake_motor.getForwardLimitSwitch(
             rev.SparkMaxLimitSwitch.Type.kNormallyOpen
         )
@@ -34,7 +35,7 @@ class Intake:
             self.intake_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
         if self.deployed and self.motor_enabled:
-            self.intake_motor.set(1.0)
+            self.intake_motor.set(1.0 if self.invert_direction else -1.0)
         else:
             self.intake_motor.set(0.0)
 
@@ -50,10 +51,8 @@ class Intake:
         self.deployed = True
         self.motor_enabled = False
 
-    @feedback
     def is_deployed(self):
         return self.deployed
 
-    @feedback
     def is_motor_enabled(self):
         return self.motor_enabled

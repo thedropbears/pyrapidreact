@@ -1,6 +1,6 @@
 import ctre
 from utilities.ctre import FALCON_CPR
-from magicbot import tunable, feedback
+from magicbot import tunable
 
 
 class Hanger:
@@ -48,7 +48,6 @@ class Hanger:
         if self.enabled:
             self.target_position += speed * self.winch_speed / 50
 
-    @feedback
     def get_position(self) -> float:
         return self.climb_motor.getSelectedSensorPosition() * self.COUNTS_TO_M
 

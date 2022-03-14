@@ -40,6 +40,8 @@ class MyRobot(magicbot.MagicRobot):
     turret: Turret
     vision: Vision
 
+    lock_motion_while_shooting = magicbot.tunable(False)
+
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
 
@@ -102,7 +104,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
-        self.vision.max_std_dev = 2
+        self.vision.max_std_dev = 0.5
 
     def teleopInit(self) -> None:
         self.status_lights.display_morse = False
@@ -110,7 +112,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
-        self.vision.max_std_dev = 0.5
+        self.vision.max_std_dev = 0.4
 
     def disabledInit(self) -> None:
         self.status_lights.choose_morse_message()
@@ -129,7 +131,10 @@ class MyRobot(magicbot.MagicRobot):
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
         spin_rate = 3.0
         # Don't update these values while firing
-        if self.shooter_control.current_state != "firing":
+        if (
+            not self.lock_motion_while_shooting
+            or self.shooter_control.current_state != "firing"
+        ):
             joystick_x = (
                 -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
                 * 4
@@ -154,10 +159,10 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_field(*self.recorded_joystick_state)
 
         if self.joystick.getRawButtonPressed(11):
-            self.shooter_control.auto_shoot = True
+            self.shooter_control.lead_shots = True
 
         if self.joystick.getRawButtonPressed(12):
-            self.shooter_control.auto_shoot = False
+            self.shooter_control.lead_shots = False
 
         # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
@@ -174,6 +179,9 @@ class MyRobot(magicbot.MagicRobot):
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
+
+        if self.codriver.getBButtonPressed():
+            self.indexer_control.engage("forced_clearing", force=True)
 
         # Failsafe
         if self.codriver.getAButton():
@@ -233,6 +241,9 @@ class MyRobot(magicbot.MagicRobot):
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
+
+        if self.codriver.getBButtonPressed():
+            self.indexer_control.engage("forced_clearing", force=True)
 
         # lower intake without running it
         if self.codriver.getLeftBumper():
