@@ -41,8 +41,8 @@ class Indexer:
     _chimney_direction = Direction.OFF
     _cat_flap_is_open = False
 
-    red_total = int(0)
-    blue_total = int(0)
+    red_total = float(0)
+    blue_total = float(0)
 
     has_trapped_cargo = tunable(False)
 
@@ -122,10 +122,10 @@ class Indexer:
     def get_proximity(self) -> float:
         return self.colour_sensor.getProximity()
 
-    def red_value(self) -> int:
+    def red_value(self) -> float:
         return self.red_total
 
-    def blue_value(self) -> int:
+    def blue_value(self) -> float:
         return self.blue_total
 
     def open_cat_flap(self) -> None:
@@ -157,5 +157,5 @@ class Indexer:
             return CargoColour.NONE
 
     def reset_cargo_colour(self) -> None:
-        self.blue_total = 0
-        self.red_total = 0
+        self.blue_total = 0.0
+        self.red_total = 0.0
