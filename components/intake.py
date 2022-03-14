@@ -1,6 +1,6 @@
 import rev
 import wpilib
-from magicbot import feedback, tunable
+from magicbot import tunable
 
 
 class Intake:
