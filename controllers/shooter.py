@@ -3,7 +3,6 @@ from components.indexer import Indexer
 from components.shooter import Shooter
 from components.turret import Turret
 from components.intake import Intake
-from components.vision import Vision
 from magicbot import (
     StateMachine,
     tunable,
@@ -28,7 +27,6 @@ class ShooterController(StateMachine):
     intake: Intake
     chassis: Chassis
     imu: navx.AHRS
-    vision: Vision
 
     # If set to true, flywheel speed is set from tunable
     # Otherwise it is calculated from the interpolation table
