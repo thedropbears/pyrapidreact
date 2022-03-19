@@ -6,7 +6,7 @@ from components.chassis import Chassis
 import wpilib
 from utilities.trajectory_generator import goal_to_field
 from photonvision import PhotonCamera, PhotonUtils, LEDMode
-from wpimath.geometry import Pose2d, Translation2d
+from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 
 
 class Vision:
@@ -23,6 +23,7 @@ class Vision:
     CAMERA_PITCH = math.radians(20)
     CAMERA_HEIGHT = 0.7
     TARGET_HEIGHT = 2.66
+    # goal radius
     GOAL_RAD = 0.61
 
     field: wpilib.Field2d
@@ -51,13 +52,9 @@ class Vision:
         # work out our field position when photo was taken
         turret_rotation = self.turret.get_angle_at(timestamp)
         robot_rotation = self.chassis.get_pose_at(timestamp).rotation()
-        # camera translation relative to robot
-        camera_offset = Translation2d(
-            self.TURRET_OFFSET + math.cos(turret_rotation) * self.CAMERA_OFFSET,
-            math.sin(turret_rotation) * self.CAMERA_OFFSET,
-        ).rotateBy(robot_rotation)
-        # angle from the robot to target field relative
-        field_angle = robot_rotation.radians() + turret_rotation + target_yaw
+
+        # angle from the robot to target
+        target_angle = turret_rotation + target_yaw
         # distnace from camera to middle of goal
         distance = (
             PhotonUtils.calculateDistanceToTarget(
@@ -65,10 +62,7 @@ class Vision:
             )
             + self.GOAL_RAD
         )
-        vision_camera_pose = Translation2d(
-            distance=distance, angle=field_angle + math.pi
-        )
-        vision_pose = vision_camera_pose - camera_offset
+        vision_pose = pose_from_vision(distance, target_angle, robot_rotation.radians())
         self.field_obj.setPose(goal_to_field(vision_pose))
 
         if self.fuse_vision_observations:
@@ -87,3 +81,17 @@ class Vision:
     @feedback
     def is_ready(self) -> bool:
         return self.has_target
+
+
+def pose_from_vision(
+    range: float, turret_angle: float, chassis_heading: float
+) -> Pose2d:
+    # Assume robot is at origin
+    location = Translation2d(
+        Vision.TURRET_OFFSET + math.cos(turret_angle) * range,
+        math.sin(turret_angle) * range,
+    )
+    # Rotate by the chassis heading
+    location = location.rotateBy(Rotation2d(chassis_heading))
+    # Now transform the pose so that the target is at the origin
+    return Pose2d(-location.X(), -location.Y(), chassis_heading)
