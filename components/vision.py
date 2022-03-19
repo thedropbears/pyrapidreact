@@ -10,9 +10,8 @@ from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 
 
 class Vision:
-    """Communicates with raspberry pi to get vision data"""
+    """Communicates with limelight to get vision data and calculate pose"""
 
-    PONG_DELAY_THRESHOLD = 1.000
     turret: Turret
     chassis: Chassis
 
@@ -20,8 +19,8 @@ class Vision:
     TURRET_OFFSET = -0.15  # m from robot centre to turret centre, measured from CAD
 
     # camera angle from horizontal
-    CAMERA_PITCH = math.radians(20)
-    CAMERA_HEIGHT = 0.7
+    CAMERA_PITCH = math.radians(27)
+    CAMERA_HEIGHT = 0.972
     TARGET_HEIGHT = 2.66
     # goal radius
     GOAL_RAD = 0.61
@@ -33,21 +32,24 @@ class Vision:
 
     def __init__(self) -> None:
         self.nt = NetworkTables
-        self.camera = PhotonCamera(self.nt, "cam_name")
+        self.camera = PhotonCamera(self.nt, "gloworm")
         self.camera.setLEDMode(LEDMode.kOn)
         self.max_std_dev = 0.5
         self.has_target = False
+        self.distance = -1
+
+    def setup(self):
+        self.field_obj = self.field.getObject("vision_pose")
 
     def execute(self):
         # gets vision data from camera
         results = self.camera.getLatestResult()
-        if not results.hasTargets():
-            self.has_target = False
+        self.has_target = results.hasTargets()
+        if not self.has_target:
             return
-        self.has_target = True
         timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
-        target_pitch = results.getBestTarget().getPitch()
-        target_yaw = results.getBestTarget().getYaw()
+        target_pitch = math.radians(results.getBestTarget().getPitch())
+        target_yaw = math.radians(results.getBestTarget().getYaw())
 
         # work out our field position when photo was taken
         turret_rotation = self.turret.get_angle_at(timestamp)
@@ -56,24 +58,26 @@ class Vision:
         # angle from the robot to target
         target_angle = turret_rotation + target_yaw
         # distnace from camera to middle of goal
-        distance = (
+        self.distance = (
             PhotonUtils.calculateDistanceToTarget(
                 self.CAMERA_HEIGHT, self.TARGET_HEIGHT, self.CAMERA_PITCH, target_pitch
             )
             + self.GOAL_RAD
         )
-        vision_pose = pose_from_vision(distance, target_angle, robot_rotation.radians())
+        vision_pose = pose_from_vision(
+            self.distance, target_angle, robot_rotation.radians()
+        )
         self.field_obj.setPose(goal_to_field(vision_pose))
 
         if self.fuse_vision_observations:
-            innovation = vision_pose.distance(
+            innovation = vision_pose.translation().distance(
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
             if self.gate_innovation and innovation > 5.0:
                 return
             self.chassis.estimator.addVisionMeasurement(
-                Pose2d(vision_pose, robot_rotation),
+                vision_pose,
                 timestamp,
                 (self.max_std_dev, self.max_std_dev, 0.001),
             )
@@ -81,6 +85,10 @@ class Vision:
     @feedback
     def is_ready(self) -> bool:
         return self.has_target
+
+    @feedback
+    def get_distance(self) -> float:
+        return self.distance
 
 
 def pose_from_vision(
