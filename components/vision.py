@@ -4,6 +4,7 @@ from magicbot import feedback, tunable
 from components.turret import Turret
 from components.chassis import Chassis
 import wpilib
+from utilities.scalers import scale_value
 from utilities.trajectory_generator import goal_to_field
 from photonvision import PhotonCamera, PhotonUtils, LEDMode
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
@@ -21,7 +22,7 @@ class Vision:
     # camera angle from horizontal
     CAMERA_PITCH = math.radians(27)
     CAMERA_HEIGHT = 0.972
-    TARGET_HEIGHT = 2.66
+    TARGET_HEIGHT = 2.62
     # goal radius
     GOAL_RAD = 0.61
 
@@ -76,10 +77,14 @@ class Vision:
             # Gate on innovation
             if self.gate_innovation and innovation > 5.0:
                 return
+
+            std_dev = self.max_std_dev * min(
+                1, max(0, scale_value(self.distance, 5, 8, 1, 0.3))
+            )
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
                 timestamp,
-                (self.max_std_dev, self.max_std_dev, 0.001),
+                (std_dev, std_dev, 0.001),
             )
 
     @feedback
