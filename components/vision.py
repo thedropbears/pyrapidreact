@@ -73,7 +73,7 @@ class Vision:
             if self.gate_innovation and innovation > 5.0:
                 return
             self.chassis.estimator.addVisionMeasurement(
-                Pose2d(vision_pose, self.chassis.get_rotation()),
+                Pose2d(vision_pose, robot_rotation),
                 timestamp,
                 (self.max_std_dev, self.max_std_dev, 0.001),
             )
