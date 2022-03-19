@@ -44,6 +44,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
+        self.data_log = wpilib.DataLogManager.getLog()
 
         self.imu = navx.AHRS.create_spi()
 
