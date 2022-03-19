@@ -1,5 +1,4 @@
 import math
-from networktables import NetworkTables
 from magicbot import feedback, tunable
 from components.turret import Turret
 from components.chassis import Chassis
@@ -32,8 +31,7 @@ class Vision:
     gate_innovation = tunable(True)
 
     def __init__(self) -> None:
-        self.nt = NetworkTables
-        self.camera = PhotonCamera(self.nt, "gloworm")
+        self.camera = PhotonCamera("gloworm")
         self.camera.setLEDMode(LEDMode.kOn)
         self.max_std_dev = 0.5
         self.has_target = False
