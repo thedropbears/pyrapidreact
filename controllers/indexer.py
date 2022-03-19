@@ -6,6 +6,7 @@ from magicbot import (
     timed_state,
     tunable,
 )
+import wpiutil.log
 
 from controllers.shooter import ShooterController
 
@@ -13,9 +14,13 @@ from controllers.shooter import ShooterController
 class IndexerController(StateMachine):
     indexer: Indexer
     shooter_control: ShooterController
+    data_log: wpiutil.log.DataLog
 
     wants_to_intake = tunable(False)
     ignore_colour = tunable(False)
+
+    def setup(self) -> None:
+        self.log_colour = wpiutil.log.StringLogEntry(self.data_log, "/my/colour")
 
     def stop(self) -> None:
         self.next_state("stopping")
@@ -56,6 +61,7 @@ class IndexerController(StateMachine):
         if state_tm > 0.3:
             if not colour.is_valid() and state_tm < 0.5:
                 return
+            self.log_colour.append(colour.name)
             if colour.is_opposition() and not self.ignore_colour:
                 self.next_state("clearing")
                 """
