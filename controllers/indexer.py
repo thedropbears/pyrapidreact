@@ -44,7 +44,7 @@ class IndexerController(StateMachine):
 
     @state(first=True, must_finish=True)
     def intaking(self) -> None:
-        _ = self.indexer.read_cargo_colour()
+        self.indexer.read_cargo_colour()
         if self.indexer.has_cargo_in_tunnel():
             self.next_state("reading")
             return
@@ -52,7 +52,8 @@ class IndexerController(StateMachine):
 
     @state(must_finish=True)
     def reading(self, state_tm: float) -> None:
-        colour = self.indexer.read_cargo_colour()
+        self.indexer.read_cargo_colour()
+        colour = self.indexer.get_cargo_colour()
         if state_tm > 0.3:
             if not colour.is_valid() and state_tm < 0.5:
                 return
