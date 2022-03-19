@@ -23,7 +23,7 @@ class Vision:
     CAMERA_HEIGHT = 0.972
     TARGET_HEIGHT = 2.62
     # goal radius
-    GOAL_RAD = 0.61
+    GOAL_RADIUS = 0.61
 
     field: wpilib.Field2d
 
