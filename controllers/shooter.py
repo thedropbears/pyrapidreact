@@ -1,5 +1,4 @@
 import math
-import time
 from components.indexer import Indexer
 from components.shooter import Shooter
 from components.turret import Turret
