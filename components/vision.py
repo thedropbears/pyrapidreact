@@ -40,7 +40,7 @@ class Vision:
     def setup(self):
         self.field_obj = self.field.getObject("vision_pose")
 
-    def execute(self):
+    def execute(self) -> None:
         # gets vision data from camera
         results = self.camera.getLatestResult()
         self.has_target = results.hasTargets()
