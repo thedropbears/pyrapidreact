@@ -61,7 +61,7 @@ class Vision:
             PhotonUtils.calculateDistanceToTarget(
                 self.CAMERA_HEIGHT, self.TARGET_HEIGHT, self.CAMERA_PITCH, target_pitch
             )
-            + self.GOAL_RAD
+            + self.GOAL_RADIUS
         )
         vision_pose = pose_from_vision(
             self.distance, target_angle, robot_rotation.radians()
