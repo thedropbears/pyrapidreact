@@ -21,14 +21,14 @@ class Turret:
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
 
-    # pidF = 0.71901 / 12 * 1023 / 10 * math.tau / COUNTS_PER_MOTOR_REV
-    pidF = 0.15
-    pidP = 0.7
+    # Turret experiments show speed of 1884 counts/100ms for a throttle of about 0.35
+    pidF = (0.35 * 1023) / 1884
+    pidP = 3.0
     pidI = 0.0
     pidIZone = 200
-    pidD = 0.0  # 1.109
+    pidD = 90.0
 
-    SLEW_CRUISE_VELOCITY = 5 * COUNTS_PER_TURRET_RADIAN / 10
+    SLEW_CRUISE_VELOCITY = 10 * COUNTS_PER_TURRET_RADIAN / 10
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.1)
 
     target = magicbot.tunable(math.pi / 2)
