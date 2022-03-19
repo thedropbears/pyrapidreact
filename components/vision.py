@@ -37,7 +37,7 @@ class Vision:
         self.has_target = False
         self.distance = -1
 
-    def setup(self):
+    def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
 
     def execute(self) -> None:
