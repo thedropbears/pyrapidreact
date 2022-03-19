@@ -56,7 +56,7 @@ class Vision:
 
         # angle from the robot to target
         target_angle = turret_rotation + target_yaw
-        # distnace from camera to middle of goal
+        # distance from camera to middle of goal
         self.distance = (
             PhotonUtils.calculateDistanceToTarget(
                 self.CAMERA_HEIGHT, self.TARGET_HEIGHT, self.CAMERA_PITCH, target_pitch
