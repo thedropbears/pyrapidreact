@@ -33,7 +33,7 @@ class Vision:
     def __init__(self) -> None:
         self.camera = PhotonCamera("gloworm")
         self.camera.setLEDMode(LEDMode.kOn)
-        self.max_std_dev = 0.5
+        self.max_std_dev = 0.4
         self.has_target = False
         self.distance = -1
 
@@ -64,6 +64,23 @@ class Vision:
             )
             + self.GOAL_RADIUS
         )
+        # Numbers seem correct to around 5m, then start to overestimate
+        # Suspect this is because the target starts getting much smaller and apparently flatter
+        # Actual - calculated
+        # 3 - 2.93
+        # 4 - 3.95
+        # 5 - 5.04
+        # 6 - 6.16 - 2.7% - 97.4%
+        # 7 - 7.32 - 4.6% - 95.6%
+        # 8 - 8.59 - 7.4% - 93.1%
+        # 9 - 9.72 - 8.0% - 92.6%
+        scaling = 1.0
+        if self.distance > 9.75:
+            scaling = 0.926
+        elif self.distance > 5.0:
+            scaling = scale_value(self.distance, 5.0, 9.75, 1.0, 0.926)
+        self.distance *= scaling
+
         vision_pose = pose_from_vision(
             self.distance, target_angle, robot_rotation.radians()
         )
