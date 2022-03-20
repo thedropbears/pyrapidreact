@@ -35,7 +35,7 @@ class Vision:
         self.camera.setLEDMode(LEDMode.kOn)
         self.max_std_dev = 0.4
         self.has_target = False
-        self.distance = -1
+        self.distance = -1.0
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
