@@ -19,7 +19,7 @@ class Vision:
     TURRET_OFFSET = -0.15  # m from robot centre to turret centre, measured from CAD
 
     # camera angle from horizontal
-    CAMERA_PITCH = math.radians(27)
+    CAMERA_PITCH = math.radians(28)
     CAMERA_HEIGHT = 0.972
     TARGET_HEIGHT = 2.62
     # goal radius
