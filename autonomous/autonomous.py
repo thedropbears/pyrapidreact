@@ -93,8 +93,10 @@ class AutoBase(AutonomousStateMachine):
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
     def setup(self) -> None:
-        field_goal = self.field.getObject("auto_goal")
-        field_goal.setPose(trajectory_generator.goal_to_field(Pose2d(0, 0, 0)))
+        self.field_auto_target_pose = self.field.getObject("auto_target_pose")
+        self.field_auto_target_pose.setPose(
+            trajectory_generator.goal_to_field(Pose2d(0, 0, 0))
+        )
 
     def on_enable(self) -> None:
         self.chassis.set_pose(self.waypoints_poses[0])
@@ -151,7 +153,7 @@ class AutoBase(AutonomousStateMachine):
         is_stopped = self.chassis.translation_velocity.norm() < 0.5
         if self.trap_profile.isFinished(trap_time) and (
             self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE
-            or (is_close and is_stopped)
+            or ((is_close and is_stopped) or wpilib.RobotBase.isSimulation())
         ):
             self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
             waypoint_type = self.waypoints[self.cur_waypoint].type
@@ -174,9 +176,8 @@ class AutoBase(AutonomousStateMachine):
         )
 
         # send poses to driverstation
-        display_poses = [goal_pose, cur_pose]
-        self.field.getRobotObject().setPoses(
-            [trajectory_generator.goal_to_field(p) for p in display_poses]
+        self.field_auto_target_pose.setPose(
+            trajectory_generator.goal_to_field(goal_pose)
         )
         wpilib.SmartDashboard.putNumber("auto_vel", float(linear_state.velocity))
 
@@ -198,7 +199,7 @@ class AutoBase(AutonomousStateMachine):
             self.indexer.has_cargo_in_chimney()
             and self.indexer.has_cargo_in_tunnel()
             or state_tm > 3
-        ):
+        ) or (wpilib.RobotBase.isSimulation() and state_tm > 1):
             self.next_state("move")
             self.move_next_waypoint(tm)
 
