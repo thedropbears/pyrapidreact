@@ -75,9 +75,12 @@ class Vision:
             if self.gate_innovation and innovation > 5.0:
                 return
 
-            std_dev = self.max_std_dev * min(
-                1, max(0, scale_value(self.distance, 5, 8, 1, 0.3))
-            )
+            if self.distance < 5.0:
+                std_dev = 0.3 * self.max_std_dev
+            elif self.distance > 8.0:
+                std_dev = 1.0 * self.max_std_dev
+            else:
+                std_dev = self.max_std_dev * scale_value(self.distance, 5.0, 8.0, 0.3, 1.0)
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
                 timestamp,
