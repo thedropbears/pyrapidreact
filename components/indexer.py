@@ -41,8 +41,8 @@ class Indexer:
     _chimney_direction = Direction.OFF
     _cat_flap_is_open = False
 
-    red_total = int(0)
-    blue_total = int(0)
+    red_total = 0
+    blue_total = 0
 
     has_trapped_cargo = tunable(False)
 
@@ -99,13 +99,6 @@ class Indexer:
     def has_cargo_in_tunnel(self) -> bool:
         return not self.tunnel_break_beam.get()
 
-    def last_cargo_was_opposition(self) -> bool:
-        if wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kBlue:
-            return self.red_total > self.blue_total
-        elif wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed:
-            return self.blue_total > self.red_total
-        return True
-
     def ready_to_intake(self) -> bool:
         # We cannot have a cargo in the tunnel, and we can't already have two cargo (one in chimney and one trapped)
         if self.has_cargo_in_tunnel() or (
@@ -117,16 +110,7 @@ class Indexer:
 
     def get_colours(self) -> str:
         raw = self.colour_sensor.getRawColor()
-        return f"r{raw.red:.3f}, g{raw.green:.3f}, b{raw.blue:.3f}"
-
-    def get_proximity(self) -> float:
-        return self.colour_sensor.getProximity()
-
-    def red_value(self) -> int:
-        return self.red_total
-
-    def blue_value(self) -> int:
-        return self.blue_total
+        return f"r{raw.red:.3f}|g{raw.green:.3f}|b{raw.blue:.3f}"
 
     def open_cat_flap(self) -> None:
         self._cat_flap_is_open = True
@@ -140,18 +124,18 @@ class Indexer:
     def run_chimney_motor(self, direction: Direction) -> None:
         self._chimney_direction = direction
 
-    def get_cargo_colour(self) -> CargoColour:
-        ALPHA = 0.7
+    def read_cargo_colour(self) -> None:
         colour = self.colour_sensor.getRawColor()
-
         # In testing, the value of blue when we have red cargo never went above 600
-        if colour.red > 1000 or colour.blue > 1000:
-            self.red_total = self.red_total * (1.0 - ALPHA) + colour.red * ALPHA
-            self.blue_total = self.blue_total * (1.0 - ALPHA) + colour.blue * ALPHA
+        if colour.red > 700 and colour.red > colour.blue:
+            self.red_total += 1
+        if colour.blue > 700 and colour.blue > colour.red:
+            self.blue_total += 1
 
-        if self.blue_total > self.red_total:
+    def get_cargo_colour(self) -> CargoColour:
+        if self.blue_total > self.red_total and self.blue_total > 3:
             return CargoColour.BLUE
-        elif self.red_total > self.blue_total:
+        elif self.red_total > self.blue_total and self.red_total > 3:
             return CargoColour.RED
         else:
             return CargoColour.NONE

@@ -1,10 +1,8 @@
 import math
-import time
 from components.indexer import Indexer
 from components.shooter import Shooter
 from components.turret import Turret
 from components.intake import Intake
-from components.vision import Vision
 from magicbot import (
     StateMachine,
     tunable,
@@ -17,6 +15,7 @@ from components.chassis import Chassis
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 import wpilib
 import navx
+import wpiutil.log
 from utilities.trajectory_generator import goal_to_field
 from utilities.functions import constrain_angle, interpolate
 
@@ -28,7 +27,6 @@ class ShooterController(StateMachine):
     intake: Intake
     chassis: Chassis
     imu: navx.AHRS
-    vision: Vision
 
     # If set to true, flywheel speed is set from tunable
     # Otherwise it is calculated from the interpolation table
@@ -60,6 +58,8 @@ class ShooterController(StateMachine):
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
+    data_log: wpiutil.log.DataLog
+
     # dont want to lead shots in auto beacuse we are shoot on the move
     # and the it causes weird behavoir with wrapping
     lead_shots = tunable(False)
@@ -69,11 +69,9 @@ class ShooterController(StateMachine):
     def __init__(self) -> None:
         self.flywheels_running = True
         self.track_target = True
-        self.log_file = open("./1.log" if wpilib.RobotBase.isSimulation() else "/home/lvuser/shooting_positions.log", "a")
-    def on_enable(self):
-        print(time.ctime(), file=self.log_file, flush=True)
 
     def setup(self) -> None:
+        self.log_pose = wpiutil.log.DoubleArrayLogEntry(self.data_log, "/my/pose")
         self.field_effective_goal = self.field.getObject("effective_goal")
         self.field_effective_goal.setPose(goal_to_field(Pose2d(0, 0, 0)))
 
@@ -152,10 +150,8 @@ class ShooterController(StateMachine):
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self, initial_call) -> None:
         if initial_call:
-            try:
-                print(f"{wpilib.DriverStation.getMatchTime()} {self.chassis.get_pose()} {self.shooter.actual_velocity()} {self.vision.get_data().distance}", file=self.log_file, flush=True)
-            except:
-                print(f"Failed to log", file=self.log_file, flush=True)
+            pose = self.chassis.get_pose()
+            self.log_pose.append([pose.X(), pose.Y(), pose.rotation().radians()])
         if self.flywheels_running:
             if self.interpolation_override:
                 self.shooter.motor_speed = self.flywheel_speed

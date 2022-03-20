@@ -1,5 +1,5 @@
 import ctre
-from magicbot import will_reset_to, tunable, feedback
+from magicbot import will_reset_to, tunable
 from wpimath.geometry import Translation2d
 
 from utilities.ctre import FALCON_CPR

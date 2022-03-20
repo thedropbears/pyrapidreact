@@ -44,6 +44,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
+        self.data_log = wpilib.DataLogManager.getLog()
 
         self.imu = navx.AHRS.create_spi()
 
@@ -119,8 +120,8 @@ class MyRobot(magicbot.MagicRobot):
 
     def disabledPeriodic(self) -> None:
         self.turret.update_angle_history()
-        self.chassis.update_odometry()
-        self.chassis.update_pose_history()
+        # self.chassis.update_odometry()
+        # self.chassis.update_pose_history()
         self.turret.try_sync()
         self.vision.execute()
         self.led_control.execute()
@@ -131,7 +132,10 @@ class MyRobot(magicbot.MagicRobot):
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
         spin_rate = 3.0
         # Don't update these values while firing
-        if not self.lock_motion_while_shooting or self.shooter_control.current_state != "firing":
+        if (
+            not self.lock_motion_while_shooting
+            or self.shooter_control.current_state != "firing"
+        ):
             joystick_x = (
                 -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
                 * 4
@@ -277,6 +281,7 @@ class MyRobot(magicbot.MagicRobot):
         self.vision.execute()
         self.led_control.execute()
         self.status_lights.execute()
+
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)

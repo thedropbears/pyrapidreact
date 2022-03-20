@@ -1,6 +1,6 @@
 import ctre
 from utilities.ctre import FALCON_CPR
-from magicbot import tunable, feedback
+from magicbot import tunable
 
 
 class Hanger:
