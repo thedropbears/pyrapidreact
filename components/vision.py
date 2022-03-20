@@ -1,45 +1,29 @@
 import math
-
-from networktables import NetworkTables
-from typing import Optional
-from dataclasses import dataclass
 from magicbot import feedback, tunable
-from wpilib import Timer
 from components.turret import Turret
 from components.chassis import Chassis
-from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 import wpilib
-
+from utilities.scalers import scale_value
 from utilities.trajectory_generator import goal_to_field
-
-
-@dataclass
-class VisionData:
-    #: The angle to the target in radians.
-    angle: float
-
-    #: The distance to the target in metres.
-    distance: float
-
-    # how confident we are that we are correct, is generally lower when the target is smaller or irregular
-    fitness: float
-
-    #: An arbitrary timestamp, in seconds,
-    #: for when the vision system last obtained data.
-    timestamp: float
-
-    __slots__ = ("angle", "distance", "fitness", "timestamp")
+from photonvision import PhotonCamera, PhotonUtils, LEDMode
+from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 
 
 class Vision:
-    """Communicates with raspberry pi to get vision data"""
+    """Communicates with limelight to get vision data and calculate pose"""
 
-    PONG_DELAY_THRESHOLD = 1.000
     turret: Turret
     chassis: Chassis
 
-    CAMERA_OFFSET = 0.35  # m from camera to centre of turret, measured from CAD
-    TURRET_OFFSET = 0.15  # m from robot centre to turret centre, measured from CAD
+    CAMERA_OFFSET = -0.1  # m from camera to centre of turret, measured from CAD
+    TURRET_OFFSET = -0.15  # m from robot centre to turret centre, measured from CAD
+
+    # camera angle from horizontal
+    CAMERA_PITCH = math.radians(28)
+    CAMERA_HEIGHT = 0.972
+    TARGET_HEIGHT = 2.62
+    # goal radius
+    GOAL_RADIUS = 0.61
 
     field: wpilib.Field2d
 
@@ -47,72 +31,59 @@ class Vision:
     gate_innovation = tunable(True)
 
     def __init__(self) -> None:
-
-        self.nt = NetworkTables
-        self.table = self.nt.getTable("/vision")
-        self.vision_data_entry = self.table.getEntry("data")
-        self.ping_time_entry = self.table.getEntry("ping")  # rio time
-        self.rio_pong_time_entry = self.table.getEntry(
-            "rio_pong"
-        )  # rio time sent back with vision data
-        self.raspi_pong_time_entry = self.table.getEntry(
-            "raspi_pong"
-        )  # raspbi time send with data
-        self.latency_entry = self.table.getEntry("clock_offset")
-
-        self.last_pong = Timer.getFPGATimestamp()
-        self.last_data_timestamp = Timer.getFPGATimestamp()  # timestamp of last data
-
-        self.vision_data: Optional[VisionData] = None
-        self.max_std_dev = 0.5
+        self.camera = PhotonCamera("gloworm")
+        self.camera.setLEDMode(LEDMode.kOn)
+        self.max_std_dev = 0.4
+        self.has_target = False
+        self.distance = -1.0
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
 
-    def get_data(self) -> Optional[VisionData]:
-        """Returns the latest vision data.
-
-        Returns None if there is no vision data.
-        """
-        return self.vision_data
-
-    def angle(self) -> float:
-        # just feedback for debugging
-        if self.vision_data is None:
-            return -100
-        return self.vision_data.angle
-
     def execute(self) -> None:
-        self.receive_pong()
-        self.ping()
-        self.nt.flush()
-        data = self.vision_data_entry.getDoubleArray(None)
-        if data is None:
+        results = self.camera.getLatestResult()
+        self.has_target = results.hasTargets()
+        if not self.has_target:
             return
+        timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
+        target_pitch = math.radians(results.getBestTarget().getPitch())
+        target_yaw = -math.radians(
+            results.getBestTarget().getYaw()
+        )  # PhotonVision has yaw reversed from our RH coordinate system
 
-        if data[3] <= self.last_data_timestamp:
-            return
-        self.last_data_timestamp = data[3]
+        # work out our field position when photo was taken
+        turret_rotation = self.turret.get_angle_at(timestamp)
+        robot_rotation = self.chassis.get_pose_at(timestamp).rotation()
 
-        # add clock offset to vision timestamp
-        self.vision_data = VisionData(
-            data[0], data[1], data[2], data[3] + self.get_clocks_offset()
+        # angle from the robot to target
+        target_angle = turret_rotation + target_yaw
+        # distance from camera to middle of goal
+        self.distance = (
+            PhotonUtils.calculateDistanceToTarget(
+                self.CAMERA_HEIGHT, self.TARGET_HEIGHT, self.CAMERA_PITCH, target_pitch
+            )
+            + self.GOAL_RADIUS
         )
-
-        # Get vision pose estimate
-        # work out where the vision data was taken from based on histories
-        t = self.vision_data.timestamp
-        turret_angle = self.turret.get_angle_at(t)
-        chassis_heading = self.chassis.get_pose_at(t).rotation().radians()
-
-        # Ranges from vision are from centre of goal to the camera
-        # Add the offset to get range to the centre of the turret
-        range = self.vision_data.distance + self.CAMERA_OFFSET
+        # Numbers seem correct to around 5m, then start to overestimate
+        # Suspect this is because the target starts getting much smaller and apparently flatter
+        # Actual - calculated
+        # 3 - 2.93
+        # 4 - 3.95
+        # 5 - 5.04
+        # 6 - 6.16 - 2.7% - 97.4%
+        # 7 - 7.32 - 4.6% - 95.6%
+        # 8 - 8.59 - 7.4% - 93.1%
+        # 9 - 9.72 - 8.0% - 92.6%
+        scaling = 1.0
+        if self.distance > 9.75:
+            scaling = 0.926
+        elif self.distance > 5.0:
+            scaling = scale_value(self.distance, 5.0, 9.75, 1.0, 0.926)
+        self.distance *= scaling
 
         vision_pose = pose_from_vision(
-            range, turret_angle + self.vision_data.angle, chassis_heading
+            self.distance, target_angle, robot_rotation.radians()
         )
-
         self.field_obj.setPose(goal_to_field(vision_pose))
 
         if self.fuse_vision_observations:
@@ -120,42 +91,30 @@ class Vision:
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
-            if self.gate_innovation and innovation > 3.0:
+            if self.gate_innovation and innovation > 5.0:
                 return
-            # Come up with a position std dev from the fitness reported
-            # When the target is near the edge, the estimate of range is worse
-            pos_std_dev = self.max_std_dev * (1.0 - self.vision_data.fitness)
-            # TODO Can we be smarter and find different values for x and y based on robot orientation?
+
+            if self.distance < 5.0:
+                std_dev = 0.3 * self.max_std_dev
+            elif self.distance > 8.0:
+                std_dev = 1.0 * self.max_std_dev
+            else:
+                std_dev = self.max_std_dev * scale_value(
+                    self.distance, 5.0, 8.0, 0.3, 1.0
+                )
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
-                self.vision_data.timestamp,
-                (pos_std_dev, pos_std_dev, 0.001),
+                timestamp,
+                (std_dev, std_dev, 0.001),
             )
 
     @feedback
     def is_ready(self) -> bool:
-        return Timer.getFPGATimestamp() - self.last_pong < self.PONG_DELAY_THRESHOLD
+        return self.has_target
 
-    def system_lag_calculation(self) -> float:
-        if self.vision_data is not None:
-            return Timer.getFPGATimestamp() - self.vision_data.timestamp
-        else:
-            return math.inf
-
-    def ping(self) -> None:
-        """Send a ping to the RasPi to determine the connection latency."""
-        self.ping_time_entry.setDouble(Timer.getFPGATimestamp())
-
-    def receive_pong(self) -> None:
-        """Receive a pong from the RasPi to determine the connection latency."""
-        rio_pong_time = self.rio_pong_time_entry.getDouble(0)
-        if abs(rio_pong_time - self.last_pong) > 1e-4:  # Floating point comparison
-            raspi_pong_time = self.raspi_pong_time_entry.getDouble(0)
-            self.latency_entry.setDouble(rio_pong_time - raspi_pong_time)
-            self.last_pong = rio_pong_time
-
-    def get_clocks_offset(self) -> float:
-        return self.latency_entry.getDouble(0)
+    @feedback
+    def get_distance(self) -> float:
+        return self.distance
 
 
 def pose_from_vision(
@@ -163,7 +122,7 @@ def pose_from_vision(
 ) -> Pose2d:
     # Assume robot is at origin
     location = Translation2d(
-        -Vision.TURRET_OFFSET + math.cos(turret_angle) * range,
+        Vision.TURRET_OFFSET + math.cos(turret_angle) * range,
         math.sin(turret_angle) * range,
     )
     # Rotate by the chassis heading
