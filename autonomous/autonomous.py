@@ -204,7 +204,7 @@ class AutoBase(AutonomousStateMachine):
             # Assume the robot is well position after it starts moving after waiting for pickup
             self.waypoints_poses[self.cur_waypoint] = self.waypoints[
                 self.cur_waypoint
-            ] = self.chassis.get_pose()
+            ].pose = self.chassis.get_pose()
             self.move_next_waypoint(tm)
 
         if (

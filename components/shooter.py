@@ -74,7 +74,7 @@ class Shooter:
         return self.left_motor.getSelectedSensorVelocity() * self.CTRE_UNITS_TO_RPS
 
     def flywheel_error(self) -> float:
-        return self.motor_speed - self.actual_velocity()
+        return float(self.motor_speed) - self.actual_velocity()
 
     def is_at_speed(self) -> bool:
         return abs(self.flywheel_error()) < self.allowable_error
