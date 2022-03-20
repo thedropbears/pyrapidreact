@@ -47,7 +47,9 @@ class Vision:
             return
         timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
         target_pitch = math.radians(results.getBestTarget().getPitch())
-        target_yaw = math.radians(results.getBestTarget().getYaw())
+        target_yaw = -math.radians(
+            results.getBestTarget().getYaw()
+        )  # PhotonVision has yaw reversed from our RH coordinate system
 
         # work out our field position when photo was taken
         turret_rotation = self.turret.get_angle_at(timestamp)
@@ -80,7 +82,9 @@ class Vision:
             elif self.distance > 8.0:
                 std_dev = 1.0 * self.max_std_dev
             else:
-                std_dev = self.max_std_dev * scale_value(self.distance, 5.0, 8.0, 0.3, 1.0)
+                std_dev = self.max_std_dev * scale_value(
+                    self.distance, 5.0, 8.0, 0.3, 1.0
+                )
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
                 timestamp,
