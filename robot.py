@@ -105,7 +105,6 @@ class MyRobot(magicbot.MagicRobot):
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
         self.vision.max_std_dev = 0.8
-        self.vision.fuse_vision_observations = False
 
     def teleopInit(self) -> None:
         self.status_lights.display_morse = False
@@ -114,7 +113,6 @@ class MyRobot(magicbot.MagicRobot):
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
         self.vision.max_std_dev = 0.4
-        self.vision.fuse_vision_observations = True
 
     def disabledInit(self) -> None:
         self.status_lights.choose_morse_message()
