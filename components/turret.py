@@ -1,11 +1,10 @@
-from collections import deque
 from logging import Logger
-from typing import Deque
 
 import ctre
 import magicbot
 import math
 from wpilib import DutyCycleEncoder, Timer, Solenoid
+from wpimath.interpolation import TimeInterpolatableFloatBuffer
 
 from utilities.functions import constrain_angle
 
@@ -32,7 +31,6 @@ class Turret:
     CRUISE_ACCELERATION = int(SLEW_CRUISE_VELOCITY / 0.1)
 
     target = magicbot.tunable(math.pi / 2)
-    control_loop_wait_time: float
 
     # max rotation either side of zero
     MIN_ROTATION = math.radians(-15)
@@ -48,7 +46,7 @@ class Turret:
     logger: Logger
 
     def __init__(self) -> None:
-        self.angle_history: Deque[float] = deque([], maxlen=100)
+        self.angle_history = TimeInterpolatableFloatBuffer(20)
         self.sync_count = 0
         self.abs_offset = 3.07
 
@@ -155,17 +153,7 @@ class Turret:
         return angle
 
     def get_angle_at(self, t: float) -> float:
-        loops_ago = int((Timer.getFPGATimestamp() - t) / self.control_loop_wait_time)
-        if loops_ago < 0:
-            self.logger.warning("vision clocks wrapped")
-            return self.get_angle()
-        if loops_ago >= len(self.angle_history):
-            return (
-                self.angle_history[-1]
-                if len(self.angle_history) > 0
-                else self.get_angle()
-            )
-        return self.angle_history[loops_ago]
+        return self.angle_history.sample(t)
 
     def update_angle_history(self) -> None:
-        self.angle_history.appendleft(self.get_angle())
+        self.angle_history.addSample(Timer.getFPGATimestamp(), self.get_angle())

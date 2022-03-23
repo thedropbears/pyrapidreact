@@ -1,7 +1,6 @@
-from collections import deque
 from logging import Logger
 import math
-from typing import Optional, Deque
+from typing import Optional
 
 import ctre
 import magicbot
@@ -15,6 +14,7 @@ from wpimath.kinematics import (
 )
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpimath.estimator import SwerveDrive4PoseEstimator
+from wpimath.interpolation import TimeInterpolatablePose2dBuffer
 
 from utilities.functions import constrain_angle
 from utilities.ctre import FALCON_CPR
@@ -174,7 +174,8 @@ class Chassis:
     FAILSAFE_POSE = Pose2d(-4.502, 1.492, 0)
 
     def __init__(self) -> None:
-        self.pose_history: Deque[Pose2d] = deque([], maxlen=100)
+        self.pose_history = TimeInterpolatablePose2dBuffer(20)
+        self.last_pose = Pose2d()
         self.translation_velocity = Translation2d()
         self.rotation_velocity = Rotation2d()
 
@@ -254,7 +255,7 @@ class Chassis:
 
         cur_trans_vel = (
             self.estimator.getEstimatedPosition().translation()
-            - self.pose_history[0].translation()
+            - self.last_pose.translation()
         ) * self.control_rate
         self.translation_velocity = (
             cur_trans_vel * self.vel_avg_alpha
@@ -262,7 +263,7 @@ class Chassis:
         )
         cur_rot_vel = (
             self.estimator.getEstimatedPosition().rotation()
-            - self.pose_history[0].rotation()
+            - self.last_pose.rotation()
         ) * self.control_rate
         self.rotation_velocity = (
             cur_rot_vel * self.vel_avg_alpha
@@ -276,7 +277,7 @@ class Chassis:
             m.sync_steer_encoders()
 
     def set_pose(self, pose: Pose2d) -> None:
-        self.pose_history = deque([pose], maxlen=100)
+        self.pose_history.clear()
         self.estimator.resetPosition(pose, self.imu.getRotation2d())
 
     def set_pose_failsafe(self):
@@ -303,17 +304,7 @@ class Chassis:
 
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
-        loops_ago = int((wpilib.Timer.getFPGATimestamp() - t) * self.control_rate)
-        if loops_ago < 0:
-            self.logger.warning("vision clocks warpped")
-            return self.estimator.getEstimatedPosition()
-        if loops_ago >= len(self.pose_history):
-            return (
-                self.pose_history[-1]
-                if len(self.pose_history) > 0
-                else self.estimator.getEstimatedPosition()
-            )
-        return self.pose_history[loops_ago]
+        return self.pose_history.sample(t)
 
     def robot_to_world(
         self, offset: Translation2d, robot: Optional[Pose2d] = None
@@ -337,4 +328,6 @@ class Chassis:
         self.field.setRobotPose(goal_to_field(self.get_pose()))
 
     def update_pose_history(self) -> None:
-        self.pose_history.appendleft(self.get_pose())
+        pose = self.get_pose()
+        self.pose_history.addSample(wpilib.Timer.getFPGATimestamp(), pose)
+        self.last_pose = pose
