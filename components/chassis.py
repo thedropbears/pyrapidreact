@@ -278,6 +278,7 @@ class Chassis:
     def set_pose(self, pose: Pose2d) -> None:
         self.pose_history.clear()
         self.estimator.resetPosition(pose, self.imu.getRotation2d())
+        self.update_pose_history()
 
     def set_pose_failsafe(self):
         """Sets the pose to the right side of hanger"""
