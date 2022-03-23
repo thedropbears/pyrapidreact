@@ -262,8 +262,7 @@ class Chassis:
             + self.translation_velocity * (1 - self.vel_avg_alpha)
         )
         cur_rot_vel = (
-            self.estimator.getEstimatedPosition().rotation()
-            - self.last_pose.rotation()
+            self.estimator.getEstimatedPosition().rotation() - self.last_pose.rotation()
         ) * self.control_rate
         self.rotation_velocity = (
             cur_rot_vel * self.vel_avg_alpha
