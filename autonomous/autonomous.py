@@ -134,7 +134,6 @@ class AutoBase(AutonomousStateMachine):
             else:
                 self.move_next_waypoint(tm)
 
-        # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=current_pose,
             desiredState=target_state,
