@@ -18,7 +18,7 @@ class IndexerController(StateMachine):
 
     wants_to_intake = tunable(False)
     ignore_colour = tunable(False)
-    catflap_active = False
+    catflap_active = tunable(False)
 
     def setup(self) -> None:
         self.log_colour = wpiutil.log.StringLogEntry(self.data_log, "/my/colour")
