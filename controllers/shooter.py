@@ -3,6 +3,7 @@ from components.indexer import Indexer
 from components.shooter import Shooter
 from components.turret import Turret
 from components.intake import Intake
+from components.vision import Vision
 from magicbot import (
     StateMachine,
     tunable,
@@ -27,6 +28,7 @@ class ShooterController(StateMachine):
     intake: Intake
     chassis: Chassis
     imu: navx.AHRS
+    vision: Vision
 
     # If set to true, flywheel speed is set from tunable
     # Otherwise it is calculated from the interpolation table
@@ -71,7 +73,10 @@ class ShooterController(StateMachine):
         self.track_target = True
 
     def setup(self) -> None:
-        self.log_pose = wpiutil.log.DoubleArrayLogEntry(self.data_log, "/my/pose")
+        self.log_pose = wpiutil.log.DoubleArrayLogEntry(self.data_log, "/shooter/pose")
+        self.log_vision = wpiutil.log.DoubleArrayLogEntry(
+            self.data_log, "/shooter/vision"
+        )
         self.field_effective_goal = self.field.getObject("effective_goal")
         self.field_effective_goal.setPose(goal_to_field(Pose2d(0, 0, 0)))
 
@@ -151,7 +156,17 @@ class ShooterController(StateMachine):
     def firing(self, initial_call) -> None:
         if initial_call:
             pose = self.chassis.get_pose()
-            self.log_pose.append([pose.X(), pose.Y(), pose.rotation().radians()])
+            self.log_pose.append(
+                [pose.X(), pose.Y(), pose.rotation().radians(), self.turret.get_angle()]
+            )
+            self.log_vision.append(
+                [
+                    self.vision.has_target,
+                    self.vision.distance,
+                    self.vision.target_pitch,
+                    self.vision.target_yaw,
+                ]
+            )
         if self.flywheels_running:
             if self.interpolation_override:
                 self.shooter.motor_speed = self.flywheel_speed

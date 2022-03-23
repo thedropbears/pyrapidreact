@@ -36,6 +36,8 @@ class Vision:
         self.max_std_dev = 0.4
         self.has_target = False
         self.distance = -1.0
+        self.target_pitch = 0.0
+        self.target_yaw = 0.0
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
@@ -46,8 +48,8 @@ class Vision:
         if not self.has_target:
             return
         timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
-        target_pitch = math.radians(results.getBestTarget().getPitch())
-        target_yaw = -math.radians(
+        self.target_pitch = math.radians(results.getBestTarget().getPitch())
+        self.target_yaw = -math.radians(
             results.getBestTarget().getYaw()
         )  # PhotonVision has yaw reversed from our RH coordinate system
 
@@ -56,11 +58,14 @@ class Vision:
         robot_rotation = self.chassis.get_pose_at(timestamp).rotation()
 
         # angle from the robot to target
-        target_angle = turret_rotation + target_yaw
+        target_angle = turret_rotation + self.target_yaw
         # distance from camera to middle of goal
         self.distance = (
             PhotonUtils.calculateDistanceToTarget(
-                self.CAMERA_HEIGHT, self.TARGET_HEIGHT, self.CAMERA_PITCH, target_pitch
+                self.CAMERA_HEIGHT,
+                self.TARGET_HEIGHT,
+                self.CAMERA_PITCH,
+                self.target_pitch,
             )
             + self.GOAL_RADIUS
         )
