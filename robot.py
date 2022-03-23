@@ -126,19 +126,19 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-        spin_rate = 3.0
+        spin_rate = 4.0
         # Don't update these values while firing
         if (
             not self.lock_motion_while_shooting
             or self.shooter_control.current_state != "firing"
         ):
             joystick_x = (
-                -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
+                -rescale_js(self.joystick.getY(), deadzone=0.05, exponential=1.5)
                 * 4
                 * throttle
             )
             joystick_y = (
-                -rescale_js(self.joystick.getX(), deadzone=0.1, exponential=1.5)
+                -rescale_js(self.joystick.getX(), deadzone=0.05, exponential=1.5)
                 * 4
                 * throttle
             )

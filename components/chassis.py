@@ -138,6 +138,8 @@ class SwerveModule:
 class Chassis:
     # assumes square chassis
     width = 0.6167  # meters between modules from CAD
+    # maxiumum speed for any wheel
+    max_attainable_wheel_speed = 13 * 0.3048  # ft/s to m/s
 
     vx = magicbot.will_reset_to(0.0)
     vy = magicbot.will_reset_to(0.0)
@@ -246,10 +248,12 @@ class Chassis:
 
     def execute(self) -> None:
         self.desired_states = self.kinematics.toSwerveModuleStates(self.chassis_speeds)
+        self.desired_states = self.kinematics.desaturateWheelSpeeds(
+            self.desired_states, attainableMaxSpeed=self.max_attainable_wheel_speed
+        )
         for state, module in zip(self.desired_states, self.modules):
             state = SwerveModuleState.optimize(state, module.get_rotation())
             module.set(state)
-        self.kinematics.desaturateWheelSpeeds
 
         self.update_odometry()
 
