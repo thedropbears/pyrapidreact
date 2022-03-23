@@ -309,7 +309,7 @@ class FiveBall(AutoBase):
                     ],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(-206),
+                Rotation2d.fromDegrees(180),
             ),
             Movement(
                 WaypointType.PICKUP,
@@ -361,7 +361,7 @@ class FourBall(AutoBase):
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(130),
+                Rotation2d.fromDegrees(-136),
             ),
             Movement(
                 WaypointType.SHOOT,
@@ -371,7 +371,7 @@ class FourBall(AutoBase):
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(130),
+                Rotation2d.fromDegrees(-136),
             ),
         ]
 
