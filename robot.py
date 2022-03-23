@@ -9,7 +9,6 @@ import math
 
 from components.leds import StatusLights
 from components.chassis import Chassis
-from components.hanger import Hanger
 from components.indexer import Indexer
 from components.intake import Intake
 from components.shooter import Shooter
@@ -33,7 +32,6 @@ class MyRobot(magicbot.MagicRobot):
 
     status_lights: StatusLights
     chassis: Chassis
-    hanger: Hanger
     intake: Intake
     indexer: Indexer
     shooter: Shooter
@@ -90,8 +88,6 @@ class MyRobot(magicbot.MagicRobot):
             wpilib.PneumaticsModuleType.CTREPCM, 1, 3
         )
         self.colour_sensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
-
-        self.climb_motor = ctre.TalonFX(22)
 
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData(self.field)
@@ -188,28 +184,6 @@ class MyRobot(magicbot.MagicRobot):
         if self.codriver.getAButton():
             self.chassis.set_pose_failsafe()
 
-        # Climb
-        if self.codriver.getLeftBumper() and self.codriver.getRightBumper():
-            self.shooter_control.track_target = False
-            self.shooter_control.flywheels_running = False
-            self.turret.slew_local(math.pi)
-            self.intake.deploy_without_running()
-
-        if (
-            self.intake.deployed
-            and not self.intake.motor_enabled
-            and abs(self.turret.get_error()) < math.pi / 18
-        ):
-            right_trigger = self.codriver.getRightTriggerAxis()
-            if right_trigger > 0.2:
-                self.hanger.enabled = True
-                self.hanger.winch(right_trigger)
-
-            left_trigger = self.codriver.getLeftTriggerAxis()
-            if left_trigger > 0.2:
-                self.hanger.enabled = True
-                self.hanger.payout(left_trigger)
-
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0, 1)
@@ -252,20 +226,9 @@ class MyRobot(magicbot.MagicRobot):
             self.intake.deployed = not self.intake.deployed
             self.intake.auto_retract = False
 
-        right_trigger = self.codriver.getRightTriggerAxis()
-        if right_trigger > 0.2:
-            self.hanger.enabled = True
-            self.hanger.winch(right_trigger)
-
-        left_trigger = self.codriver.getLeftTriggerAxis()
-        if left_trigger > 0.2:
-            self.hanger.enabled = True
-            self.hanger.payout(left_trigger)
-
         self.indexer_control.execute()
 
         self.chassis.execute()
-        self.hanger.execute()
         self.intake.execute()
         self.indexer.execute()
         self.shooter.execute()
