@@ -165,8 +165,13 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getRawButtonPressed(8):
             self.indexer_control.ignore_colour = False
 
-        # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
+            self.intake.auto_retract = True
+        if self.joystick.getRawButtonPressed(10):
+            self.intake.auto_retract = False
+
+        # reset heading to intake facing directly downfield
+        if self.codriver.getYButtonPressed():
             self.chassis.zero_yaw()
 
         if self.joystick.getTrigger():
@@ -180,6 +185,9 @@ class MyRobot(magicbot.MagicRobot):
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
+
+        # stop motor running if we are full
+        self.intake.motor_enabled = self.indexer.ready_to_intake()
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
