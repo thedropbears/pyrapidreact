@@ -82,8 +82,6 @@ class AutoBase(AutonomousStateMachine):
 
         # all in meters along straight line path
         self.total_length = trajectory_generator.total_length(self.waypoints_poses)
-        # how far around the current position is used to smooth the path
-        self.look_around = 0.1
         # the index of the waypoint we are currently going towards or at
         self.cur_waypoint = 0
 
@@ -129,9 +127,8 @@ class AutoBase(AutonomousStateMachine):
         linear_state = self.trap_profile.calculate(trap_time)
 
         # find current goal pose
-        goal_pose = trajectory_generator.smooth_path(
+        goal_pose = trajectory_generator.lookup_linear(
             self.waypoints_poses,
-            self.look_around,
             linear_state.position,
         )
         goal_rotation = goal_pose.rotation()
@@ -171,7 +168,7 @@ class AutoBase(AutonomousStateMachine):
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=cur_pose,
             poseRef=goal_pose_fake,
-            linearVelocityRef=linear_state.velocity * 0.1,  # used for feedforward
+            linearVelocityRef=goal_pose_diff.norm() * 50,
             angleRef=goal_rotation,
         )
         self.chassis.drive_local(
