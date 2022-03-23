@@ -46,7 +46,7 @@ class Turret:
     logger: Logger
 
     def __init__(self) -> None:
-        self.angle_history = TimeInterpolatableFloatBuffer(20)
+        self.angle_history = TimeInterpolatableFloatBuffer(2)
         self.sync_count = 0
         self.abs_offset = 3.07
 

@@ -174,7 +174,7 @@ class Chassis:
     FAILSAFE_POSE = Pose2d(-4.502, 1.492, 0)
 
     def __init__(self) -> None:
-        self.pose_history = TimeInterpolatablePose2dBuffer(20)
+        self.pose_history = TimeInterpolatablePose2dBuffer(2)
         self.last_pose = Pose2d()
         self.translation_velocity = Translation2d()
         self.rotation_velocity = Rotation2d()
