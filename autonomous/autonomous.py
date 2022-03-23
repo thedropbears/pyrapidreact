@@ -100,6 +100,9 @@ class AutoBase(AutonomousStateMachine):
 
     def on_enable(self) -> None:
         self.chassis.set_pose(self.waypoints_poses[0])
+        self.field.getObject("trajectory").setPoses(
+            [trajectory_generator.goal_to_field(pose) for pose in self.waypoints_poses]
+        )
 
         self.last_pose = self.waypoints[0].pose
         # generates initial velocity profile
