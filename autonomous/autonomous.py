@@ -117,7 +117,7 @@ class AutoBase(AutonomousStateMachine):
             # Nicer visualisation in sim
             target_heading = target_state.pose.rotation()
         else:
-            self.current_movement.chassis_heading
+            target_heading = self.current_movement.chassis_heading
 
         current_pose = self.chassis.estimator.getEstimatedPosition()
 
@@ -238,44 +238,44 @@ class TestAuto(AutoBase):
         super().setup()
         self.movements = [
             Movement(
-                WaypointType.SIMPLE,
+                WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(0, 0, Rotation2d.fromDegrees(-45)),
                     end=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(90),
+                Rotation2d.fromDegrees(0),
             ),
             Movement(
-                WaypointType.SIMPLE,
+                WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
                     end=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(180),
+                Rotation2d.fromDegrees(90),
             ),
             Movement(
-                WaypointType.SIMPLE,
+                WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
                     end=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(270),
+                Rotation2d.fromDegrees(180),
             ),
             Movement(
-                WaypointType.SIMPLE,
+                WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
                     end=Pose2d(0, 0, Rotation2d.fromDegrees(315)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(0),
+                Rotation2d.fromDegrees(270),
             ),
         ]
 
