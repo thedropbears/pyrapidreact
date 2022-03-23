@@ -18,6 +18,7 @@ class IndexerController(StateMachine):
 
     wants_to_intake = tunable(False)
     ignore_colour = tunable(False)
+    catflap_active = tunable(False)
 
     def setup(self) -> None:
         self.log_colour = wpiutil.log.StringLogEntry(self.data_log, "/my/colour")
@@ -64,20 +65,26 @@ class IndexerController(StateMachine):
                 return
             self.log_colour.append(colour.name)
             if colour.is_opposition() and not self.ignore_colour:
-                self.next_state("clearing")
-                """
-                if (
-                    self.indexer.has_trapped_cargo
-                    or self.indexer.has_cargo_in_chimney()
-                ):
-                    self.next_state("clearing")
+                if self.catflap_active:
+                    if (
+                        self.indexer.has_trapped_cargo
+                        or self.indexer.has_cargo_in_chimney()
+                    ):
+                        self.next_state("clearing")
+                    else:
+                        self.next_state("trapping")
                 else:
-                    self.next_state("trapping")
-                """
+                    self.next_state("clearing")
             else:
-                # It is our ball so we have finished this process
-                # The "stopped" state will work out if it needs to move the ball into the chimney
-                self.next_state("stopped")
+                if self.catflap_active and self.ignore_colour:
+                    if self.indexer.has_trapped_cargo:
+                        self.next_state("clearing")
+                    else:
+                        self.next_state("trapping")
+                else:
+                    # It is our ball so we have finished this process
+                    # The "stopped" state will work out if it needs to move the ball into the chimney
+                    self.next_state("stopped")
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def clearing(self) -> None:
