@@ -301,14 +301,13 @@ class FiveBall(AutoBase):
                 Waypoint(
                     -0.65, -3.55, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
                 ),  # 3
-                Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
+                Waypoint(-2.1, -2.6, Rotation2d.fromDegrees(-200)),
                 Waypoint(
-                    -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
+                    -3.21, -2.1, Rotation2d.fromDegrees(-200), WaypointType.SHOOT
                 ),  # 2
                 Waypoint(
-                    -8.0, -2.5, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
+                    -6.95, -2.8, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
                 ),  # 4
-                Waypoint(-7.5, -2.2, Rotation2d.fromDegrees(-136)),
                 Waypoint(
                     -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
                 ),  # shoot
