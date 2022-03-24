@@ -181,7 +181,7 @@ class AutoBase(AutonomousStateMachine):
 
         # Shoot in the end of autonoumous if we can
         if (
-            wpilib.DriverStation.getMatchTime() <= 1.0
+            wpilib.DriverStation.getMatchTime() <= 2.5
             and self.indexer.has_cargo_in_chimney()
         ):
             self.next_state("firing")
@@ -194,13 +194,13 @@ class AutoBase(AutonomousStateMachine):
         if (
             self.indexer.has_cargo_in_chimney()
             and self.indexer.has_cargo_in_tunnel()
-            or state_tm > 3
+            or state_tm > 1.5
         ) or (wpilib.RobotBase.isSimulation() and state_tm > 1):
             self.next_state("move")
             self.move_next_waypoint(tm)
 
         if (
-            wpilib.DriverStation.getMatchTime() <= 1.0
+            wpilib.DriverStation.getMatchTime() <= 2.5
             and self.indexer.has_cargo_in_chimney()
         ):
             self.next_state("firing")
