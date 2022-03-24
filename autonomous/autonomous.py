@@ -79,10 +79,16 @@ class AutoBase(AutonomousStateMachine):
         self.field_auto_target_pose = self.field.getObject("auto_target_pose")
         self.auto_trajectory = self.field.getObject("auto_trajectory")
         self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
-        self.trajectory_config = TrajectoryConfig(maxVelocity=3.5, maxAcceleration=9.0)
+
+        max_speed = (
+            self.chassis.max_attainable_wheel_speed * 0.75
+        )  # Leave some headroom over the max unloaded speed
+        self.trajectory_config = TrajectoryConfig(
+            maxVelocity=max_speed, maxAcceleration=max_speed / 0.4
+        )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
         self.trajectory_config.addConstraint(
             constraint.SwerveDrive4KinematicsConstraint(
-                self.chassis.kinematics, maxSpeed=4.0
+                self.chassis.kinematics, maxSpeed=max_speed
             )
         )
         # add additional constraints here if required
