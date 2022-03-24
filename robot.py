@@ -126,19 +126,19 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self) -> None:
         # handle chassis inputs
         throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-        spin_rate = 3.0
+        spin_rate = 4.0
         # Don't update these values while firing
         if (
             not self.lock_motion_while_shooting
             or self.shooter_control.current_state != "firing"
         ):
             joystick_x = (
-                -rescale_js(self.joystick.getY(), deadzone=0.1, exponential=1.5)
+                -rescale_js(self.joystick.getY(), deadzone=0.05, exponential=1.5)
                 * 4
                 * throttle
             )
             joystick_y = (
-                -rescale_js(self.joystick.getX(), deadzone=0.1, exponential=1.5)
+                -rescale_js(self.joystick.getX(), deadzone=0.05, exponential=1.5)
                 * 4
                 * throttle
             )
@@ -165,8 +165,13 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getRawButtonPressed(8):
             self.indexer_control.ignore_colour = False
 
-        # reset heading to intake facing directly downfield
         if self.joystick.getRawButtonPressed(9):
+            self.intake.auto_retract = True
+        if self.joystick.getRawButtonPressed(10):
+            self.intake.auto_retract = False
+
+        # reset heading to intake facing directly downfield
+        if self.codriver.getYButtonPressed():
             self.chassis.zero_yaw()
 
         if self.joystick.getTrigger():
@@ -180,6 +185,9 @@ class MyRobot(magicbot.MagicRobot):
             elif self.indexer.ready_to_intake():
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
+
+        # stop motor running if we are full
+        self.intake.motor_enabled = self.indexer.ready_to_intake()
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
