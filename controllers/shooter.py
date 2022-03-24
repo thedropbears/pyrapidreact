@@ -17,7 +17,6 @@ from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 import wpilib
 import navx
 import wpiutil.log
-from utilities.trajectory_generator import goal_to_field
 from utilities.functions import constrain_angle, interpolate
 
 
@@ -78,7 +77,7 @@ class ShooterController(StateMachine):
             self.data_log, "/shooter/vision"
         )
         self.field_effective_goal = self.field.getObject("effective_goal")
-        self.field_effective_goal.setPose(goal_to_field(Pose2d(0, 0, 0)))
+        self.field_effective_goal.setPose(Pose2d(0, 0, 0))
 
     @default_state
     def tracking(self) -> None:
@@ -101,9 +100,7 @@ class ShooterController(StateMachine):
                 break
 
         self.field_effective_goal.setPose(
-            goal_to_field(
-                Pose2d(-robot_movement.X(), -robot_movement.Y(), Rotation2d(0))
-            )
+            Pose2d(-robot_movement.X(), -robot_movement.Y(), Rotation2d(0))
         )
 
         turret_pose = self.chassis.robot_to_world(

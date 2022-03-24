@@ -34,18 +34,40 @@
           "length": 0.75,
           "width": 0.75
         },
+        "auto_target_pose": {
+          "color": [
+            1.0,
+            1.0,
+            0.0,
+            255.0
+          ]
+        },
+        "bottom": 480,
         "effective_goal": {
           "arrows": false,
+          "color": [
+            0.43125054240226746,
+            0.9578059315681458,
+            0.07274475693702698,
+            255.0
+          ],
           "length": 1.2999999523162842,
           "width": 1.2999999523162842
         },
+        "height": 4.114999771118164,
         "image": "./2022-field.jpg",
-        "left": 924,
-        "right": 1774,
-        "top": 475,
-        "bottom": 900,
-        "width": 16.459201903006434,
-        "height": 8.229600936602056,
+        "left": 930,
+        "right": 1694,
+        "top": 30,
+        "vision_pose": {
+          "color": [
+            0.0,
+            0.0,
+            1.0,
+            255.0
+          ]
+        },
+        "width": 8.229999542236328,
         "window": {
           "visible": true
         }
@@ -61,7 +83,7 @@
               "autoFit": true
             }
           ],
-          "height": -9,
+          "height": 25,
           "series": [
             {
               "color": [
@@ -74,7 +96,10 @@
             }
           ]
         }
-      ]
+      ],
+      "window": {
+        "visible": false
+      }
     }
   }
 }

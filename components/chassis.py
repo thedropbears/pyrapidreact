@@ -19,7 +19,6 @@ from wpimath.interpolation import TimeInterpolatablePose2dBuffer
 from utilities.functions import constrain_angle
 from utilities.ctre import FALCON_CPR
 from wpimath.controller import SimpleMotorFeedforwardMeters
-from utilities.trajectory_generator import goal_to_field
 
 
 class SwerveModule:
@@ -329,7 +328,7 @@ class Chassis:
             self.modules[2].get(),
             self.modules[3].get(),
         )
-        self.field.setRobotPose(goal_to_field(self.get_pose()))
+        self.field.setRobotPose(self.get_pose())
 
     def update_pose_history(self) -> None:
         pose = self.get_pose()

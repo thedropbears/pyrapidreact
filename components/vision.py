@@ -4,7 +4,6 @@ from components.turret import Turret
 from components.chassis import Chassis
 import wpilib
 from utilities.scalers import scale_value
-from utilities.trajectory_generator import goal_to_field
 from photonvision import PhotonCamera, PhotonUtils, LEDMode
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 
@@ -89,7 +88,7 @@ class Vision:
         vision_pose = pose_from_vision(
             self.distance, target_angle, robot_rotation.radians()
         )
-        self.field_obj.setPose(goal_to_field(vision_pose))
+        self.field_obj.setPose(vision_pose)
 
         if self.fuse_vision_observations:
             innovation = vision_pose.translation().distance(
