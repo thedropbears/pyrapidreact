@@ -36,13 +36,13 @@ class ShooterController(StateMachine):
 
     distance = 0.0
     # fmt: off
-    ranges_lookup =         (3.0,  3.5, 4.0,  4.5,  5.0,  5.5,  6.0,  6.5,  7.0,  7.5,  8.0)
-    flywheel_speed_lookup = (28.0, 28.5,30.0, 32.5, 36.0, 38.5, 41.0, 42.5, 43.0, 44.5, 46.0)
-    times_lookup =          (0.45, 0.475, 0.5,0.55, 0.6, 0.65,  0.7,  0.75, 0.8,  0.9,  1.0)
+    ranges_lookup =         ( 3.0,  3.5,  4.0,  4.5,  5.0,  5.5,  6.0,  6.5,  7.0,  7.5,  8.0)
+    flywheel_speed_lookup = (27.5, 28.0, 30.0, 32.5, 36.0, 38.5, 41.0, 42.5, 43.5, 45.0, 47.0)
+    times_lookup =          (0.45,0.475, 0.50, 0.55,  0.6, 0.65, 0.70, 0.75, 0.80, 0.90, 1.00)
     # fmt: on
 
     MAX_DIST = 8
-    MIN_DIST = 2.5
+    MIN_DIST = 2.75
 
     MAX_SPEED = 2.0  # m/s
     MAX_ROTATION = 2.0  # rad/s
