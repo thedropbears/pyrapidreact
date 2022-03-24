@@ -121,7 +121,7 @@ class AutoBase(AutonomousStateMachine):
         target_state = self.current_trajectory.sample(traj_time)
         target_heading = self.current_movement.chassis_heading
 
-        current_pose = self.chassis.estimator.getEstimatedPosition()
+        current_pose = self.chassis.get_pose()
 
         if traj_time > self.current_trajectory.totalTime() and (
             self.drive_controller.atReference() or wpilib.RobotBase.isSimulation()
