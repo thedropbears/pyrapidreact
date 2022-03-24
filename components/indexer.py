@@ -1,5 +1,6 @@
 import rev
 import wpilib
+import wpiutil
 from enum import Enum
 from magicbot import tunable, feedback
 
@@ -68,6 +69,14 @@ class Indexer:
             motor.setPeriodicFramePeriod(
                 rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus3, 500
             )
+
+        for sendable in (
+            self.lower_chimney_prox_sensor,
+            self.upper_chimney_prox_sensor,
+            self.tunnel_break_beam,
+            self.cat_flap_piston,
+        ):
+            wpiutil.SendableRegistry.setSubsystem(sendable, "Indexer")
 
     def execute(self) -> None:
         if self._tunnel_direction is Indexer.Direction.BACKWARDS:
