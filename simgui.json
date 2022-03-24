@@ -12,6 +12,9 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
+      "/LiveWindow/Indexer/DigitalInput[1]": "Digital Input",
+      "/LiveWindow/Indexer/DigitalInput[6]": "Digital Input",
+      "/LiveWindow/Indexer/DigitalInput[8]": "Digital Input",
       "/LiveWindow/Ungrouped/ADXRS450_Gyro[0]": "Gyro",
       "/LiveWindow/Ungrouped/DigitalInput[0]": "Digital Input",
       "/LiveWindow/Ungrouped/DigitalInput[10]": "Digital Input",
