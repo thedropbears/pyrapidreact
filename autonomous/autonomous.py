@@ -215,9 +215,7 @@ class AutoBase(AutonomousStateMachine):
             current_translation = self.chassis.get_pose().translation()
         first_translation = self.current_movement.trajectory.initialPose().translation()
         # Don't adjust the rotation, just the translation
-        self.current_trajectory = self.movements[
-            self.current_movement_idx
-        ].trajectory.transformBy(
+        self.current_trajectory = self.current_movement.trajectory.transformBy(
             Transform2d(current_translation - first_translation, Rotation2d(0.0))
         )
 
