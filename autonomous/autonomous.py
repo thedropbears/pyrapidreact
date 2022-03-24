@@ -226,6 +226,7 @@ class AutoBase(AutonomousStateMachine):
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
 
 # start positions
+# don't change rotations because the initial robot pose is set from them!
 right_mid_start = Pose2d(-0.630, -2.334, Rotation2d.fromDegrees(-88.5))
 left_mid_start = Pose2d(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
@@ -244,7 +245,7 @@ class TestAuto(AutoBase):
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(0),
+                Rotation2d.fromDegrees(45),
             ),
             Movement(
                 WaypointType.PICKUP,
@@ -254,7 +255,7 @@ class TestAuto(AutoBase):
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(90),
+                Rotation2d.fromDegrees(135),
             ),
             Movement(
                 WaypointType.PICKUP,
@@ -264,7 +265,7 @@ class TestAuto(AutoBase):
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(180),
+                Rotation2d.fromDegrees(225),
             ),
             Movement(
                 WaypointType.PICKUP,
@@ -274,7 +275,7 @@ class TestAuto(AutoBase):
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(270),
+                Rotation2d.fromDegrees(315),
             ),
         ]
 
@@ -292,17 +293,17 @@ class FiveBall(AutoBase):
                 WaypointType.SHOOT,
                 TrajectoryGenerator.generateTrajectory(
                     start=right_mid_start,
-                    end=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(-80)),
+                    end=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(-90)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(-80),
+                Rotation2d.fromDegrees(-88.5),
             ),
             Movement(
                 WaypointType.SHOOT,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(100)),
-                    end=Pose2d(-4.2, -2.3, Rotation2d.fromDegrees(180)),
+                    end=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(180)),
                     interiorWaypoints=[
                         Translation2d(-1.8, -2.3),
                     ],
@@ -313,22 +314,22 @@ class FiveBall(AutoBase):
             Movement(
                 WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-4.2, -2.3, Rotation2d.fromDegrees(180)),
-                    end=Pose2d(-8.0, -2.5, Rotation2d.fromDegrees(-136)),
+                    start=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(170)),
+                    end=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(-135)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(-136),
+                Rotation2d.fromDegrees(-135),
             ),
             Movement(
                 WaypointType.SHOOT,
                 TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-8.0, -2.5, Rotation2d.fromDegrees(44)),
+                    start=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(45)),
                     end=Pose2d(-5.0, -2.0, Rotation2d.fromDegrees(0)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
-                Rotation2d.fromDegrees(-136),
+                Rotation2d.fromDegrees(-135),
             ),
         ]
 
@@ -346,7 +347,7 @@ class FourBall(AutoBase):
                 WaypointType.SHOOT,
                 TrajectoryGenerator.generateTrajectory(
                     start=left_mid_start,
-                    end=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(130)),
+                    end=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(160)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
@@ -356,7 +357,7 @@ class FourBall(AutoBase):
                 WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(-130)),
-                    end=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(-136)),
+                    end=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(-135)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
@@ -365,7 +366,7 @@ class FourBall(AutoBase):
             Movement(
                 WaypointType.SHOOT,
                 TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(44)),
+                    start=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(75)),
                     end=Pose2d(-5.0, 0.0, Rotation2d.fromDegrees(30)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
