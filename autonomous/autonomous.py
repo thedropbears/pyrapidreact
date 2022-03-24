@@ -80,9 +80,8 @@ class AutoBase(AutonomousStateMachine):
         self.auto_trajectory = self.field.getObject("auto_trajectory")
         self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
 
-        max_speed = (
-            self.chassis.max_attainable_wheel_speed * 0.75
-        )  # Leave some headroom over the max unloaded speed
+        # Leave some headroom over the max unloaded speed
+        max_speed = self.chassis.max_attainable_wheel_speed * 0.75
         self.trajectory_config = TrajectoryConfig(
             maxVelocity=max_speed, maxAcceleration=max_speed / 0.4
         )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
