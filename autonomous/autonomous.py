@@ -286,6 +286,66 @@ class TestAuto(AutoBase):
         ]
 
 
+class ExerciseAuto(AutoBase):
+    MODE_NAME = "exercise"
+    # Run a test routine in confined spaces that has the same total distance and changes of direction as the 5 ball
+
+    def setup(self) -> None:
+        super().setup()
+        self.movements = [
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-1, 0, Rotation2d.fromDegrees(180)),
+                    end=Pose2d(-3, 0, Rotation2d.fromDegrees(180)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(180),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-3, 0, Rotation2d.fromDegrees(0)),
+                    end=Pose2d(-1, 2, Rotation2d.fromDegrees(90)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(90),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-1, 2, Rotation2d.fromDegrees(-90)),
+                    end=Pose2d(-1, -2, Rotation2d.fromDegrees(-90)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(-90),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-1, -2, Rotation2d.fromDegrees(90)),
+                    end=Pose2d(-3, 2, Rotation2d.fromDegrees(180)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(135),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-3, 2, Rotation2d.fromDegrees(-90)),
+                    end=Pose2d(-1, 0, Rotation2d.fromDegrees(0)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(180),
+            ),
+        ]
+
+
 class FiveBall(AutoBase):
     """Auto starting middle of right tarmac, picking up balls 3, 2 and both at terminal"""
 
