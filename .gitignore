@@ -50,6 +50,7 @@ dmypy.json
 ### WPILib ###
 networktables.ini
 imgui.ini
+simgui*.json
 *.wpilog
 
 ### Project-specific ###
