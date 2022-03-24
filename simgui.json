@@ -40,6 +40,12 @@
           "width": 1.2999999523162842
         },
         "image": "./2022-field.jpg",
+        "left": 924,
+        "right": 1774,
+        "top": 475,
+        "bottom": 900,
+        "width": 16.459201903006434,
+        "height": 8.229600936602056,
         "window": {
           "visible": true
         }
@@ -55,7 +61,7 @@
               "autoFit": true
             }
           ],
-          "height": 332,
+          "height": -9,
           "series": [
             {
               "color": [
