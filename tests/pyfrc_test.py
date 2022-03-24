@@ -1,5 +1,5 @@
 # NB: autonomous is tested separately in autonomous_test.py
-from pyfrc.tests import (
+from pyfrc.tests import (  # type: ignore
     # Running all the tests seems to segfault, but a subset seems okay?
     # test_disabled,
     # test_operator_control,
