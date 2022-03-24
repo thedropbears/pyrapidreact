@@ -94,9 +94,7 @@ class AutoBase(AutonomousStateMachine):
 
     def setup(self) -> None:
         self.field_auto_target_pose = self.field.getObject("auto_target_pose")
-        self.field_auto_target_pose.setPose(
-            trajectory_generator.goal_to_field(Pose2d(0, 0, 0))
-        )
+        self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
 
     def on_enable(self) -> None:
         self.chassis.set_pose(self.waypoints_poses[0])
@@ -176,9 +174,7 @@ class AutoBase(AutonomousStateMachine):
         )
 
         # send poses to driverstation
-        self.field_auto_target_pose.setPose(
-            trajectory_generator.goal_to_field(goal_pose)
-        )
+        self.field_auto_target_pose.setPose(goal_pose)
         wpilib.SmartDashboard.putNumber("auto_vel", float(linear_state.velocity))
 
         self.last_pose = goal_pose
