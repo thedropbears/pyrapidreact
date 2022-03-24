@@ -212,9 +212,7 @@ class AutoBase(AutonomousStateMachine):
                 self.current_movement.trajectory.initialPose().translation()
             )
         else:
-            current_translation = (
-                self.chassis.estimator.getEstimatedPosition().translation()
-            )
+            current_translation = self.chassis.get_pose().translation()
         first_translation = self.current_movement.trajectory.initialPose().translation()
         # Don't adjust the rotation, just the translation
         self.current_trajectory = self.movements[
