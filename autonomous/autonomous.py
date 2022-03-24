@@ -17,7 +17,6 @@ from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
 from components.indexer import Indexer
 from components.intake import Intake
-from utilities import trajectory_generator
 
 from dataclasses import dataclass
 from typing import List
@@ -78,6 +77,7 @@ class AutoBase(AutonomousStateMachine):
 
     def setup(self) -> None:
         self.field_auto_target_pose = self.field.getObject("auto_target_pose")
+        self.auto_trajectory = self.field.getObject("auto_trajectory")
         self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
         self.trajectory_config = TrajectoryConfig(maxVelocity=3.5, maxAcceleration=9.0)
         self.trajectory_config.addConstraint(
@@ -96,6 +96,7 @@ class AutoBase(AutonomousStateMachine):
         self.current_trajectory = self.current_movement.trajectory
         self.trajectory_start_time = 0.0
         self.indexer_control.ignore_colour = True
+        self.auto_trajectory.setTrajectory(self.current_trajectory)
         super().on_enable()
 
     @state(first=True)
@@ -113,11 +114,7 @@ class AutoBase(AutonomousStateMachine):
         # calculate speed and position from current trajectory
         traj_time = tm - self.trajectory_start_time
         target_state = self.current_trajectory.sample(traj_time)
-        if wpilib.RobotBase.isSimulation():
-            # Nicer visualisation in sim
-            target_heading = target_state.pose.rotation()
-        else:
-            target_heading = self.current_movement.chassis_heading
+        target_heading = self.current_movement.chassis_heading
 
         current_pose = self.chassis.estimator.getEstimatedPosition()
 
@@ -220,6 +217,8 @@ class AutoBase(AutonomousStateMachine):
         ].trajectory.transformBy(
             Transform2d(current_translation - first_translation, Rotation2d(0.0))
         )
+
+        self.auto_trajectory.setTrajectory(self.current_trajectory)
 
         self.trajectory_start_time = cur_time
 
