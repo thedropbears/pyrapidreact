@@ -76,7 +76,15 @@ class PhysicsEngine:
                 int(velocity * 10 * tm_diff)
             )
 
-        states = typing.cast(typing.Tuple[SwerveModuleState, SwerveModuleState, SwerveModuleState, SwerveModuleState], tuple([module.get() for module in self.swerve_modules]))
+        states = typing.cast(
+            typing.Tuple[
+                SwerveModuleState,
+                SwerveModuleState,
+                SwerveModuleState,
+                SwerveModuleState,
+            ],
+            tuple([module.get() for module in self.swerve_modules]),
+        )
         speeds = self.kinematics.toChassisSpeeds(states)
 
         self.imu.setAngleAdjustment(
