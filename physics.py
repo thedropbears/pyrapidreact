@@ -15,6 +15,7 @@
 import typing
 
 import ctre
+import wpilib.simulation
 
 from pyfrc.physics.core import PhysicsInterface  # type: ignore
 
@@ -66,6 +67,9 @@ class PhysicsEngine:
             )
             for module in robot.chassis.modules
         ]
+
+        self.imu = wpilib.simulation.SimDeviceSim("navX-Sensor", 4)
+        self.imu_yaw = self.imu.getDouble("Yaw")
 
     def update_sim(self, now: float, tm_diff: float) -> None:
         """
