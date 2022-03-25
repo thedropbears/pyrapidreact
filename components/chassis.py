@@ -144,14 +144,14 @@ class Chassis:
     vy = magicbot.will_reset_to(0.0)
     vz = magicbot.will_reset_to(0.0)
 
-    chassis_1_drive: ctre.TalonFX
-    chassis_1_steer: ctre.TalonFX
-    chassis_2_drive: ctre.TalonFX
-    chassis_2_steer: ctre.TalonFX
-    chassis_3_drive: ctre.TalonFX
-    chassis_3_steer: ctre.TalonFX
-    chassis_4_drive: ctre.TalonFX
-    chassis_4_steer: ctre.TalonFX
+    chassis_1_drive: ctre.WPI_TalonFX
+    chassis_1_steer: ctre.WPI_TalonFX
+    chassis_2_drive: ctre.WPI_TalonFX
+    chassis_2_steer: ctre.WPI_TalonFX
+    chassis_3_drive: ctre.WPI_TalonFX
+    chassis_3_steer: ctre.WPI_TalonFX
+    chassis_4_drive: ctre.WPI_TalonFX
+    chassis_4_steer: ctre.WPI_TalonFX
 
     chassis_1_encoder: ctre.CANCoder
     chassis_2_encoder: ctre.CANCoder
@@ -230,9 +230,9 @@ class Chassis:
             localMeasurementStdDevs=(0.01,),
             visionMeasurementStdDevs=(0.5, 0.5, 0.2),
         )
-        self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
-
         self.control_rate = 1 / self.control_loop_wait_time
+        self.field_obj = self.field.getObject("fused_pose")
+        self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
 
     def drive_field(self, vx: float, vy: float, omega: float) -> None:
         """Field oriented drive commands"""
@@ -282,6 +282,8 @@ class Chassis:
         self.pose_history.clear()
         self.estimator.resetPosition(pose, self.imu.getRotation2d())
         self.update_pose_history()
+        self.field.setRobotPose(pose)
+        self.field_obj.setPose(pose)
 
     def set_pose_failsafe(self):
         """Sets the pose to the right side of hanger"""
@@ -328,7 +330,7 @@ class Chassis:
             self.modules[2].get(),
             self.modules[3].get(),
         )
-        self.field.setRobotPose(self.get_pose())
+        self.field_obj.setPose(self.get_pose())
 
     def update_pose_history(self) -> None:
         pose = self.get_pose()
