@@ -16,7 +16,7 @@ import typing
 
 import ctre
 
-from pyfrc.physics.core import PhysicsInterface
+from pyfrc.physics.core import PhysicsInterface  # type: ignore
 
 from utilities.ctre import FALCON_CPR
 
