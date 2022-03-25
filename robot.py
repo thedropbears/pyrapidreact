@@ -48,14 +48,14 @@ class MyRobot(magicbot.MagicRobot):
 
         self.leds = wpilib.AddressableLED(2)
 
-        self.chassis_1_drive = ctre.TalonFX(1)
-        self.chassis_1_steer = ctre.TalonFX(2)
-        self.chassis_2_drive = ctre.TalonFX(3)
-        self.chassis_2_steer = ctre.TalonFX(4)
-        self.chassis_3_drive = ctre.TalonFX(5)
-        self.chassis_3_steer = ctre.TalonFX(6)
-        self.chassis_4_drive = ctre.TalonFX(7)
-        self.chassis_4_steer = ctre.TalonFX(8)
+        self.chassis_1_drive = ctre.WPI_TalonFX(1)
+        self.chassis_1_steer = ctre.WPI_TalonFX(2)
+        self.chassis_2_drive = ctre.WPI_TalonFX(3)
+        self.chassis_2_steer = ctre.WPI_TalonFX(4)
+        self.chassis_3_drive = ctre.WPI_TalonFX(5)
+        self.chassis_3_steer = ctre.WPI_TalonFX(6)
+        self.chassis_4_drive = ctre.WPI_TalonFX(7)
+        self.chassis_4_steer = ctre.WPI_TalonFX(8)
 
         self.joystick = wpilib.Joystick(0)
         self.recorded_joystick_state = (0.0, 0.0, 0.0)
@@ -65,7 +65,7 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_left_motor = ctre.TalonFX(11)
         self.shooter_right_motor = ctre.TalonFX(10)
 
-        self.turret_motor = ctre.TalonSRX(15)
+        self.turret_motor = ctre.WPI_TalonSRX(15)
         self.turret_absolute_encoder = wpilib.DutyCycleEncoder(10)  # navX pin 0
         self.turret_cable_piston = wpilib.Solenoid(
             wpilib.PneumaticsModuleType.CTREPCM, 4
