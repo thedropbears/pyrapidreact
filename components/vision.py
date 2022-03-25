@@ -13,6 +13,8 @@ from photonvision import (
 )
 from wpimath.geometry import Pose2d, Transform2d, Translation2d, Rotation2d
 
+import random
+
 
 class Vision:
     """Communicates with limelight to get vision data and calculate pose"""
@@ -78,26 +80,25 @@ class Vision:
     def execute(self) -> None:
         if wpilib.RobotBase.isSimulation():
             # Create some vision target results
-            # At the moment the chassis position isn't updated
-            # pose = self.chassis.get_pose()
-            pose = self.field.getObject("auto_target_pose").getPose()
+            pose = self.field.getRobotPose()
             range = pose.translation().distance(Translation2d(0, 0))
             if range < 0.1:
                 return
             # Offset by the goal radius because the target is assumed to be flat
             x = pose.X()
             y = pose.Y()
-            rot = (
-                self.chassis.get_pose().rotation()
-            )  # Needs to be the value that the algorith will use
+            rot = pose.rotation()
+
             pose = Pose2d(
                 x - x / range * self.GOAL_RADIUS, y - y / range * self.GOAL_RADIUS, rot
             )
 
+            # The turret moves the camera so recalculate the transform
+            # Also add some noise in the pitch due to the vibration of the flywheels
             self.sim_vision_system.moveCamera(
                 self._camera_to_robot(),
                 self.CAMERA_HEIGHT,
-                math.degrees(self.CAMERA_PITCH),
+                math.degrees(self.CAMERA_PITCH) + random.gauss(0.0, 0.5),
             )
             self.sim_vision_system.processFrame(pose)
 
@@ -146,11 +147,6 @@ class Vision:
         vision_pose = pose_from_vision(
             self.distance, target_angle, robot_rotation.radians()
         )
-        if wpilib.RobotBase.isSimulation():
-            vision_pose = Pose2d(
-                vision_pose.translation(),
-                self.field.getObject("auto_target_pose").getPose().rotation(),
-            )
         self.field_obj.setPose(vision_pose)
 
         if self.fuse_vision_observations:
@@ -158,7 +154,7 @@ class Vision:
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
-            if self.gate_innovation and innovation > 5.0:
+            if self.gate_innovation and innovation > 2.0:
                 return
 
             if self.distance < 5.0:
