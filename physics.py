@@ -1,12 +1,12 @@
 import math
 
-from pyfrc.physics.core import PhysicsInterface
+from pyfrc.physics.core import PhysicsInterface  # type: ignore
 
 import ctre
 import navx
 from utilities.ctre import FALCON_CPR, FALCON_FREE_RPS
 
-from wpimath.kinematics import SwerveDrive4Kinematics
+from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState
 
 from components.chassis import SwerveModule
 from components.turret import Turret
@@ -76,7 +76,7 @@ class PhysicsEngine:
                 int(velocity * 10 * tm_diff)
             )
 
-        states = [module.get() for module in self.swerve_modules]
+        states = typing.cast(typing.Tuple[SwerveModuleState, SwerveModuleState, SwerveModuleState, SwerveModuleState], tuple([module.get() for module in self.swerve_modules]))
         speeds = self.kinematics.toChassisSpeeds(states)
 
         self.imu.setAngleAdjustment(
