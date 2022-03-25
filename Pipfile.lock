@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "49eeeb0219b17283c155fa317e8aa8243f158f81dacd13dcc6c2ab354aeb4bf9"
+            "sha256": "f1cf5c91b61980707d866283dd8d231a34d052ad93d49dcd8bb20cec03f32081"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -210,11 +210,11 @@
         },
         "pyfrc": {
             "hashes": [
-                "sha256:2ee133bf441b4577bc12d37e45bbc4b2d9e6b411b443eefb6e15ea813391b563",
-                "sha256:5058a7395a304bdd8c96c9b54e42fbafa9c5ff0e7624743aac88e7b5d7ad6aa3"
+                "sha256:87c6b2c643e5fedc34ed390c1773eb3cfeb4cbbf53f6840598996428cd94a118",
+                "sha256:bd7bd5d138166e1ae20d4339c0de24b47870817187931e9ec4a6f9208753322f"
             ],
             "index": "pypi",
-            "version": "==2022.1.3"
+            "version": "==2022.1.4"
         },
         "pynacl": {
             "hashes": [
@@ -436,11 +436,11 @@
         },
         "robotpy-wpilib-utilities": {
             "hashes": [
-                "sha256:8026b678c19321888016bcbd11346d771e4ae07735e9cfb15e9b3469e38c2097",
-                "sha256:c7d6ea3c2c1eb7540f01b0d923ee24782cff1a58d0a69d6a0cf9b86408448443"
+                "sha256:29cf0a86ca13662ad85843b23ef0ab367ec9b730572e67202a87d81da1c5b920",
+                "sha256:2f5067277fb42e75e581c2e797d1ccfcb4a53f1a2684a1d682e4e024363eb984"
             ],
             "index": "pypi",
-            "version": "==2022.0.4"
+            "version": "==2022.0.5"
         },
         "robotpy-wpimath": {
             "hashes": [
