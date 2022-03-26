@@ -74,9 +74,13 @@ class SwerveModule:
         self.drive.setInverted(drive_reversed)
         self.drive.configVoltageCompSaturation(12, timeoutMs=10)
         self.drive.enableVoltageCompensation(True)
-        self.drive_ff = SimpleMotorFeedforwardMeters(kS=0.65599, kV=2.8309, kA=0.15238)
+        self.drive_ff = SimpleMotorFeedforwardMeters(kS=0.71164, kV=2.6308, kA=0.1178)
+        self.drive.configVelocityMeasurementPeriod(
+            ctre.SensorVelocityMeasPeriod.Period_5Ms
+        )
+        self.drive.configVelocityMeasurementWindow(8)
 
-        self.drive.config_kP(0, 0.00064721, 10)
+        self.drive.config_kP(0, 0.0023546, 10)
         self.drive.config_kI(0, 0, 10)
         self.drive.config_kD(0, 0, 10)
 
