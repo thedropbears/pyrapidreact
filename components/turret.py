@@ -10,7 +10,7 @@ from utilities.functions import constrain_angle
 
 
 class Turret:
-    motor: ctre.TalonSRX
+    motor: ctre.WPI_TalonSRX
     absolute_encoder: DutyCycleEncoder
     cable_piston: Solenoid
 
@@ -131,6 +131,7 @@ class Turret:
         delta = constrain_angle(angle - self.get_angle())
         self.slew_relative(delta)
 
+    @magicbot.feedback
     def get_angle(self) -> float:
         return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
 
