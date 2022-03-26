@@ -62,7 +62,10 @@ class Vision:
             )
             self.sim_vision_system.addSimVisionTarget(
                 SimVisionTarget(
-                    Pose2d(0, 0, 0), self.TARGET_HEIGHT, self.GOAL_RADIUS * 2, 0.05
+                    targetPos=Pose2d(0, 0, 0),
+                    targetHeightAboveGround=self.TARGET_HEIGHT,
+                    targetWidth=self.GOAL_RADIUS * 2,
+                    targetHeight=0.05,
                 )
             )
             self.camera = self.sim_vision_system.cam
@@ -96,9 +99,9 @@ class Vision:
             # The turret moves the camera so recalculate the transform
             # Also add some noise in the pitch due to the vibration of the flywheels
             self.sim_vision_system.moveCamera(
-                self._camera_to_robot(),
-                self.CAMERA_HEIGHT,
-                math.degrees(self.CAMERA_PITCH) + random.gauss(0.0, 0.5),
+                newcameraToRobot=self._camera_to_robot(),
+                newCamHeight=self.CAMERA_HEIGHT,
+                newCamPitch=math.degrees(self.CAMERA_PITCH) + random.gauss(0.0, 0.5),
             )
             self.sim_vision_system.processFrame(pose)
 
