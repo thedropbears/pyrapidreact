@@ -47,7 +47,7 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(8, 8)
+    drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(8, 24)
 
     ALLOWED_TRANS_ERROR = 0.1
     ALLOWED_ROT_ERROR = math.radians(10)
@@ -56,12 +56,12 @@ class AutoBase(AutonomousStateMachine):
         super().__init__()
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
-            4, 0, 0, self.drive_rotation_constraints
+            4, 0, 0.3, self.drive_rotation_constraints
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(2, 0, 0.2),
-            controller.PIDController(2, 0, 0.2),
+            controller.PIDController(2, 0, 0.4),
+            controller.PIDController(2, 0, 0.4),
             rotation_controller,
         )
         self.drive_controller.setTolerance(
@@ -81,9 +81,9 @@ class AutoBase(AutonomousStateMachine):
         self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
 
         # Leave some headroom over the max unloaded speed
-        max_speed = self.chassis.max_attainable_wheel_speed * 0.75
+        max_speed = self.chassis.max_attainable_wheel_speed * 0.3
         self.trajectory_config = TrajectoryConfig(
-            maxVelocity=max_speed, maxAcceleration=max_speed / 0.4
+            maxVelocity=max_speed, maxAcceleration=max_speed / 0.5
         )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
         self.trajectory_config.addConstraint(
             constraint.SwerveDrive4KinematicsConstraint(
@@ -291,7 +291,7 @@ class ExerciseAuto(AutoBase):
             Movement(
                 WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-1, 0, Rotation2d.fromDegrees(180)),
+                    start=Pose2d(-1.5, 0, Rotation2d.fromDegrees(180)),
                     end=Pose2d(-3, 0, Rotation2d.fromDegrees(180)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
@@ -302,7 +302,7 @@ class ExerciseAuto(AutoBase):
                 WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-3, 0, Rotation2d.fromDegrees(0)),
-                    end=Pose2d(-1, 2, Rotation2d.fromDegrees(90)),
+                    end=Pose2d(-1.5, 2, Rotation2d.fromDegrees(90)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
@@ -311,8 +311,8 @@ class ExerciseAuto(AutoBase):
             Movement(
                 WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-1, 2, Rotation2d.fromDegrees(-90)),
-                    end=Pose2d(-1, -2, Rotation2d.fromDegrees(-90)),
+                    start=Pose2d(-1.5, 2, Rotation2d.fromDegrees(-90)),
+                    end=Pose2d(-1.5, -2, Rotation2d.fromDegrees(-90)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
@@ -321,7 +321,7 @@ class ExerciseAuto(AutoBase):
             Movement(
                 WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-1, -2, Rotation2d.fromDegrees(90)),
+                    start=Pose2d(-1.5, -2, Rotation2d.fromDegrees(90)),
                     end=Pose2d(-3, 2, Rotation2d.fromDegrees(180)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,

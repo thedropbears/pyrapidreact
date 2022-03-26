@@ -26,7 +26,7 @@ class Vision:
 
     field: wpilib.Field2d
 
-    fuse_vision_observations = tunable(True)
+    fuse_vision_observations = tunable(False)
     gate_innovation = tunable(True)
 
     def __init__(self) -> None:
