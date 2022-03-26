@@ -3,7 +3,7 @@ import math
 
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import controller, trajectory
-from wpimath.geometry import Pose2d, Rotation2d, Transform2d, Translation2d
+from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.trajectory import (
     Trajectory,
     TrajectoryConfig,
@@ -47,9 +47,9 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(8, 24)
+    drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(8, 21)
 
-    ALLOWED_TRANS_ERROR = 0.1
+    ALLOWED_TRANS_ERROR = 0.05
     ALLOWED_ROT_ERROR = math.radians(10)
 
     def __init__(self):
@@ -60,8 +60,8 @@ class AutoBase(AutonomousStateMachine):
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(2, 0, 0.4),
-            controller.PIDController(2, 0, 0.4),
+            controller.PIDController(3.5, 0, 0.4),
+            controller.PIDController(3.5, 0, 0.4),
             rotation_controller,
         )
         self.drive_controller.setTolerance(
@@ -81,13 +81,14 @@ class AutoBase(AutonomousStateMachine):
         self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
 
         # Leave some headroom over the max unloaded speed
-        max_speed = self.chassis.max_attainable_wheel_speed * 0.3
+        max_speed = self.chassis.max_attainable_wheel_speed * 0.7
         self.trajectory_config = TrajectoryConfig(
-            maxVelocity=max_speed, maxAcceleration=max_speed / 0.5
+            maxVelocity=max_speed, maxAcceleration=2.9
         )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
         self.trajectory_config.addConstraint(
             constraint.SwerveDrive4KinematicsConstraint(
-                self.chassis.kinematics, maxSpeed=max_speed
+                self.chassis.kinematics,
+                maxSpeed=self.chassis.max_attainable_wheel_speed,
             )
         )
         # add additional constraints here if required
@@ -135,7 +136,6 @@ class AutoBase(AutonomousStateMachine):
                 self.next_state("pickup")
             else:
                 self.move_next_waypoint(tm)
-
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=current_pose,
             desiredState=target_state,
@@ -187,6 +187,7 @@ class AutoBase(AutonomousStateMachine):
             or self.indexer.has_cargo_in_tunnel()
             or self.indexer_control.current_state == "transferring_to_chimney"
             or self.indexer_control.current_state == "firing"
+            or wpilib.RobotBase.isSimulation()
         ):
             self.next_state("move")
             self.move_next_waypoint(tm)
@@ -206,18 +207,7 @@ class AutoBase(AutonomousStateMachine):
 
         self.current_movement_idx += 1
         self.current_movement = self.movements[self.current_movement_idx]
-        if wpilib.RobotBase.isSimulation():
-            # We aren't actually moving in simulation, so fudge it
-            current_translation = (
-                self.current_movement.trajectory.initialPose().translation()
-            )
-        else:
-            current_translation = self.chassis.get_pose().translation()
-        first_translation = self.current_movement.trajectory.initialPose().translation()
-        # Don't adjust the rotation, just the translation
-        self.current_trajectory = self.current_movement.trajectory.transformBy(
-            Transform2d(current_translation - first_translation, Rotation2d(0.0))
-        )
+        self.current_trajectory = self.current_movement.trajectory
 
         self.auto_trajectory.setTrajectory(self.current_trajectory)
 
@@ -332,7 +322,7 @@ class ExerciseAuto(AutoBase):
                 WaypointType.PICKUP,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-3, 2, Rotation2d.fromDegrees(-90)),
-                    end=Pose2d(-1, 0, Rotation2d.fromDegrees(0)),
+                    end=Pose2d(-1.5, 0, Rotation2d.fromDegrees(0)),
                     interiorWaypoints=[],
                     config=self.trajectory_config,
                 ),
