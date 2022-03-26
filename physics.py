@@ -55,19 +55,10 @@ class PhysicsEngine:
     def __init__(self, physics_controller: PhysicsInterface, robot: "MyRobot"):
         self.physics_controller = physics_controller
 
-        turret_kv = (
-            100000
-            * 1.0
-            / (
-                1023
-                * 12.0
-                * Turret.COUNTS_PER_MOTOR_REV
-                / Turret.COUNTS_PER_TURRET_RADIAN
-                / Turret.pidF
-            )
-        )
         self.turret = SimpleTalonSRXMotorSim(
-            robot.turret_motor, turret_kv, 1.0 / math.tau
+            robot.turret_motor,
+            kV=0.71901,
+            rev_per_unit=1 / Turret.GEAR_REDUCTION / math.tau,
         )
 
         self.kinematics: SwerveDrive4Kinematics = robot.chassis.kinematics
