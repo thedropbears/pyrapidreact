@@ -85,7 +85,7 @@ class AutoBase(AutonomousStateMachine):
             maxVelocity=max_speed, maxAcceleration=2.9
         )
         self.shoot_trajectory_config = TrajectoryConfig(
-            maxVelocity=1, maxAcceleration=2.5
+            maxVelocity=1.3, maxAcceleration=2.5
         )
 
         self.movements: List[Movement] = []
