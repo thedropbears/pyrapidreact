@@ -97,6 +97,12 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_3_encoder = ctre.CANCoder(3)
         self.chassis_4_encoder = ctre.CANCoder(4)
 
+        wpilib.CameraServer.launch()
+
+    @magicbot.feedback
+    def get_cameraserver_alive(self):
+        return wpilib.CameraServer.is_alive()
+
     def autonomousInit(self) -> None:
         self.shooter_control.lead_shots = False
         self.intake.auto_retract = False
