@@ -74,7 +74,7 @@ class SwerveModule:
         self.drive.setInverted(drive_reversed)
         self.drive.configVoltageCompSaturation(12, timeoutMs=10)
         self.drive.enableVoltageCompensation(True)
-        self.drive_ff = SimpleMotorFeedforwardMeters(kS=0.71164, kV=2.6308, kA=0.1178)
+        self.drive_ff = SimpleMotorFeedforwardMeters(kS=0.71164, kV=2.55, kA=0.1178)
         self.drive.configVelocityMeasurementPeriod(
             ctre.SensorVelocityMeasPeriod.Period_5Ms
         )
@@ -236,7 +236,7 @@ class Chassis:
         )
         self.control_rate = 1 / self.control_loop_wait_time
         self.field_obj = self.field.getObject("fused_pose")
-        self.set_pose(Pose2d(-0.711, -2.419, Rotation2d.fromDegrees(-88.5)))
+        self.set_pose(Pose2d(-2, 0, Rotation2d.fromDegrees(180)))
 
     def drive_field(self, vx: float, vy: float, omega: float) -> None:
         """Field oriented drive commands"""
