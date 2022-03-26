@@ -9,6 +9,7 @@ from magicbot import (
     tunable,
     default_state,
     timed_state,
+    state,
     feedback,
     will_reset_to,
 )
@@ -57,6 +58,7 @@ class ShooterController(StateMachine):
     AUTO_MAX_ACCEL = 0.2  # G
     AUTO_ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
 
+    _wants_to_clear = False
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
     data_log: wpiutil.log.DataLog
@@ -81,6 +83,9 @@ class ShooterController(StateMachine):
 
     @default_state
     def tracking(self) -> None:
+        if self._wants_to_clear:
+            self.next_state("prepare_to_clear")
+
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # adjust shot to hit while moving
@@ -172,6 +177,21 @@ class ShooterController(StateMachine):
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
                 )
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
+
+    @state(must_finish=True)
+    def prepare_to_clear(self) -> None:
+        self.shooter.motor_speed = 5
+        if self.shooter.is_at_speed():
+            self.next_state("clearing")
+
+    @timed_state(duration=0.75, next_state="tracking", must_finish=True)
+    def clearing(self) -> None:
+        self._wants_to_clear = False
+        self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
+        self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
+
+    def clear(self) -> None:
+        self._wants_to_clear = True
 
     @feedback
     def distance_to_goal(self) -> float:
