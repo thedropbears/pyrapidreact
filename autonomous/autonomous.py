@@ -26,6 +26,7 @@ class WaypointType(Enum):
     PICKUP_TO_TWO = auto()
     SHOOT = auto()
     SIMPLE = auto()
+    MOVE_SHOOT = auto()
 
 
 @dataclass
@@ -82,7 +83,10 @@ class AutoBase(AutonomousStateMachine):
         max_speed = Chassis.max_attainable_wheel_speed * 0.7
         self.trajectory_config = TrajectoryConfig(
             maxVelocity=max_speed, maxAcceleration=2.9
-        )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
+        )
+        self.shoot_trajectory_config = TrajectoryConfig(
+            maxVelocity=1, maxAcceleration=2.5
+        )
 
         self.movements: List[Movement] = []
         self.start_pose = Pose2d(0, 0, 0)
@@ -119,8 +123,7 @@ class AutoBase(AutonomousStateMachine):
         self.trajectory_start_time = tm
         self.next_state("move")
 
-    @state
-    def move(self, tm: float) -> None:
+    def do_move(self, tm: float) -> None:
         # indexer controller will hanle it self raising and lowering
         if self.indexer.ready_to_intake():
             self.intake.deployed = True
@@ -132,18 +135,6 @@ class AutoBase(AutonomousStateMachine):
 
         current_pose = self.chassis.get_pose()
 
-        if traj_time > self.current_trajectory.totalTime() and (
-            self.drive_controller.atReference() or wpilib.RobotBase.isSimulation()
-        ):
-            self.logger.info(
-                f"Got to end of movement {self.current_movement_idx} at {tm}"
-            )
-            if self.current_movement.type is WaypointType.SHOOT:
-                self.next_state("firing")
-            elif self.current_movement.type is WaypointType.PICKUP_TO_TWO:
-                self.next_state("pickup_to_two")
-            else:
-                self.move_next_waypoint(tm)
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=current_pose,
             desiredState=target_state,
@@ -162,6 +153,40 @@ class AutoBase(AutonomousStateMachine):
         self._maybe_hail_mary()
 
     @state
+    def move(self, tm: float) -> None:
+        self.do_move(tm)
+        self.shooter_control.lead_shots = False
+        traj_time = tm - self.trajectory_start_time
+        if traj_time > self.current_trajectory.totalTime() and (
+            self.drive_controller.atReference() or wpilib.RobotBase.isSimulation()
+        ):
+            self.logger.info(
+                f"Got to end of movement {self.current_movement_idx} at {tm}"
+            )
+            if self.current_movement.type is WaypointType.SHOOT:
+                self.next_state("firing")
+            elif self.current_movement.type is WaypointType.PICKUP_TO_TWO:
+                self.next_state("pickup")
+            else:
+                self.move_next_waypoint(tm)
+                if self.current_state == "finished":
+                    return
+                if self.current_movement.type == WaypointType.MOVE_SHOOT:
+                    self.next_state("move_shoot")
+
+    @state
+    def move_shoot(self, tm: float) -> None:
+        self.do_move(tm)
+        self.shooter_control.lead_shots = True
+        self.shooter_control.fire()
+
+        traj_time = tm - self.trajectory_start_time
+        if traj_time > self.current_trajectory.totalTime() and (
+            self.drive_controller.atReference() or wpilib.RobotBase.isSimulation()
+        ):
+            self.next_state("firing")
+
+    @state
     def pickup_to_two(self, state_tm: float, tm: float) -> None:
         """Waits until full"""
         self.intake.deployed = True
@@ -171,8 +196,13 @@ class AutoBase(AutonomousStateMachine):
             and self.indexer.has_cargo_in_tunnel()
             or state_tm > 1.5
         ) or (wpilib.RobotBase.isSimulation() and state_tm > 1):
-            self.next_state("move")
             self.move_next_waypoint(tm)
+            if self.current_state == "finished":
+                return
+            if self.current_movement.type == WaypointType.MOVE_SHOOT:
+                self.next_state("move_shoot")
+            else:
+                self.next_state("move")
 
         self._maybe_hail_mary()
 
@@ -192,10 +222,15 @@ class AutoBase(AutonomousStateMachine):
             or self.indexer.has_cargo_in_tunnel()
             or self.indexer_control.current_state == "transferring_to_chimney"
             or self.indexer_control.current_state == "firing"
-            or wpilib.RobotBase.isSimulation()
+            # or wpilib.RobotBase.isSimulation()
         ):
-            self.next_state("move")
             self.move_next_waypoint(tm)
+            if self.current_state == "finished":
+                return
+            if self.current_movement.type == WaypointType.MOVE_SHOOT:
+                self.next_state("move_shoot")
+            else:
+                self.next_state("move")
 
     @state
     def finished(self) -> None:
@@ -328,7 +363,7 @@ class FiveBall(AutoBase):
                 end=Pose2d(-5.0, -2.0, Rotation2d.fromDegrees(0)),
                 interior=[],
                 config=self.trajectory_config,
-                chassis_heading=Rotation2d.fromDegrees(-135),
+                chassis_heading=Rotation2d.fromDegrees(-110),
             ),
             Movement(
                 WaypointType.SIMPLE,
@@ -337,6 +372,58 @@ class FiveBall(AutoBase):
                 interior=[],
                 config=self.trajectory_config,
                 chassis_heading=Rotation2d.fromDegrees(0),
+            ),
+        ]
+        super().setup()
+
+
+class SixBall(AutoBase):
+    MODE_NAME = "Flex O'clock"
+
+    def setup(self) -> None:
+        super().setup()
+        self.movements = [
+            Movement(
+                WaypointType.SHOOT,
+                start_direction=Rotation2d.fromDegrees(-90),
+                end=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(-90)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(-88.5),
+            ),
+            Movement(
+                WaypointType.SHOOT,
+                start_direction=Rotation2d.fromDegrees(100),
+                end=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(180)),
+                interior=[
+                    Translation2d(-1.8, -2.3),
+                ],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(180),
+            ),
+            Movement(
+                WaypointType.PICKUP_TO_TWO,
+                start_direction=Rotation2d.fromDegrees(170),
+                end=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(-135)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(-135),
+            ),
+            Movement(
+                WaypointType.MOVE_SHOOT,
+                start_direction=Rotation2d.fromDegrees(45),
+                end=Pose2d(-4.23, 0.8, Rotation2d.fromDegrees(45)),
+                interior=[],
+                config=self.shoot_trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(45),
+            ),
+            Movement(
+                WaypointType.SHOOT,
+                start_direction=Rotation2d.fromDegrees(45),
+                end=Pose2d(-3.45, 1.85, Rotation2d.fromDegrees(45)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(45),
             ),
         ]
         super().setup()
