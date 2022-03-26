@@ -3,8 +3,13 @@ import math
 
 from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import controller, trajectory
-from wpimath.geometry import Pose2d, Rotation2d
-from wpimath.trajectory import TrapezoidProfile
+from wpimath.geometry import Pose2d, Rotation2d, Translation2d
+from wpimath.trajectory import (
+    Trajectory,
+    TrajectoryConfig,
+    TrajectoryGenerator,
+    constraint,
+)
 import wpilib
 
 from components.chassis import Chassis
@@ -12,11 +17,10 @@ from controllers.shooter import ShooterController
 from controllers.indexer import IndexerController
 from components.indexer import Indexer
 from components.intake import Intake
-from utilities import trajectory_generator
+
+from dataclasses import dataclass
 from typing import List
 from enum import Enum, auto
-
-from utilities.functions import constrain_angle
 
 
 class WaypointType(Enum):
@@ -25,19 +29,11 @@ class WaypointType(Enum):
     SIMPLE = auto()
 
 
-class Waypoint:
-    def __init__(
-        self,
-        x: float,
-        y: float,
-        rotation: Rotation2d,
-        waypoint_type: WaypointType = WaypointType.SIMPLE,
-    ) -> None:
-        """x, y: field position in meters
-        rotation: desired robot heading
-        """
-        self.pose = Pose2d(x, y, rotation)
-        self.type = waypoint_type
+@dataclass
+class Movement:
+    type: WaypointType
+    trajectory: Trajectory
+    chassis_heading: Rotation2d
 
 
 class AutoBase(AutonomousStateMachine):
@@ -51,67 +47,69 @@ class AutoBase(AutonomousStateMachine):
 
     logger: logging.Logger
 
-    max_speed = 3.5
-    max_accel = 3.0
+    drive_rotation_constraints = trajectory.TrapezoidProfileRadians.Constraints(8, 21)
 
-    ALLOWED_TRANS_ERROR = 0.1
-    ALLOWED_ROT_ERROR = math.radians(20)
+    ALLOWED_TRANS_ERROR = 0.05
+    ALLOWED_ROT_ERROR = math.radians(10)
 
-    def __init__(self, waypoints: List[Waypoint]):
+    def __init__(self):
         super().__init__()
-        self.waypoints = waypoints
-        self.waypoints_poses = [w.pose for w in self.waypoints]
-        # applies to the linear speed, not turning
-        self.linear_constraints = TrapezoidProfile.Constraints(
-            self.max_speed, self.max_accel
-        )
-
-        self.drive_rotation_constraints = (
-            trajectory.TrapezoidProfileRadians.Constraints(8, 8)
-        )
 
         rotation_controller = controller.ProfiledPIDControllerRadians(
-            4, 0, 0, self.drive_rotation_constraints
+            4, 0, 0.3, self.drive_rotation_constraints
         )
         rotation_controller.enableContinuousInput(-math.pi, math.pi)
         self.drive_controller = controller.HolonomicDriveController(
-            controller.PIDController(2, 0, 0.2),
-            controller.PIDController(2, 0, 0.2),
+            controller.PIDController(3.5, 0, 0.4),
+            controller.PIDController(3.5, 0, 0.4),
             rotation_controller,
         )
-
-        # all in meters along straight line path
-        self.total_length = trajectory_generator.total_length(self.waypoints_poses)
-        # how far around the current position is used to smooth the path
-        self.look_around = 0.1
-        # the index of the waypoint we are currently going towards or at
-        self.cur_waypoint = 0
-
-        self.last_pose = self.waypoints[0].pose
-        self.trap_profile_start_time = 0.0
+        self.drive_controller.setTolerance(
+            Pose2d(
+                self.ALLOWED_TRANS_ERROR,
+                self.ALLOWED_TRANS_ERROR,
+                self.ALLOWED_ROT_ERROR,
+            )
+        )
+        self.movements: List[Movement] = []
 
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
     def setup(self) -> None:
         self.field_auto_target_pose = self.field.getObject("auto_target_pose")
+        self.auto_trajectory = self.field.getObject("auto_trajectory")
         self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
 
-    def on_enable(self) -> None:
-        self.chassis.set_pose(self.waypoints_poses[0])
+        # Leave some headroom over the max unloaded speed
+        max_speed = self.chassis.max_attainable_wheel_speed * 0.7
+        self.trajectory_config = TrajectoryConfig(
+            maxVelocity=max_speed, maxAcceleration=2.9
+        )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
+        self.trajectory_config.addConstraint(
+            constraint.SwerveDrive4KinematicsConstraint(
+                self.chassis.kinematics,
+                maxSpeed=self.chassis.max_attainable_wheel_speed,
+            )
+        )
+        # add additional constraints here if required
 
-        self.last_pose = self.waypoints[0].pose
+    def on_enable(self) -> None:
+        self.chassis.set_pose(self.movements[0].trajectory.initialPose())
+
         # generates initial velocity profile
-        self.cur_waypoint = 0
-        self.trap_profile = self._generate_trap_profile(TrapezoidProfile.State(0, 0))
+        self.current_movement_idx = 0
+        self.current_movement = self.movements[self.current_movement_idx]
+        self.current_trajectory = self.current_movement.trajectory
+        self.trajectory_start_time = 0.0
         self.indexer_control.ignore_colour = True
+        self.auto_trajectory.setTrajectory(self.current_trajectory)
         super().on_enable()
 
     @state(first=True)
-    def startup(self) -> None:
-        if self.waypoints[0].type is WaypointType.SHOOT:
-            self.next_state("firing")
-        else:
-            self.next_state("move")
+    def startup(self, tm: float) -> None:
+        # To make an initial shoot state, create a tiny trajectory
+        self.trajectory_start_time = tm
+        self.next_state("move")
 
     @state
     def move(self, tm: float) -> None:
@@ -119,65 +117,39 @@ class AutoBase(AutonomousStateMachine):
         if self.indexer.ready_to_intake():
             self.intake.deployed = True
             self.indexer_control.wants_to_intake = True
-        # calculate speed and position from current trapazoidal profile
-        trap_time = tm - self.trap_profile_start_time
-        linear_state = self.trap_profile.calculate(trap_time)
+        # calculate speed and position from current trajectory
+        traj_time = tm - self.trajectory_start_time
+        target_state = self.current_trajectory.sample(traj_time)
+        target_heading = self.current_movement.chassis_heading
 
-        # find current goal pose
-        goal_pose = trajectory_generator.smooth_path(
-            self.waypoints_poses,
-            self.look_around,
-            linear_state.position,
-        )
-        goal_rotation = goal_pose.rotation()
-        # the difference between last goal pose and this goal pose
-        goal_pose_diff = goal_pose.translation() - self.last_pose.translation()
-        # set the rotation on the goal pose to the direction its traveling for the feedforward
-        goal_pose_fake = Pose2d(
-            goal_pose.translation(), Rotation2d(goal_pose_diff.x, goal_pose_diff.y)
-        )
+        current_pose = self.chassis.get_pose()
 
-        cur_pose = self.chassis.estimator.getEstimatedPosition()
-
-        # check if we're done current waypoint
-        translation_error = cur_pose.translation().distance(goal_pose.translation())
-        rotation_error = constrain_angle(
-            cur_pose.rotation().radians() - goal_pose.rotation().radians()
-        )
-        is_close = (
-            abs(translation_error) < self.ALLOWED_TRANS_ERROR
-            and abs(rotation_error) < self.ALLOWED_ROT_ERROR
-        )
-        is_stopped = self.chassis.translation_velocity.norm() < 0.5
-        if self.trap_profile.isFinished(trap_time) and (
-            self.waypoints[self.cur_waypoint].type is WaypointType.SIMPLE
-            or ((is_close and is_stopped) or wpilib.RobotBase.isSimulation())
+        if traj_time > self.current_trajectory.totalTime() and (
+            self.drive_controller.atReference() or wpilib.RobotBase.isSimulation()
         ):
-            self.logger.info(f"Got to waypoint{self.cur_waypoint} at {tm}")
-            waypoint_type = self.waypoints[self.cur_waypoint].type
-            if waypoint_type is WaypointType.SHOOT:
+            self.logger.info(
+                f"Got to end of movement {self.current_movement_idx} at {tm}"
+            )
+            if self.current_movement.type is WaypointType.SHOOT:
                 self.next_state("firing")
-            elif waypoint_type is WaypointType.PICKUP:
+            elif self.current_movement.type is WaypointType.PICKUP:
                 self.next_state("pickup")
             else:
                 self.move_next_waypoint(tm)
-
-        # currentPose rotation and linearVelocityRef is only used for feedforward
         self.chassis_speeds = self.drive_controller.calculate(
-            currentPose=cur_pose,
-            poseRef=goal_pose_fake,
-            linearVelocityRef=linear_state.velocity * 0.1,  # used for feedforward
-            angleRef=goal_rotation,
+            currentPose=current_pose,
+            desiredState=target_state,
+            angleRef=target_heading,
         )
         self.chassis.drive_local(
             self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega
         )
 
         # send poses to driverstation
-        self.field_auto_target_pose.setPose(goal_pose)
-        wpilib.SmartDashboard.putNumber("auto_vel", float(linear_state.velocity))
+        display_pose = Pose2d(target_state.pose.translation(), target_heading)
+        self.field_auto_target_pose.setPose(display_pose)
 
-        self.last_pose = goal_pose
+        wpilib.SmartDashboard.putNumber("auto_vel", float(target_state.velocity))
 
         # Shoot in the end of autonoumous if we can
         if (
@@ -215,6 +187,7 @@ class AutoBase(AutonomousStateMachine):
             or self.indexer.has_cargo_in_tunnel()
             or self.indexer_control.current_state == "transferring_to_chimney"
             or self.indexer_control.current_state == "firing"
+            or wpilib.RobotBase.isSimulation()
         ):
             self.next_state("move")
             self.move_next_waypoint(tm)
@@ -226,59 +199,136 @@ class AutoBase(AutonomousStateMachine):
         self.intake.deployed = False
 
     def move_next_waypoint(self, cur_time: float) -> None:
-        """Creates the trapazoidal profile to move to the next waypoint"""
-        if self.cur_waypoint >= len(self.waypoints) - 1:
+        """Translates the generated trajectory to move to the next waypoint"""
+        if self.current_movement_idx == len(self.movements) - 1:
+            # last trajectory in the current profile
             self.next_state("finished")
             return
-        # last state in the current profile
-        last_end = self.trap_profile.calculate(self.trap_profile.totalTime())
-        self.cur_waypoint += 1
-        self.trap_profile = self._generate_trap_profile(last_end)
-        self.trap_profile_start_time = cur_time
 
-    def _generate_trap_profile(
-        self, current_state: TrapezoidProfile.State
-    ) -> TrapezoidProfile:
-        """Generates a linear trapazoidal trajectory that goes from current state to goal waypoint"""
-        end_point = trajectory_generator.total_length(
-            self.waypoints_poses[: self.cur_waypoint + 1]
-        )
-        waypoint_type = self.waypoints[self.cur_waypoint].type
-        if (
-            waypoint_type is WaypointType.SHOOT
-            or waypoint_type is WaypointType.PICKUP
-            or self.cur_waypoint >= len(self.waypoints)
-        ):
-            end_speed = 0.0
-        else:
-            end_speed = self.max_speed
-        return TrapezoidProfile(
-            self.linear_constraints,
-            goal=TrapezoidProfile.State(end_point, end_speed),
-            initial=current_state,
-        )
+        self.current_movement_idx += 1
+        self.current_movement = self.movements[self.current_movement_idx]
+        self.current_trajectory = self.current_movement.trajectory
+
+        self.auto_trajectory.setTrajectory(self.current_trajectory)
+
+        self.trajectory_start_time = cur_time
 
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
 
 # start positions
-right_mid_start = Waypoint(-0.630, -2.334, Rotation2d.fromDegrees(-88.5))
-left_mid_start = Waypoint(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
+# don't change rotations because the initial robot pose is set from them!
+right_mid_start = Pose2d(-0.630, -2.334, Rotation2d.fromDegrees(-88.5))
+left_mid_start = Pose2d(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
 
 class TestAuto(AutoBase):
     MODE_NAME = "test"
 
-    def __init__(self) -> None:
-        super().__init__(
-            [
-                Waypoint(0, 0, Rotation2d.fromDegrees(0)),
-                Waypoint(2, 0, Rotation2d.fromDegrees(90)),
-                Waypoint(2, 2, Rotation2d.fromDegrees(180)),
-                Waypoint(0, 2, Rotation2d.fromDegrees(270)),
-                Waypoint(0, 0, Rotation2d.fromDegrees(0)),
-            ]
-        )
+    def setup(self) -> None:
+        super().setup()
+        self.movements = [
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(0, 0, Rotation2d.fromDegrees(-45)),
+                    end=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(45),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
+                    end=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(135),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
+                    end=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(225),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
+                    end=Pose2d(0, 0, Rotation2d.fromDegrees(315)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(315),
+            ),
+        ]
+
+
+class ExerciseAuto(AutoBase):
+    MODE_NAME = "exercise"
+    # Run a test routine in confined spaces that has the same total distance and changes of direction as the 5 ball
+
+    def setup(self) -> None:
+        super().setup()
+        self.movements = [
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-1.5, 0, Rotation2d.fromDegrees(180)),
+                    end=Pose2d(-3, 0, Rotation2d.fromDegrees(180)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(180),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-3, 0, Rotation2d.fromDegrees(0)),
+                    end=Pose2d(-1.5, 2, Rotation2d.fromDegrees(90)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(90),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-1.5, 2, Rotation2d.fromDegrees(-90)),
+                    end=Pose2d(-1.5, -2, Rotation2d.fromDegrees(-90)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(-90),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-1.5, -2, Rotation2d.fromDegrees(90)),
+                    end=Pose2d(-3, 2, Rotation2d.fromDegrees(180)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(135),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-3, 2, Rotation2d.fromDegrees(-90)),
+                    end=Pose2d(-1.5, 0, Rotation2d.fromDegrees(0)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(180),
+            ),
+        ]
 
 
 class FiveBall(AutoBase):
@@ -287,26 +337,52 @@ class FiveBall(AutoBase):
     MODE_NAME = "Five Ball: Right - Terminal"
     DEFAULT = True
 
-    def __init__(self) -> None:
-        super().__init__(
-            [
-                right_mid_start,
-                Waypoint(
-                    -0.65, -3.55, Rotation2d.fromDegrees(-80), WaypointType.SHOOT
-                ),  # 3
-                Waypoint(-1.5, -2.7, Rotation2d.fromDegrees(-200)),
-                Waypoint(
-                    -4.2, -2.3, Rotation2d.fromDegrees(-206), WaypointType.SHOOT
-                ),  # 2
-                Waypoint(
-                    -8.0, -2.5, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
-                ),  # 4
-                Waypoint(-7.5, -2.2, Rotation2d.fromDegrees(-136)),
-                Waypoint(
-                    -5.0, -2, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
-                ),  # shoot
-            ]
-        )
+    def setup(self) -> None:
+        super().setup()
+        self.movements = [
+            Movement(
+                WaypointType.SHOOT,
+                TrajectoryGenerator.generateTrajectory(
+                    start=right_mid_start,
+                    end=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(-90)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(-88.5),
+            ),
+            Movement(
+                WaypointType.SHOOT,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(100)),
+                    end=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(180)),
+                    interiorWaypoints=[
+                        Translation2d(-1.8, -2.3),
+                    ],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(180),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(170)),
+                    end=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(-135)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(-135),
+            ),
+            Movement(
+                WaypointType.SHOOT,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(45)),
+                    end=Pose2d(-5.0, -2.0, Rotation2d.fromDegrees(0)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(-135),
+            ),
+        ]
 
 
 class FourBall(AutoBase):
@@ -315,21 +391,40 @@ class FourBall(AutoBase):
 
     MODE_NAME = "Four Ball: Left - Terminal"
 
-    def __init__(self) -> None:
-        super().__init__(
-            [
-                left_mid_start,
-                Waypoint(
-                    -3.1, 1.8, Rotation2d.fromDegrees(130), WaypointType.SHOOT
-                ),  # 1
-                Waypoint(
-                    -7.25, -2.75, Rotation2d.fromDegrees(-136), WaypointType.PICKUP
-                ),  # 4
-                Waypoint(
-                    -5.0, 0.0, Rotation2d.fromDegrees(-130), WaypointType.SHOOT
-                ),  # shoot
-            ]
-        )
+    def setup(self) -> None:
+        super().setup()
+        self.movements = [
+            Movement(
+                WaypointType.SHOOT,
+                TrajectoryGenerator.generateTrajectory(
+                    start=left_mid_start,
+                    end=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(160)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(130),
+            ),
+            Movement(
+                WaypointType.PICKUP,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(-130)),
+                    end=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(-135)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(-136),
+            ),
+            Movement(
+                WaypointType.SHOOT,
+                TrajectoryGenerator.generateTrajectory(
+                    start=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(75)),
+                    end=Pose2d(-5.0, 0.0, Rotation2d.fromDegrees(30)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(-136),
+            ),
+        ]
 
 
 class TwoBall(AutoBase):
@@ -339,12 +434,17 @@ class TwoBall(AutoBase):
 
     MODE_NAME = "Two Ball: Left"
 
-    def __init__(self) -> None:
-        super().__init__(
-            [
-                left_mid_start,
-                Waypoint(
-                    -3.1, 1.8, Rotation2d.fromDegrees(130), WaypointType.SHOOT
-                ),  # 1
-            ]
-        )
+    def setup(self) -> None:
+        super().setup()
+        self.movements = [
+            Movement(
+                WaypointType.SHOOT,
+                TrajectoryGenerator.generateTrajectory(
+                    start=left_mid_start,
+                    end=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(130)),
+                    interiorWaypoints=[],
+                    config=self.trajectory_config,
+                ),
+                Rotation2d.fromDegrees(130),
+            ),
+        ]

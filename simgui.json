@@ -53,6 +53,16 @@
           "length": 0.75,
           "width": 0.75
         },
+        "auto_trajectory": {
+          "arrows": false,
+          "color": [
+            0.0,
+            1.0,
+            1.0,
+            255.0
+          ],
+          "style": "Line"
+        },
         "bottom": 480,
         "effective_goal": {
           "arrows": false,
