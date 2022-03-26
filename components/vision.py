@@ -4,8 +4,16 @@ from components.turret import Turret
 from components.chassis import Chassis
 import wpilib
 from utilities.scalers import scale_value
-from photonvision import PhotonCamera, PhotonUtils, LEDMode
-from wpimath.geometry import Pose2d, Translation2d, Rotation2d
+from photonvision import (
+    PhotonCamera,
+    PhotonUtils,
+    LEDMode,
+    SimVisionSystem,
+    SimVisionTarget,
+)
+from wpimath.geometry import Pose2d, Transform2d, Translation2d, Rotation2d
+
+import random
 
 
 class Vision:
@@ -29,8 +37,39 @@ class Vision:
     fuse_vision_observations = tunable(True)
     gate_innovation = tunable(True)
 
+    def _camera_to_robot(self) -> Transform2d:
+        turret_azimuth = self.turret.get_angle()
+        return Transform2d(
+            -(self.TURRET_OFFSET + math.cos(turret_azimuth) * self.CAMERA_OFFSET),
+            -(math.sin(turret_azimuth) * self.CAMERA_OFFSET),
+            -turret_azimuth,
+        )
+
     def __init__(self) -> None:
         self.camera = PhotonCamera("gloworm")
+
+        if wpilib.RobotBase.isSimulation():
+            self.sim_vision_system = SimVisionSystem(
+                "gloworm",
+                75.76079874010732,
+                math.degrees(self.CAMERA_PITCH),
+                Transform2d(0, 0, 0),
+                self.CAMERA_HEIGHT,
+                10.0,
+                1280,
+                720,
+                0.0,
+            )
+            self.sim_vision_system.addSimVisionTarget(
+                SimVisionTarget(
+                    targetPos=Pose2d(0, 0, 0),
+                    targetHeightAboveGround=self.TARGET_HEIGHT,
+                    targetWidth=self.GOAL_RADIUS * 2,
+                    targetHeight=0.05,
+                )
+            )
+            self.camera = self.sim_vision_system.cam
+
         self.camera.setLEDMode(LEDMode.kOn)
         self.max_std_dev = 0.4
         self.has_target = False
@@ -42,15 +81,38 @@ class Vision:
         self.field_obj = self.field.getObject("vision_pose")
 
     def execute(self) -> None:
+        if wpilib.RobotBase.isSimulation():
+            # Create some vision target results
+            pose = self.field.getRobotPose()
+            range = pose.translation().distance(Translation2d(0, 0))
+            if range < 0.1:
+                return
+            # Offset by the goal radius because the target is assumed to be flat
+            x = pose.X()
+            y = pose.Y()
+            rot = pose.rotation()
+
+            pose = Pose2d(
+                x - x / range * self.GOAL_RADIUS, y - y / range * self.GOAL_RADIUS, rot
+            )
+
+            # The turret moves the camera so recalculate the transform
+            # Also add some noise in the pitch due to the vibration of the flywheels
+            self.sim_vision_system.moveCamera(
+                newcameraToRobot=self._camera_to_robot(),
+                newCamHeight=self.CAMERA_HEIGHT,
+                newCamPitch=math.degrees(self.CAMERA_PITCH) + random.gauss(0.0, 0.5),
+            )
+            self.sim_vision_system.processFrame(pose)
+
         results = self.camera.getLatestResult()
         self.has_target = results.hasTargets()
         if not self.has_target:
             return
         timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
         self.target_pitch = math.radians(results.getBestTarget().getPitch())
-        self.target_yaw = -math.radians(
-            results.getBestTarget().getYaw()
-        )  # PhotonVision has yaw reversed from our RH coordinate system
+        # PhotonVision has yaw reversed from our RH coordinate system
+        self.target_yaw = -math.radians(results.getBestTarget().getYaw())
 
         # work out our field position when photo was taken
         turret_rotation = self.turret.get_angle_at(timestamp)
@@ -95,7 +157,7 @@ class Vision:
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
-            if self.gate_innovation and innovation > 5.0:
+            if self.gate_innovation and innovation > 2.0:
                 return
 
             if self.distance < 5.0:
