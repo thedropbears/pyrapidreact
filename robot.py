@@ -97,9 +97,7 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_3_encoder = ctre.CANCoder(3)
         self.chassis_4_encoder = ctre.CANCoder(4)
 
-    def robotInit(self):
         wpilib.CameraServer.launch()
-        return super().robotInit()
 
     @magicbot.feedback
     def get_cameraserver_alive(self):
