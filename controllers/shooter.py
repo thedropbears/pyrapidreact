@@ -11,7 +11,6 @@ from magicbot import (
     timed_state,
     state,
     feedback,
-    will_reset_to,
 )
 from components.chassis import Chassis
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
@@ -19,6 +18,26 @@ import wpilib
 import navx
 import wpiutil.log
 from utilities.functions import constrain_angle, interpolate
+from enum import Enum, auto
+
+
+class ShooterCommand(Enum):
+    """Represents the intent of the shooter"""
+
+    NONE = auto()
+    FIRE = auto()
+    CLEAR = auto()
+
+    def try_fire(self) -> None:
+        if self == self.NONE:
+            self = self.FIRE
+
+    def try_clear(self) -> None:
+        self = self.CLEAR
+
+    def try_reset(self) -> None:
+        if self == self.FIRE:
+            self = self.NONE
 
 
 class ShooterController(StateMachine):
@@ -58,8 +77,7 @@ class ShooterController(StateMachine):
     AUTO_MAX_ACCEL = 0.2  # G
     AUTO_ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
 
-    _wants_to_clear = False
-    _wants_to_fire = will_reset_to(False)
+    _command = ShooterCommand.NONE
     field: wpilib.Field2d
     data_log: wpiutil.log.DataLog
 
@@ -83,7 +101,7 @@ class ShooterController(StateMachine):
 
     @default_state
     def tracking(self) -> None:
-        if self._wants_to_clear:
+        if self._command == ShooterCommand.CLEAR:
             self.next_state("prepare_to_clear")
 
         cur_pose = self.chassis.estimator.getEstimatedPosition()
@@ -129,7 +147,7 @@ class ShooterController(StateMachine):
         )
         if self.indexer.has_cargo_in_chimney() and self.shooter.is_at_speed():
             if (
-                self._wants_to_fire
+                self._command == ShooterCommand.FIRE
                 and self.turret.is_on_target(
                     math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
                 )
@@ -153,6 +171,8 @@ class ShooterController(StateMachine):
                 and accel < self.AUTO_MAX_ACCEL
             ):
                 self.next_state("firing")
+
+        self._command.try_reset()
 
     @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
     def firing(self, initial_call) -> None:
@@ -186,12 +206,12 @@ class ShooterController(StateMachine):
 
     @timed_state(duration=0.75, next_state="tracking", must_finish=True)
     def clearing(self) -> None:
-        self._wants_to_clear = False
+        self._command = ShooterCommand.NONE
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
 
     def clear(self) -> None:
-        self._wants_to_clear = True
+        self._command.try_clear()
 
     @feedback
     def distance_to_goal(self) -> float:
@@ -201,4 +221,4 @@ class ShooterController(StateMachine):
         return self.distance < self.MAX_DIST and self.distance > self.MIN_DIST
 
     def fire(self) -> None:
-        self._wants_to_fire = True
+        self._command.try_fire()
