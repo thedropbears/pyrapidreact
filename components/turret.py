@@ -19,6 +19,7 @@ class Turret:
     GEAR_REDUCTION = 240 / 60
     COUNTS_PER_TURRET_REV = COUNTS_PER_MOTOR_REV * GEAR_REDUCTION
     COUNTS_PER_TURRET_RADIAN = int(COUNTS_PER_TURRET_REV / math.tau)
+    RADIANS_PER_COUNT = math.tau / COUNTS_PER_TURRET_REV
 
     # Turret experiments show speed of 1884 counts/100ms for a throttle of about 0.35
     pidF = (0.35 * 1023) / 1884
@@ -133,7 +134,7 @@ class Turret:
 
     @magicbot.feedback
     def get_angle(self) -> float:
-        return self.motor.getSelectedSensorPosition() / self.COUNTS_PER_TURRET_RADIAN
+        return self.motor.getSelectedSensorPosition() * self.RADIANS_PER_COUNT
 
     def get_error(self) -> float:
         return self.get_angle() - self.target
