@@ -15,7 +15,7 @@ class LedController:
     vision: Vision
 
     def execute(self) -> None:
-        if not self.vision.is_ready():
+        if not self.vision.is_connected():
             self.status_lights.pulse(LedColours.PINK)
         if not self.indexer.has_cargo_in_chimney():
             self.status_lights.solid(LedColours.ORANGE)
