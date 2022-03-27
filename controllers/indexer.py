@@ -21,7 +21,7 @@ class IndexerController(StateMachine):
     catflap_active = tunable(False)
 
     def setup(self) -> None:
-        self.log_colour = wpiutil.log.StringLogEntry(self.data_log, "/my/colour")
+        self.log_colour = wpiutil.log.StringLogEntry(self.data_log, "/indexer/colour")
 
     def stop(self) -> None:
         self.next_state("stopping")
