@@ -76,6 +76,8 @@ class Vision:
         self.distance = -1.0
         self.target_pitch = 0.0
         self.target_yaw = 0.0
+        self.last_latency = 0.0
+        self.timestamp = 0.0
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
@@ -109,14 +111,17 @@ class Vision:
         self.has_target = results.hasTargets()
         if not self.has_target:
             return
-        timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
+        if results.getLatency() == self.last_latency and wpilib.RobotBase.isReal():
+            return
+        self.last_latency = results.getLatency()
+        self.timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
         self.target_pitch = math.radians(results.getBestTarget().getPitch())
         # PhotonVision has yaw reversed from our RH coordinate system
         self.target_yaw = -math.radians(results.getBestTarget().getYaw())
 
         # work out our field position when photo was taken
-        turret_rotation = self.turret.get_angle_at(timestamp)
-        robot_rotation = self.chassis.get_pose_at(timestamp).rotation()
+        turret_rotation = self.turret.get_angle_at(self.timestamp)
+        robot_rotation = self.chassis.get_pose_at(self.timestamp).rotation()
 
         # angle from the robot to target
         target_angle = turret_rotation + self.target_yaw
@@ -170,13 +175,13 @@ class Vision:
                 )
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
-                timestamp,
+                self.timestamp,
                 (std_dev, std_dev, 0.001),
             )
 
     @feedback
-    def is_ready(self) -> bool:
-        return self.has_target
+    def is_connected(self) -> bool:
+        return (wpilib.Timer.getFPGATimestamp() - self.timestamp) < 2
 
     @feedback
     def get_distance(self) -> float:
