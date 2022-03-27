@@ -39,6 +39,7 @@ class MyRobot(magicbot.MagicRobot):
     vision: Vision
 
     lock_motion_while_shooting = magicbot.tunable(False)
+    test_chassis_speed = magicbot.tunable(2)
 
     def createObjects(self):
         self.logger.info("pyrapidreact %s", GIT_INFO)
@@ -248,6 +249,11 @@ class MyRobot(magicbot.MagicRobot):
             self.intake.motor_enabled = False
             self.intake.deployed = not self.intake.deployed
             self.intake.auto_retract = False
+
+        if self.codriver.getRightBumper():
+            self.chassis.drive_local(self.test_chassis_speed, 0, 0)
+        else:
+            self.chassis.drive_local(0, 0, 0)
 
         self.indexer_control.execute()
 
