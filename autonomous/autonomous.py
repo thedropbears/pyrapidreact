@@ -24,7 +24,7 @@ from enum import Enum, auto
 
 
 class WaypointType(Enum):
-    PICKUP = auto()
+    PICKUP_TO_TWO = auto()
     SHOOT = auto()
     SIMPLE = auto()
 
@@ -132,8 +132,8 @@ class AutoBase(AutonomousStateMachine):
             )
             if self.current_movement.type is WaypointType.SHOOT:
                 self.next_state("firing")
-            elif self.current_movement.type is WaypointType.PICKUP:
-                self.next_state("pickup")
+            elif self.current_movement.type is WaypointType.PICKUP_TO_TWO:
+                self.next_state("pickup_to_two")
             else:
                 self.move_next_waypoint(tm)
         self.chassis_speeds = self.drive_controller.calculate(
@@ -154,7 +154,7 @@ class AutoBase(AutonomousStateMachine):
         self._maybe_hail_mary()
 
     @state
-    def pickup(self, state_tm: float, tm: float) -> None:
+    def pickup_to_two(self, state_tm: float, tm: float) -> None:
         """Waits until full"""
         self.intake.deployed = True
         self.indexer_control.wants_to_intake = True
@@ -226,7 +226,7 @@ class TestAuto(AutoBase):
         super().setup()
         self.movements = [
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(0, 0, Rotation2d.fromDegrees(-45)),
                     end=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
@@ -236,7 +236,7 @@ class TestAuto(AutoBase):
                 Rotation2d.fromDegrees(45),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
                     end=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
@@ -246,7 +246,7 @@ class TestAuto(AutoBase):
                 Rotation2d.fromDegrees(135),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
                     end=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
@@ -256,7 +256,7 @@ class TestAuto(AutoBase):
                 Rotation2d.fromDegrees(225),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
                     end=Pose2d(0, 0, Rotation2d.fromDegrees(315)),
@@ -276,7 +276,7 @@ class ExerciseAuto(AutoBase):
         super().setup()
         self.movements = [
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-1.5, 0, Rotation2d.fromDegrees(180)),
                     end=Pose2d(-3, 0, Rotation2d.fromDegrees(180)),
@@ -286,7 +286,7 @@ class ExerciseAuto(AutoBase):
                 Rotation2d.fromDegrees(180),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-3, 0, Rotation2d.fromDegrees(0)),
                     end=Pose2d(-1.5, 2, Rotation2d.fromDegrees(90)),
@@ -296,7 +296,7 @@ class ExerciseAuto(AutoBase):
                 Rotation2d.fromDegrees(90),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-1.5, 2, Rotation2d.fromDegrees(-90)),
                     end=Pose2d(-1.5, -2, Rotation2d.fromDegrees(-90)),
@@ -306,7 +306,7 @@ class ExerciseAuto(AutoBase):
                 Rotation2d.fromDegrees(-90),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-1.5, -2, Rotation2d.fromDegrees(90)),
                     end=Pose2d(-3, 2, Rotation2d.fromDegrees(180)),
@@ -316,7 +316,7 @@ class ExerciseAuto(AutoBase):
                 Rotation2d.fromDegrees(135),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-3, 2, Rotation2d.fromDegrees(-90)),
                     end=Pose2d(-1.5, 0, Rotation2d.fromDegrees(0)),
@@ -360,7 +360,7 @@ class FiveBall(AutoBase):
                 Rotation2d.fromDegrees(180),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(170)),
                     end=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(-135)),
@@ -402,7 +402,7 @@ class FourBall(AutoBase):
                 Rotation2d.fromDegrees(130),
             ),
             Movement(
-                WaypointType.PICKUP,
+                WaypointType.PICKUP_TO_TWO,
                 TrajectoryGenerator.generateTrajectory(
                     start=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(-130)),
                     end=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(-135)),
