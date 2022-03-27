@@ -1,6 +1,7 @@
 import rev
 import wpilib
 import wpiutil
+import wpiutil.log
 from enum import Enum
 from magicbot import tunable, feedback
 
@@ -33,6 +34,7 @@ class Indexer:
     upper_chimney_prox_sensor: wpilib.DigitalInput
     cat_flap_piston: wpilib.DoubleSolenoid
     tunnel_break_beam: wpilib.DigitalInput
+    data_log: wpiutil.log.DataLog
 
     is_firing = tunable(False)
     tunnel_speed = tunable(0.8)
@@ -77,6 +79,10 @@ class Indexer:
             self.cat_flap_piston,
         ):
             wpiutil.SendableRegistry.setSubsystem(sendable, "Indexer")
+
+        self.log_colour_sensor = wpiutil.log.IntegerArrayLogEntry(
+            self.data_log, "/indexer/colour_sensor"
+        )
 
     def execute(self) -> None:
         if self._tunnel_direction is Indexer.Direction.BACKWARDS:
@@ -135,6 +141,9 @@ class Indexer:
 
     def read_cargo_colour(self) -> None:
         colour = self.colour_sensor.getRawColor()
+        self.log_colour_sensor.append(
+            [colour.red, colour.green, colour.blue, colour.ir]
+        )
         # In testing, the value of blue when we have red cargo never went above 600
         if colour.red > 700 and colour.red > colour.blue:
             self.red_total += 1
