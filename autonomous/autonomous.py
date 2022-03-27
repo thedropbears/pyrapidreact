@@ -151,12 +151,7 @@ class AutoBase(AutonomousStateMachine):
 
         wpilib.SmartDashboard.putNumber("auto_vel", float(target_state.velocity))
 
-        # Shoot in the end of autonoumous if we can
-        if (
-            wpilib.DriverStation.getMatchTime() <= 2.5
-            and self.indexer.has_cargo_in_chimney()
-        ):
-            self.next_state("firing")
+        self._maybe_hail_mary()
 
     @state
     def pickup(self, state_tm: float, tm: float) -> None:
@@ -171,10 +166,12 @@ class AutoBase(AutonomousStateMachine):
             self.next_state("move")
             self.move_next_waypoint(tm)
 
-        if (
-            wpilib.DriverStation.getMatchTime() <= 2.5
-            and self.indexer.has_cargo_in_chimney()
-        ):
+        self._maybe_hail_mary()
+
+    def _maybe_hail_mary(self) -> None:
+        """Shoot if we're reaching the end of autonomous and we have a ball."""
+        match_time = wpilib.DriverStation.getMatchTime()
+        if -1 < match_time <= 2.5 and self.indexer.has_cargo_in_chimney():
             self.next_state("firing")
 
     @state
