@@ -136,15 +136,15 @@ class Indexer:
     def read_cargo_colour(self) -> None:
         colour = self.colour_sensor.getRawColor()
         # In testing, the value of blue when we have red cargo never went above 600
-        if colour.red > 700 and colour.red > colour.blue:
+        if colour.red > 400 and colour.red > colour.blue:
             self.red_total += 1
-        if colour.blue > 700 and colour.blue > colour.red:
+        if colour.blue > 400 and colour.blue > colour.red:
             self.blue_total += 1
 
     def get_cargo_colour(self) -> CargoColour:
-        if self.blue_total > self.red_total and self.blue_total > 3:
+        if self.blue_total > self.red_total and self.blue_total >= 2:
             return CargoColour.BLUE
-        elif self.red_total > self.blue_total and self.red_total > 3:
+        elif self.red_total > self.blue_total and self.red_total >= 2:
             return CargoColour.RED
         else:
             return CargoColour.NONE
