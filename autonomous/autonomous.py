@@ -171,10 +171,7 @@ class AutoBase(AutonomousStateMachine):
     def _maybe_hail_mary(self) -> None:
         """Shoot if we're reaching the end of autonomous and we have a ball."""
         match_time = wpilib.DriverStation.getMatchTime()
-        if (
-            -1 < match_time <= 2.5
-            and self.indexer.has_cargo_in_chimney()
-        ):
+        if -1 < match_time <= 2.5 and self.indexer.has_cargo_in_chimney():
             self.next_state("firing")
 
     @state
