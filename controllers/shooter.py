@@ -206,6 +206,7 @@ class ShooterController(StateMachine):
 
     @timed_state(duration=0.75, next_state="tracking", must_finish=True)
     def clearing(self) -> None:
+        """Plop ball out shooter at low speed"""
         self._command = ShooterCommand.NONE
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)

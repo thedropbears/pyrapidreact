@@ -99,8 +99,10 @@ class IndexerController(StateMachine):
             self.next_state("stopped")
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
-    def intake_clearing(self) -> None:
-        self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
+    def intake_clearing(self, state_tm) -> None:
+        self.intake.depoyed = False
+        if state_tm > 0.2:
+            self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def forced_clearing(self) -> None:
