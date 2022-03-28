@@ -73,12 +73,22 @@ class IndexerController(StateMachine):
                         self.next_state("clearing")
                     else:
                         self.next_state("trapping")
+                elif not self.indexer.has_cargo_in_chimney():
+                    # We can reject through the turret
+                    self.shooter_control._reject_through_turret = True
+                    self.next_state("stopped")
                 else:
+                    # We have to reject through the intake
                     self.next_state("clearing")
             else:
                 if self.catflap_active and self.ignore_colour:
                     if self.indexer.has_trapped_cargo:
-                        self.next_state("clearing")
+                        if not self.indexer.has_cargo_in_chimney():
+                            # We can reject through the turret
+                            self.shooter_control._reject_through_turret = True
+                            self.next_state("stopped")
+                        else:
+                            self.next_state("clearing")
                     else:
                         self.next_state("trapping")
                 else:

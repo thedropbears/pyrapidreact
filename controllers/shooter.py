@@ -71,6 +71,7 @@ class ShooterController(StateMachine):
     def __init__(self) -> None:
         self.flywheels_running = True
         self.track_target = True
+        self._reject_through_turret = False
 
     def setup(self) -> None:
         self.log_pose = wpiutil.log.DoubleArrayLogEntry(self.data_log, "/shooter/pose")
@@ -115,6 +116,8 @@ class ShooterController(StateMachine):
         if self.flywheels_running:
             if self.interpolation_override:
                 self.shooter.motor_speed = self.flywheel_speed
+            elif self._reject_through_turret:
+                self.shooter.motor_speed = 5
             else:
                 self.shooter.motor_speed = interpolate(
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
@@ -128,6 +131,11 @@ class ShooterController(StateMachine):
             self.imu.getWorldLinearAccelX(), self.imu.getWorldLinearAccelY()
         )
         if self.indexer.has_cargo_in_chimney() and self.shooter.is_at_speed():
+            if self._reject_through_turret and self.turret.is_on_target(
+                math.atan(math.radians(45))
+            ):
+                self.next_state("firing")
+
             if (
                 self._wants_to_fire
                 and self.turret.is_on_target(
@@ -174,6 +182,7 @@ class ShooterController(StateMachine):
 
     @state
     def resetting(self):
+        self._reject_through_turret = False
         self.next_state("tracking")
 
     @feedback
