@@ -84,23 +84,8 @@ class IndexerController(StateMachine):
             # The "stopped" state will work out if it needs to move the ball into the chimney
             self.next_state("stopped")
 
-    @state(must_finish=True)
-    def clearing(self, initial_call) -> None:
-        if initial_call:
-            if self.indexer.has_cargo_in_chimney():
-                self.next_state("intake_clearing")
-                return
-            else:
-                self.shooter_control.clear()
-
-        if not (
-            self.shooter_control.current_state == "prepare_to_clear"
-            or self.shooter_control.current_state == "clearing"
-        ):
-            self.next_state("stopped")
-
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
-    def intake_clearing(self, state_tm) -> None:
+    def clearing(self, state_tm) -> None:
         self.intake.deployed = False
         if state_tm > 0.2:
             self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)

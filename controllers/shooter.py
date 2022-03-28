@@ -11,6 +11,7 @@ from magicbot import (
     default_state,
     timed_state,
     feedback,
+    will_reset_to,
 )
 from components.chassis import Chassis
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
@@ -18,23 +19,6 @@ import wpilib
 import navx
 import wpiutil.log
 from utilities.functions import constrain_angle, interpolate
-from enum import Enum, auto
-
-
-class ShooterCommand(Enum):
-    """Represents the intent of the shooter"""
-
-    NONE = auto()
-    FIRE = auto()
-    CLEAR = auto()
-
-    def try_fire(self) -> None:
-        if self is self.NONE:
-            self = self.FIRE
-
-    def try_reset(self) -> None:
-        if self is self.FIRE:
-            self = self.NONE
 
 
 class ShooterController(StateMachine):
@@ -74,7 +58,7 @@ class ShooterController(StateMachine):
     AUTO_MAX_ACCEL = 0.2  # G
     AUTO_ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
 
-    _command = ShooterCommand.NONE
+    _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
     data_log: wpiutil.log.DataLog
 
@@ -153,7 +137,7 @@ class ShooterController(StateMachine):
                 self.next_state("firing")
 
             if (
-                self._command == ShooterCommand.FIRE
+                self._wants_to_fire
                 and self.turret.is_on_target(
                     math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
                 )
@@ -209,4 +193,4 @@ class ShooterController(StateMachine):
         return self.distance < self.MAX_DIST and self.distance > self.MIN_DIST
 
     def fire(self) -> None:
-        self._command.try_fire()
+        self._wants_to_fire = True
