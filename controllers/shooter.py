@@ -29,14 +29,11 @@ class ShooterCommand(Enum):
     CLEAR = auto()
 
     def try_fire(self) -> None:
-        if self == self.NONE:
+        if self is self.NONE:
             self = self.FIRE
 
-    def try_clear(self) -> None:
-        self = self.CLEAR
-
     def try_reset(self) -> None:
-        if self == self.FIRE:
+        if self is self.FIRE:
             self = self.NONE
 
 
@@ -212,7 +209,7 @@ class ShooterController(StateMachine):
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
 
     def clear(self) -> None:
-        self._command.try_clear()
+        self._command = ShooterCommand.CLEAR
 
     @feedback
     def distance_to_goal(self) -> float:

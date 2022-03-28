@@ -1,4 +1,5 @@
 from components.indexer import Indexer
+from components.intake import Intake
 from magicbot import (
     StateMachine,
     default_state,
@@ -13,6 +14,7 @@ from controllers.shooter import ShooterController
 
 class IndexerController(StateMachine):
     indexer: Indexer
+    intake: Intake
     shooter_control: ShooterController
     data_log: wpiutil.log.DataLog
 
@@ -100,7 +102,7 @@ class IndexerController(StateMachine):
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def intake_clearing(self, state_tm) -> None:
-        self.intake.depoyed = False
+        self.intake.deployed = False
         if state_tm > 0.2:
             self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
 
