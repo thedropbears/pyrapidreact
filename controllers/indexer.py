@@ -91,6 +91,7 @@ class IndexerController(StateMachine):
         if initial_call:
             if self.indexer.has_cargo_in_chimney():
                 self.next_state("intake_clearing")
+                return
             else:
                 self.shooter_control.clear()
 

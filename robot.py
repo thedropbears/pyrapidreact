@@ -165,20 +165,15 @@ class MyRobot(magicbot.MagicRobot):
         else:
             self.chassis.drive_field(*self.recorded_joystick_state)
 
-        if self.joystick.getRawButtonPressed(11):
+        if self.joystick.getRawButtonPressed(9):
             self.shooter_control.lead_shots = True
-        if self.joystick.getRawButtonPressed(12):
+        if self.joystick.getRawButtonPressed(10):
             self.shooter_control.lead_shots = False
 
         if self.joystick.getRawButtonPressed(7):
             self.indexer_control.ignore_colour = True
         if self.joystick.getRawButtonPressed(8):
             self.indexer_control.ignore_colour = False
-
-        if self.joystick.getRawButtonPressed(9):
-            self.intake.auto_retract = True
-        if self.joystick.getRawButtonPressed(10):
-            self.intake.auto_retract = False
 
         # reset heading to intake facing directly downfield
         if self.codriver.getYButtonPressed():
@@ -196,8 +191,18 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
-        # stop motor running if we are full
+        # stop intake motor running if we have something in tunnel
         self.intake.motor_enabled = self.indexer.ready_to_intake()
+
+        # hold down 11 to intake untill full, no auto-retract
+        self.intake.auto_retract = not self.joystick.getRawButton(11)
+        if self.joystick.getRawButton(11):
+            self.intake.deplyed = True
+            self.indexer_control.wants_to_intake = True
+
+        # will retract when has two balls regardless
+        if self.indexer.is_full():
+            self.intake.deployed = False
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)

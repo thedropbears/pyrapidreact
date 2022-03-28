@@ -123,6 +123,11 @@ class Indexer:
 
         return True
 
+    def is_full(self) -> bool:
+        return self.has_cargo_in_chimney() and (
+            self.has_cargo_in_tunnel or self.has_cargo_in_chimney
+        )
+
     def get_colours(self) -> str:
         raw = self.colour_sensor.getRawColor()
         return f"r{raw.red:.3f}|g{raw.green:.3f}|b{raw.blue:.3f}"
