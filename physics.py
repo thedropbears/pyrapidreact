@@ -7,6 +7,7 @@ from utilities.ctre import FALCON_CPR, VERSA_ENCODER_CPR
 
 import wpilib.simulation
 from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState
+from wpimath.system.plant import DCMotor
 
 from components.chassis import SwerveModule
 from components.turret import Turret
@@ -80,6 +81,16 @@ class PhysicsEngine:
             for module in robot.chassis.modules
         ]
 
+        shooter_wheels_moi = 0.000727856
+        self.flywheel = wpilib.simulation.FlywheelSim(
+            DCMotor.falcon500(2),
+            gearing=1 / 1,
+            moi=shooter_wheels_moi,
+            measurementStdDevs=[0.01],
+        )
+        self.left_shooter = robot.shooter_left_motor.getSimCollection()
+        self.right_shooter = robot.shooter_right_motor.getSimCollection()
+
         self.imu = wpilib.simulation.SimDeviceSim("navX-Sensor", 4)
         self.imu_yaw = self.imu.getDouble("Yaw")
 
@@ -91,6 +102,14 @@ class PhysicsEngine:
             wheel.update(tm_diff)
         for steer in self.steer:
             steer.update(tm_diff)
+
+        self.flywheel.setInputVoltage(self.left_shooter.getMotorOutputLeadVoltage())
+        self.flywheel.update(tm_diff)
+        shooter_vel = int(
+            self.flywheel.getAngularVelocity() / math.tau * FALCON_CPR / 10
+        )
+        self.left_shooter.setIntegratedSensorVelocity(shooter_vel)
+        self.right_shooter.setIntegratedSensorVelocity(-shooter_vel)
 
         states = typing.cast(
             typing.Tuple[
