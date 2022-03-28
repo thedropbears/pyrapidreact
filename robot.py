@@ -196,9 +196,8 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
-        # retract intake if we are full, even if auto-retract is off
-        if not self.indexer.ready_to_intake():
-            self.intake.deployed = False
+        # stop motor running if we are full
+        self.intake.motor_enabled = self.indexer.ready_to_intake()
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
