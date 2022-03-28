@@ -62,29 +62,27 @@ class IndexerController(StateMachine):
     def reading(self, state_tm: float) -> None:
         self.indexer.read_cargo_colour()
         colour = self.indexer.get_cargo_colour()
-        if state_tm < 0.3 or (not colour.is_valid() and state_tm < 0.5):
+        if state_tm < 0.3:
             return
-
+        if not colour.is_valid() and state_tm < 0.5:
+            return
         self.log_colour.append(colour.name)
-        if colour.is_opposition() and not self.ignore_colour:
-            if (
-                self.catflap_active
-                and not self.indexer.has_trapped_cargo
-                and not self.indexer.has_cargo_in_chimney()
-            ):
+        if (colour.is_opposition() and not self.ignore_colour) or (
+            self.catflap_active and self.ignore_colour
+        ):
+            if self.indexer.has_cargo_in_chimney():
+                # We have to reject through the intake
+                self.next_state("clearing")
+            elif self.catflap_active and not self.indexer.has_trapped_cargo:
                 self.next_state("trapping")
             else:
-                self.next_state("clearing")
-        else:  # our ball or ignore colour
-            if self.catflap_active and self.ignore_colour:
-                if self.indexer.has_trapped_cargo:
-                    self.next_state("clearing")
-                else:
-                    self.next_state("trapping")
-            else:
-                # It is our ball so we have finished this process
-                # The "stopped" state will work out if it needs to move the ball into the chimney
+                # We can reject through the turret
+                self.shooter_control._reject_through_turret = True
                 self.next_state("stopped")
+        else:
+            # It is our ball so we have finished this process
+            # The "stopped" state will work out if it needs to move the ball into the chimney
+            self.next_state("stopped")
 
     @state(must_finish=True)
     def clearing(self, initial_call) -> None:

@@ -6,10 +6,10 @@ from components.intake import Intake
 from components.vision import Vision
 from magicbot import (
     StateMachine,
+    state,
     tunable,
     default_state,
     timed_state,
-    state,
     feedback,
 )
 from components.chassis import Chassis
@@ -87,6 +87,7 @@ class ShooterController(StateMachine):
     def __init__(self) -> None:
         self.flywheels_running = True
         self.track_target = True
+        self._reject_through_turret = False
 
     def setup(self) -> None:
         self.log_pose = wpiutil.log.DoubleArrayLogEntry(self.data_log, "/shooter/pose")
@@ -96,11 +97,7 @@ class ShooterController(StateMachine):
         self.field_effective_goal = self.field.getObject("effective_goal")
         self.field_effective_goal.setPose(Pose2d(0, 0, 0))
 
-    @default_state
-    def tracking(self) -> None:
-        if self._command == ShooterCommand.CLEAR:
-            self.next_state("prepare_to_clear")
-
+    def _track(self) -> None:
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # adjust shot to hit while moving
@@ -135,14 +132,26 @@ class ShooterController(StateMachine):
         if self.flywheels_running:
             if self.interpolation_override:
                 self.shooter.motor_speed = self.flywheel_speed
+            elif self._reject_through_turret:
+                self.shooter.motor_speed = 5
             else:
                 self.shooter.motor_speed = interpolate(
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
                 )
+
+    @default_state
+    def tracking(self) -> None:
+        self._track()
+
         accel = math.hypot(
             self.imu.getWorldLinearAccelX(), self.imu.getWorldLinearAccelY()
         )
         if self.indexer.has_cargo_in_chimney() and self.shooter.is_at_speed():
+            if self._reject_through_turret and self.turret.is_on_target(
+                math.atan(math.radians(45))
+            ):
+                self.next_state("firing")
+
             if (
                 self._command == ShooterCommand.FIRE
                 and self.turret.is_on_target(
@@ -169,9 +178,7 @@ class ShooterController(StateMachine):
             ):
                 self.next_state("firing")
 
-        self._command.try_reset()
-
-    @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
+    @timed_state(duration=0.5, first=True, next_state="resetting", must_finish=True)
     def firing(self, initial_call) -> None:
         if initial_call:
             pose = self.chassis.get_pose()
@@ -186,30 +193,13 @@ class ShooterController(StateMachine):
                     self.vision.target_yaw,
                 ]
             )
-        if self.flywheels_running:
-            if self.interpolation_override:
-                self.shooter.motor_speed = self.flywheel_speed
-            else:
-                self.shooter.motor_speed = interpolate(
-                    self.distance, self.ranges_lookup, self.flywheel_speed_lookup
-                )
+        self._track()
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
 
-    @state(must_finish=True)
-    def prepare_to_clear(self) -> None:
-        self.shooter.motor_speed = 5
-        if self.shooter.is_at_speed():
-            self.next_state("clearing")
-
-    @timed_state(duration=0.75, next_state="tracking", must_finish=True)
-    def clearing(self) -> None:
-        """Plop ball out shooter at low speed"""
-        self._command = ShooterCommand.NONE
-        self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
-        self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
-
-    def clear(self) -> None:
-        self._command = ShooterCommand.CLEAR
+    @state
+    def resetting(self):
+        self._reject_through_turret = False
+        self.next_state("tracking")
 
     @feedback
     def distance_to_goal(self) -> float:
