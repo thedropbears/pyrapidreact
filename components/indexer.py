@@ -125,7 +125,7 @@ class Indexer:
 
     def is_full(self) -> bool:
         return self.has_cargo_in_chimney() and (
-            self.has_cargo_in_tunnel or self.has_cargo_in_chimney
+            self.has_cargo_in_tunnel() or self.has_trapped_cargo
         )
 
     def get_colours(self) -> str:
