@@ -6,6 +6,7 @@ from components.intake import Intake
 from components.vision import Vision
 from magicbot import (
     StateMachine,
+    state,
     tunable,
     default_state,
     timed_state,
@@ -79,8 +80,7 @@ class ShooterController(StateMachine):
         self.field_effective_goal = self.field.getObject("effective_goal")
         self.field_effective_goal.setPose(Pose2d(0, 0, 0))
 
-    @default_state
-    def tracking(self) -> None:
+    def _track(self) -> None:
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
         # adjust shot to hit while moving
@@ -119,6 +119,11 @@ class ShooterController(StateMachine):
                 self.shooter.motor_speed = interpolate(
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
                 )
+
+    @default_state
+    def tracking(self) -> None:
+        self._track()
+
         accel = math.hypot(
             self.imu.getWorldLinearAccelX(), self.imu.getWorldLinearAccelY()
         )
@@ -149,7 +154,7 @@ class ShooterController(StateMachine):
             ):
                 self.next_state("firing")
 
-    @timed_state(duration=0.5, first=True, next_state="tracking", must_finish=True)
+    @timed_state(duration=0.5, first=True, next_state="resetting", must_finish=True)
     def firing(self, initial_call) -> None:
         if initial_call:
             pose = self.chassis.get_pose()
@@ -164,14 +169,12 @@ class ShooterController(StateMachine):
                     self.vision.target_yaw,
                 ]
             )
-        if self.flywheels_running:
-            if self.interpolation_override:
-                self.shooter.motor_speed = self.flywheel_speed
-            else:
-                self.shooter.motor_speed = interpolate(
-                    self.distance, self.ranges_lookup, self.flywheel_speed_lookup
-                )
+        self._track()
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
+
+    @state
+    def resetting(self):
+        self.next_state("tracking")
 
     @feedback
     def distance_to_goal(self) -> float:
