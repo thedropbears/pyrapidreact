@@ -175,10 +175,11 @@ class AutoBase(AutonomousStateMachine):
                     self.next_state("move_shoot")
 
     @state
-    def move_shoot(self, tm: float) -> None:
+    def move_shoot(self, tm: float, state_tm: float) -> None:
         self.do_move(tm)
         self.shooter_control.lead_shots = True
-        self.shooter_control.fire()
+        if state_tm > 0.2:
+            self.shooter_control.fire()
 
         traj_time = tm - self.trajectory_start_time
         if traj_time > self.current_trajectory.totalTime() and (
@@ -411,16 +412,16 @@ class SixBall(AutoBase):
             ),
             Movement(
                 WaypointType.MOVE_SHOOT,
-                start_direction=Rotation2d.fromDegrees(45),
-                end=Pose2d(-4.23, 0.8, Rotation2d.fromDegrees(45)),
+                start_direction=Rotation2d.fromDegrees(53),
+                end=Pose2d(-4.23, 0.8, Rotation2d.fromDegrees(53)),
                 interior=[],
                 config=self.shoot_trajectory_config,
-                chassis_heading=Rotation2d.fromDegrees(45),
+                chassis_heading=Rotation2d.fromDegrees(-120),
             ),
             Movement(
                 WaypointType.SHOOT,
-                start_direction=Rotation2d.fromDegrees(45),
-                end=Pose2d(-3.45, 1.85, Rotation2d.fromDegrees(45)),
+                start_direction=Rotation2d.fromDegrees(53),
+                end=Pose2d(-3.45, 1.85, Rotation2d.fromDegrees(53)),
                 interior=[],
                 config=self.trajectory_config,
                 chassis_heading=Rotation2d.fromDegrees(45),
