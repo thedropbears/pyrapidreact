@@ -1,4 +1,5 @@
 from components.indexer import Indexer
+from components.intake import Intake
 from magicbot import (
     StateMachine,
     default_state,
@@ -13,6 +14,7 @@ from controllers.shooter import ShooterController
 
 class IndexerController(StateMachine):
     indexer: Indexer
+    intake: Intake
     shooter_control: ShooterController
     data_log: wpiutil.log.DataLog
 
@@ -29,6 +31,10 @@ class IndexerController(StateMachine):
     @default_state
     def stopped(self) -> None:
         # By default the indexer does nothing and has the cat flap closed, so we can do nothing too!
+
+        # will retract when has two balls regardless
+        if self.indexer.is_full() and not self.shooter_control._reject_through_turret:
+            self.intake.deployed = False
 
         # We need to check if we should be moving a ball from the tunnel to the chimney
         if (
@@ -49,56 +55,47 @@ class IndexerController(StateMachine):
         self.next_state("stopped")
 
     @state(first=True, must_finish=True)
-    def intaking(self) -> None:
+    def intaking(self, initial_call: bool) -> None:
+        if initial_call:
+            self.intake.deployed = True
         self.indexer.read_cargo_colour()
         if self.indexer.has_cargo_in_tunnel():
             self.next_state("reading")
             return
+        if not self.wants_to_intake:
+            self.stop()
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
 
     @state(must_finish=True)
     def reading(self, state_tm: float) -> None:
         self.indexer.read_cargo_colour()
         colour = self.indexer.get_cargo_colour()
-        if state_tm > 0.3:
-            if not colour.is_valid() and state_tm < 0.5:
-                return
-            self.log_colour.append(colour.name)
-            if colour.is_opposition() and not self.ignore_colour:
-                if self.catflap_active:
-                    if (
-                        self.indexer.has_trapped_cargo
-                        or self.indexer.has_cargo_in_chimney()
-                    ):
-                        self.next_state("clearing")
-                    else:
-                        self.next_state("trapping")
-                elif not self.indexer.has_cargo_in_chimney():
-                    # We can reject through the turret
-                    self.shooter_control._reject_through_turret = True
-                    self.next_state("stopped")
-                else:
-                    # We have to reject through the intake
-                    self.next_state("clearing")
+        if state_tm < 0.3:
+            return
+        if not colour.is_valid() and state_tm < 0.5:
+            return
+        self.log_colour.append(colour.name)
+        if (colour.is_opposition() and not self.ignore_colour) or (
+            self.catflap_active and self.ignore_colour
+        ):
+            if self.indexer.has_cargo_in_chimney():
+                # We have to reject through the intake
+                self.next_state("clearing")
+            elif self.catflap_active and not self.indexer.has_trapped_cargo:
+                self.next_state("trapping")
             else:
-                if self.catflap_active and self.ignore_colour:
-                    if self.indexer.has_trapped_cargo:
-                        if not self.indexer.has_cargo_in_chimney():
-                            # We can reject through the turret
-                            self.shooter_control._reject_through_turret = True
-                            self.next_state("stopped")
-                        else:
-                            self.next_state("clearing")
-                    else:
-                        self.next_state("trapping")
-                else:
-                    # It is our ball so we have finished this process
-                    # The "stopped" state will work out if it needs to move the ball into the chimney
-                    self.next_state("stopped")
+                # We can reject through the turret
+                self.shooter_control._reject_through_turret = True
+                self.next_state("stopped")
+        else:
+            # It is our ball so we have finished this process
+            # The "stopped" state will work out if it needs to move the ball into the chimney
+            self.next_state("stopped")
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def clearing(self) -> None:
         self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
+        self.intake.motor_direction = self.intake.Direction.BACKWARDS
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def forced_clearing(self) -> None:
