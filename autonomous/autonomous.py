@@ -5,7 +5,6 @@ from magicbot.state_machine import AutonomousStateMachine, state
 from wpimath import controller, trajectory
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from wpimath.trajectory import (
-    Trajectory,
     TrajectoryConfig,
     TrajectoryGenerator,
     constraint,
@@ -32,8 +31,16 @@ class WaypointType(Enum):
 @dataclass
 class Movement:
     type: WaypointType
-    trajectory: Trajectory
+    start_direction: Rotation2d
+    end: Pose2d
+    interior: List[Translation2d]
+    config: TrajectoryConfig
     chassis_heading: Rotation2d
+
+    def generate(self, start: Pose2d):
+        self.trajectory: trajectory.Trajectory = TrajectoryGenerator.generateTrajectory(
+            start, self.interior, self.end, self.config
+        )
 
 
 class AutoBase(AutonomousStateMachine):
@@ -71,7 +78,14 @@ class AutoBase(AutonomousStateMachine):
                 self.ALLOWED_ROT_ERROR,
             )
         )
+        # Leave some headroom over the max unloaded speed
+        max_speed = Chassis.max_attainable_wheel_speed * 0.7
+        self.trajectory_config = TrajectoryConfig(
+            maxVelocity=max_speed, maxAcceleration=2.9
+        )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
+
         self.movements: List[Movement] = []
+        self.start_pose = Pose2d(0, 0, 0)
 
         wpilib.SmartDashboard.putNumber("auto_vel", 0.0)
 
@@ -79,19 +93,13 @@ class AutoBase(AutonomousStateMachine):
         self.field_auto_target_pose = self.field.getObject("auto_target_pose")
         self.auto_trajectory = self.field.getObject("auto_trajectory")
         self.field_auto_target_pose.setPose(Pose2d(0, 0, 0))
-
-        # Leave some headroom over the max unloaded speed
-        max_speed = self.chassis.max_attainable_wheel_speed * 0.7
-        self.trajectory_config = TrajectoryConfig(
-            maxVelocity=max_speed, maxAcceleration=2.9
-        )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
         self.trajectory_config.addConstraint(
             constraint.SwerveDrive4KinematicsConstraint(
                 self.chassis.kinematics,
-                maxSpeed=self.chassis.max_attainable_wheel_speed,
+                maxSpeed=Chassis.max_attainable_wheel_speed,
             )
         )
-        # add additional constraints here if required
+        self.generate_trajectories()
 
     def on_enable(self) -> None:
         self.chassis.set_pose(self.movements[0].trajectory.initialPose())
@@ -210,6 +218,15 @@ class AutoBase(AutonomousStateMachine):
 
         self.trajectory_start_time = cur_time
 
+    def generate_trajectories(self) -> None:
+        self.movements[0].generate(self.start_pose)
+        for movement, last in zip(self.movements[1:], self.movements):
+            last_end_translation = last.trajectory.sample(
+                last.trajectory.totalTime()
+            ).pose.translation()
+            this_start_pose = Pose2d(last_end_translation, movement.start_direction)
+            movement.generate(this_start_pose)
+
 
 # balls positions are described in https://docs.google.com/document/d/1K2iGdIX5vyCDEaJtaLdUiC-ihC9xyGYjrKFfLbvpusI/edit
 
@@ -219,113 +236,55 @@ right_mid_start = Pose2d(-0.630, -2.334, Rotation2d.fromDegrees(-88.5))
 left_mid_start = Pose2d(-2.156, 1.093, Rotation2d.fromDegrees(136.5))
 
 
-class TestAuto(AutoBase):
-    MODE_NAME = "test"
-
-    def setup(self) -> None:
-        super().setup()
-        self.movements = [
-            Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(0, 0, Rotation2d.fromDegrees(-45)),
-                    end=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(45),
-            ),
-            Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(2, 0, Rotation2d.fromDegrees(45)),
-                    end=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(135),
-            ),
-            Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(2, 2, Rotation2d.fromDegrees(135)),
-                    end=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(225),
-            ),
-            Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(0, 2, Rotation2d.fromDegrees(225)),
-                    end=Pose2d(0, 0, Rotation2d.fromDegrees(315)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(315),
-            ),
-        ]
-
-
 class ExerciseAuto(AutoBase):
     MODE_NAME = "exercise"
     # Run a test routine in confined spaces that has the same total distance and changes of direction as the 5 ball
 
     def setup(self) -> None:
-        super().setup()
+        self.start_pose = Pose2d(-1.5, 0, Rotation2d.fromDegrees(180))
         self.movements = [
             Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-1.5, 0, Rotation2d.fromDegrees(180)),
-                    end=Pose2d(-3, 0, Rotation2d.fromDegrees(180)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(180),
+                type=WaypointType.PICKUP_TO_TWO,
+                start_direction=Rotation2d.fromDegrees(180),
+                end=Pose2d(-3, 0, Rotation2d.fromDegrees(180)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(180),
             ),
             Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-3, 0, Rotation2d.fromDegrees(0)),
-                    end=Pose2d(-1.5, 2, Rotation2d.fromDegrees(90)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(90),
+                type=WaypointType.PICKUP_TO_TWO,
+                start_direction=Rotation2d.fromDegrees(0),
+                end=Pose2d(-1.5, 2, Rotation2d.fromDegrees(90)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(90),
             ),
             Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-1.5, 2, Rotation2d.fromDegrees(-90)),
-                    end=Pose2d(-1.5, -2, Rotation2d.fromDegrees(-90)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(-90),
+                type=WaypointType.PICKUP_TO_TWO,
+                start_direction=Rotation2d.fromDegrees(-90),
+                end=Pose2d(-1.5, -2, Rotation2d.fromDegrees(-90)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(-90),
             ),
             Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-1.5, -2, Rotation2d.fromDegrees(90)),
-                    end=Pose2d(-3, 2, Rotation2d.fromDegrees(180)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(135),
+                type=WaypointType.PICKUP_TO_TWO,
+                start_direction=Rotation2d.fromDegrees(90),
+                end=Pose2d(-3, 2, Rotation2d.fromDegrees(180)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(135),
             ),
             Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-3, 2, Rotation2d.fromDegrees(-90)),
-                    end=Pose2d(-1.5, 0, Rotation2d.fromDegrees(0)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(180),
+                type=WaypointType.PICKUP_TO_TWO,
+                start_direction=Rotation2d.fromDegrees(-90),
+                end=Pose2d(-1.5, 0, Rotation2d.fromDegrees(0)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(180),
             ),
         ]
+        super().setup()
 
 
 class FiveBall(AutoBase):
@@ -335,93 +294,44 @@ class FiveBall(AutoBase):
     DEFAULT = True
 
     def setup(self) -> None:
-        super().setup()
+        self.start_pose = right_mid_start
         self.movements = [
             Movement(
                 WaypointType.SHOOT,
-                TrajectoryGenerator.generateTrajectory(
-                    start=right_mid_start,
-                    end=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(-90)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(-88.5),
+                start_direction=Rotation2d.fromDegrees(-90),
+                end=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(-90)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(-88.5),
             ),
             Movement(
                 WaypointType.SHOOT,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(100)),
-                    end=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(180)),
-                    interiorWaypoints=[
-                        Translation2d(-1.8, -2.3),
-                    ],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(180),
+                start_direction=Rotation2d.fromDegrees(100),
+                end=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(180)),
+                interior=[
+                    Translation2d(-1.8, -2.3),
+                ],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(180),
             ),
             Movement(
                 WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-3.4, -2.1, Rotation2d.fromDegrees(170)),
-                    end=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(-135)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(-135),
+                start_direction=Rotation2d.fromDegrees(170),
+                end=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(-135)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(-135),
             ),
             Movement(
                 WaypointType.SHOOT,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-6.95, -2.8, Rotation2d.fromDegrees(45)),
-                    end=Pose2d(-5.0, -2.0, Rotation2d.fromDegrees(0)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(-135),
+                start_direction=Rotation2d.fromDegrees(45),
+                end=Pose2d(-5.0, -2.0, Rotation2d.fromDegrees(0)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(-135),
             ),
         ]
-
-
-class FourBall(AutoBase):
-    """Auto starting middle of left tarmac, picking up ball 1 and both at terminal
-    In case we have a partner who can do a three ball"""
-
-    MODE_NAME = "Four Ball: Left - Terminal"
-
-    def setup(self) -> None:
         super().setup()
-        self.movements = [
-            Movement(
-                WaypointType.SHOOT,
-                TrajectoryGenerator.generateTrajectory(
-                    start=left_mid_start,
-                    end=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(160)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(130),
-            ),
-            Movement(
-                WaypointType.PICKUP_TO_TWO,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(-130)),
-                    end=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(-135)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(-136),
-            ),
-            Movement(
-                WaypointType.SHOOT,
-                TrajectoryGenerator.generateTrajectory(
-                    start=Pose2d(-7.25, -2.75, Rotation2d.fromDegrees(75)),
-                    end=Pose2d(-5.0, 0.0, Rotation2d.fromDegrees(30)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(-136),
-            ),
-        ]
 
 
 class TwoBall(AutoBase):
@@ -432,16 +342,15 @@ class TwoBall(AutoBase):
     MODE_NAME = "Two Ball: Left"
 
     def setup(self) -> None:
-        super().setup()
+        self.start_pose = left_mid_start
         self.movements = [
             Movement(
                 WaypointType.SHOOT,
-                TrajectoryGenerator.generateTrajectory(
-                    start=left_mid_start,
-                    end=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(130)),
-                    interiorWaypoints=[],
-                    config=self.trajectory_config,
-                ),
-                Rotation2d.fromDegrees(130),
+                start_direction=Rotation2d.fromDegrees(135),
+                end=Pose2d(-3.1, 1.8, Rotation2d.fromDegrees(130)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(130),
             ),
         ]
+        super().setup()
