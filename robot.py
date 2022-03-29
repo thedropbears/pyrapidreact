@@ -191,25 +191,11 @@ class MyRobot(magicbot.MagicRobot):
                 self.indexer_control.wants_to_intake = True
                 self.intake.deployed = True
 
-        # stop intake motor running if we have something in tunnel
-        self.intake.motor_enabled = (
-            self.indexer.ready_to_intake()
-            or self.indexer_control.current_state == "clearing"
-        )
-
         # hold down 11 to intake untill full, no auto-retract
         self.intake.auto_retract = not self.joystick.getRawButton(11)
         if self.joystick.getRawButton(11):
             self.intake.deployed = True
             self.indexer_control.wants_to_intake = True
-
-        # will retract when has two balls regardless
-        if (
-            self.indexer.is_full()
-            and self.indexer_control.current_state == "stopped"
-            and not self.shooter_control._reject_through_turret
-        ):
-            self.intake.deployed = False
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)

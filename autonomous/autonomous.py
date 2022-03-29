@@ -113,10 +113,8 @@ class AutoBase(AutonomousStateMachine):
 
     @state
     def move(self, tm: float) -> None:
-        # indexer controller will hanle it self raising and lowering
-        if self.indexer.ready_to_intake():
-            self.intake.deployed = True
-            self.indexer_control.wants_to_intake = True
+        self.intake.deployed = True
+        self.indexer_control.wants_to_intake = True
         # calculate speed and position from current trajectory
         traj_time = tm - self.trajectory_start_time
         target_state = self.current_trajectory.sample(traj_time)
@@ -178,7 +176,6 @@ class AutoBase(AutonomousStateMachine):
     def firing(self, state_tm: float, tm: float) -> None:
         """Waits until empty"""
         self.shooter_control.fire()
-        self.intake.deployed = False
         if state_tm > 2.5 or not (
             self.indexer.has_cargo_in_chimney()
             or self.indexer.has_cargo_in_tunnel()

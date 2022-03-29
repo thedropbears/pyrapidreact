@@ -32,6 +32,10 @@ class IndexerController(StateMachine):
     def stopped(self) -> None:
         # By default the indexer does nothing and has the cat flap closed, so we can do nothing too!
 
+        # will retract when has two balls regardless
+        if self.indexer.is_full() and not self.shooter_control._reject_through_turret:
+            self.intake.deployed = False
+
         # We need to check if we should be moving a ball from the tunnel to the chimney
         if (
             self.indexer.has_cargo_in_tunnel()

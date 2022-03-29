@@ -2,9 +2,12 @@ import rev
 import wpilib
 from magicbot import tunable, will_reset_to
 from enum import Enum
+from components.indexer import Indexer
 
 
 class Intake:
+    indexer: Indexer
+
     class Direction(Enum):
         FORWARDS = 1
         BACKWARDS = -1
@@ -31,6 +34,9 @@ class Intake:
         self._intake_limit.enableLimitSwitch(False)
 
     def execute(self) -> None:
+        # stop intake motor running if we have something in tunnel
+        self.motor_enabled = self.indexer.ready_to_intake()
+
         if self.has_cargo() and self.auto_retract:
             # If the breakbeam has fired we have a ball and we should retract
             self.deployed = False
@@ -40,12 +46,11 @@ class Intake:
         else:
             self.intake_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
-        if self.deployed and self.motor_enabled:
-            self.intake_motor.set(
-                self.motor_direction
-                if self.invert_direction
-                else -1 * self.motor_direction
-            )
+        if self.deployed:
+            if self.motor_direction is self.Direction.BACKWARDS:
+                self.intake_motor.set(-0.4 if self.invert_direction else 0.4)
+            elif self.motor_enabled:
+                self.intake_motor.set(1.0 if self.invert_direction else -1.0)
         else:
             self.intake_motor.set(0.0)
 
