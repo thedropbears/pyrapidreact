@@ -85,10 +85,9 @@ class IndexerController(StateMachine):
             self.next_state("stopped")
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
-    def clearing(self, state_tm) -> None:
-        self.intake.deployed = False
-        if state_tm > 0.2:
-            self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
+    def clearing(self) -> None:
+        self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
+        self.intake.motor_direction = self.intake.Direction.BACKWARDS
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def forced_clearing(self) -> None:

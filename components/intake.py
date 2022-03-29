@@ -1,15 +1,21 @@
 import rev
 import wpilib
-from magicbot import tunable
+from magicbot import tunable, will_reset_to
+from enum import Enum
 
 
 class Intake:
+    class Direction(Enum):
+        FORWARDS = 1
+        BACKWARDS = -1
+
     # intake_prox: wpilib.DigitalInput
     intake_motor: rev.CANSparkMax
     intake_piston: wpilib.DoubleSolenoid
 
     auto_retract = tunable(True)
     invert_direction = tunable(False)
+    motor_direction = will_reset_to(Direction.FORWARDS)
 
     def __init__(self):
         self._last_cargo_presence = 0
@@ -35,7 +41,11 @@ class Intake:
             self.intake_piston.set(wpilib.DoubleSolenoid.Value.kReverse)
 
         if self.deployed and self.motor_enabled:
-            self.intake_motor.set(1.0 if self.invert_direction else -1.0)
+            self.intake_motor.set(
+                self.motor_direction
+                if self.invert_direction
+                else -1 * self.motor_direction
+            )
         else:
             self.intake_motor.set(0.0)
 
