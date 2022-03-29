@@ -55,11 +55,15 @@ class IndexerController(StateMachine):
         self.next_state("stopped")
 
     @state(first=True, must_finish=True)
-    def intaking(self) -> None:
+    def intaking(self, initial_call: bool) -> None:
+        if initial_call:
+            self.intake.deployed = True
         self.indexer.read_cargo_colour()
         if self.indexer.has_cargo_in_tunnel():
             self.next_state("reading")
             return
+        if not self.wants_to_intake:
+            self.stop()
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
 
     @state(must_finish=True)

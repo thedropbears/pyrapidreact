@@ -183,18 +183,13 @@ class MyRobot(magicbot.MagicRobot):
             self.shooter_control.fire()
 
         if self.joystick.getRawButtonPressed(2):
-            if self.intake.deployed:
-                self.intake.deployed = False
-                if self.indexer_control.current_state == "intaking":
-                    self.indexer_control.stop()
-            elif self.indexer.ready_to_intake():
-                self.indexer_control.wants_to_intake = True
-                self.intake.deployed = True
+            self.indexer_control.wants_to_intake = (
+                not self.indexer_control.wants_to_intake
+            )
 
         # hold down 11 to intake untill full, no auto-retract
         self.intake.auto_retract = not self.joystick.getRawButton(11)
         if self.joystick.getRawButton(11):
-            self.intake.deployed = True
             self.indexer_control.wants_to_intake = True
 
         if self.codriver.getBButtonPressed():
@@ -231,13 +226,9 @@ class MyRobot(magicbot.MagicRobot):
 
         # indexer same as teleop
         if self.joystick.getRawButtonPressed(2):
-            if self.intake.deployed:
-                self.intake.deployed = False
-                if self.indexer_control.current_state == "intaking":
-                    self.indexer_control.stop()
-            elif self.indexer.ready_to_intake():
-                self.indexer_control.wants_to_intake = True
-                self.intake.deployed = True
+            self.indexer_control.wants_to_intake = (
+                not self.indexer_control.wants_to_intake
+            )
 
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
