@@ -293,6 +293,9 @@ class Chassis:
         self.update_pose_history()
         self.field.setRobotPose(pose)
         self.field_obj.setPose(pose)
+        self.reset_velocity()
+
+    def reset_velocity(self):
         self.translation_velocity = Translation2d(0, 0)
         self.rotation_velocity = Rotation2d(0)
         self.last_Time = time.monotonic()
