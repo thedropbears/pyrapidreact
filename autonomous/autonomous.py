@@ -330,6 +330,14 @@ class FiveBall(AutoBase):
                 config=self.trajectory_config,
                 chassis_heading=Rotation2d.fromDegrees(-135),
             ),
+            Movement(
+                WaypointType.SIMPLE,
+                start_direction=Rotation2d.fromDegrees(-45),
+                end=Pose2d(0.4, -2.5, Rotation2d.fromDegrees(30)),
+                interior=[],
+                config=self.trajectory_config,
+                chassis_heading=Rotation2d.fromDegrees(0),
+            ),
         ]
         super().setup()
 
