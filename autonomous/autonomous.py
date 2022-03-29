@@ -166,7 +166,7 @@ class AutoBase(AutonomousStateMachine):
             if self.current_movement.type is WaypointType.SHOOT:
                 self.next_state("firing")
             elif self.current_movement.type is WaypointType.PICKUP_TO_TWO:
-                self.next_state("pickup")
+                self.next_state("pickup_to_two")
             else:
                 self.move_next_waypoint(tm)
                 if self.current_state == "finished":
@@ -382,7 +382,7 @@ class SixBall(AutoBase):
     MODE_NAME = "Flex O'clock"
 
     def setup(self) -> None:
-        super().setup()
+        self.start_pose = right_mid_start
         self.movements = [
             Movement(
                 WaypointType.SHOOT,
