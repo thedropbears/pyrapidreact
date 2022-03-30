@@ -298,7 +298,7 @@ class Chassis:
     def reset_velocity(self):
         self.translation_velocity = Translation2d(0, 0)
         self.rotation_velocity = Rotation2d(0)
-        self.last_Time = time.monotonic()
+        self.last_time = time.monotonic()
 
     def set_pose_failsafe(self):
         """Sets the pose to the right side of hanger"""
