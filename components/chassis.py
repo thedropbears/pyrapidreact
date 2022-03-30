@@ -261,7 +261,8 @@ class Chassis:
 
         self.update_odometry()
 
-        dt = min(time.monotonic() - self.last_time, 0.1)
+        # add to prevent division by 0
+        dt = min(time.monotonic() - self.last_time, 0.1) + 1e-10
         control_rate = 1 / dt
 
         cur_trans_vel = (
@@ -282,6 +283,9 @@ class Chassis:
 
         self.update_pose_history()
         self.last_time = time.monotonic()
+
+    def on_enable(self) -> None:
+        self.reset_velocity()
 
     def sync_all(self) -> None:
         for m in self.modules:
