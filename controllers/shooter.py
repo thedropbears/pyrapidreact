@@ -88,13 +88,9 @@ class ShooterController(StateMachine):
         # adjust shot to hit while moving
         flight_time = 0.0  # Only compensate for time of flight if told to...
         # clamp speed used for leading shots at our max allowed shooting speed
-        chassis_unit_velocity = (
-            self.chassis.translation_velocity / self.chassis.translation_velocity.norm()
-        )
-        chassis_velocity = (
-            min(self.chassis.translation_velocity.norm(), self.MAX_SPEED)
-            * chassis_unit_velocity
-        )
+        chassis_speed = self.chassis.translation_velocity.norm()
+        chassis_unit_velocity = self.chassis.translation_velocity / chassis_speed
+        chassis_velocity = chassis_unit_velocity * min(chassis_speed, self.MAX_SPEED)
         for _ in range(3):
             robot_movement = chassis_velocity * flight_time
             effective_pose = Pose2d(
