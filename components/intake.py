@@ -19,11 +19,16 @@ class Intake:
     auto_retract = tunable(True)
     invert_direction = tunable(False)
     motor_direction = will_reset_to(Direction.FORWARDS)
+    CURRENT_LIMIT = 5  # amps
+    CURRENT_LIMIT_TIME = 1.5  # seconds befor cutout
+    CUTOUT_TIME = 3  # second to cutout for
 
     def __init__(self):
         self._last_cargo_presence = 0
         self.deployed = False
         self.motor_enabled = True
+        self.current_counter = 0
+        self.cutout = False
 
     def setup(self) -> None:
         self.intake_motor.restoreFactoryDefaults()
@@ -34,8 +39,16 @@ class Intake:
         self._intake_limit.enableLimitSwitch(False)
 
     def execute(self) -> None:
+        if self.intake_motor.getOutputCurrent() > self.CURRENT_LIMIT or self.cutout:
+            self.current_counter += 1
+        if self.current_counter >= (self.CUTOUT_TIME + self.CURRENT_LIMIT_TIME) * 50:
+            self.cutout = False
+            self.current_counter = 0
+        elif self.current_counter >= self.CURRENT_LIMIT_TIME * 50:
+            self.deployed = False
+            self.cutout = True
         # stop intake motor running if we have something in tunnel
-        self.motor_enabled = self.indexer.ready_to_intake()
+        self.motor_enabled = self.indexer.ready_to_intake() and not self.cutout
 
         if self.has_cargo() and self.auto_retract:
             # If the breakbeam has fired we have a ball and we should retract
