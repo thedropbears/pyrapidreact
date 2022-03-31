@@ -1,5 +1,6 @@
 from logging import Logger
 import math
+import time
 from typing import Optional
 
 import ctre
@@ -183,6 +184,7 @@ class Chassis:
         self.last_pose = Pose2d()
         self.translation_velocity = Translation2d()
         self.rotation_velocity = Rotation2d()
+        self.last_time = time.monotonic()
 
     def setup(self) -> None:
         self.modules = [
@@ -234,7 +236,6 @@ class Chassis:
             localMeasurementStdDevs=(0.01,),
             visionMeasurementStdDevs=(0.5, 0.5, 0.2),
         )
-        self.control_rate = 1 / self.control_loop_wait_time
         self.field_obj = self.field.getObject("fused_pose")
         self.set_pose(Pose2d(-2, 0, Rotation2d.fromDegrees(180)))
 
@@ -260,23 +261,31 @@ class Chassis:
 
         self.update_odometry()
 
+        # add to prevent division by 0
+        dt = min(time.monotonic() - self.last_time, 0.1) + 1e-10
+        control_rate = 1 / dt
+
         cur_trans_vel = (
             self.estimator.getEstimatedPosition().translation()
             - self.last_pose.translation()
-        ) * self.control_rate
+        ) * control_rate
         self.translation_velocity = (
             cur_trans_vel * self.vel_avg_alpha
             + self.translation_velocity * (1 - self.vel_avg_alpha)
         )
         cur_rot_vel = (
             self.estimator.getEstimatedPosition().rotation() - self.last_pose.rotation()
-        ) * self.control_rate
+        ) * control_rate
         self.rotation_velocity = (
             cur_rot_vel * self.vel_avg_alpha
             + self.rotation_velocity * (1 - self.vel_avg_alpha)
         )
 
         self.update_pose_history()
+        self.last_time = time.monotonic()
+
+    def on_enable(self) -> None:
+        self.reset_velocity()
 
     def sync_all(self) -> None:
         for m in self.modules:
@@ -288,6 +297,12 @@ class Chassis:
         self.update_pose_history()
         self.field.setRobotPose(pose)
         self.field_obj.setPose(pose)
+        self.reset_velocity()
+
+    def reset_velocity(self):
+        self.translation_velocity = Translation2d(0, 0)
+        self.rotation_velocity = Rotation2d(0)
+        self.last_time = time.monotonic()
 
     def set_pose_failsafe(self):
         """Sets the pose to the right side of hanger"""
