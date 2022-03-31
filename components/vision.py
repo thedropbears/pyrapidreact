@@ -78,6 +78,7 @@ class Vision:
         self.target_yaw = 0.0
         self.last_latency = 0.0
         self.timestamp = 0.0
+        self.discarded_count = 0
 
     def setup(self) -> None:
         self.field_obj = self.field.getObject("vision_pose")
@@ -162,8 +163,12 @@ class Vision:
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
-            if self.gate_innovation and innovation > 2.0:
-                return
+            if self.gate_innovation and innovation > 3.0:
+                self.discarded_count += 1
+                if self.discarded_count < 100:
+                    return
+            else:
+                self.discarded_count = 0
 
             if self.distance < 5.0:
                 std_dev = 0.3 * self.max_std_dev
