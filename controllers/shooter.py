@@ -44,6 +44,7 @@ class ShooterController(StateMachine):
 
     MAX_DIST = 8
     MIN_DIST = 2.75
+    LEAD_MIN_DIST = 2
 
     MAX_SPEED = 2.0  # m/s
     MAX_ROTATION = 2.0  # rad/s
@@ -86,9 +87,16 @@ class ShooterController(StateMachine):
 
         # adjust shot to hit while moving
         flight_time = 0.0  # Only compensate for time of flight if told to...
-
+        # clamp speed used for leading shots at our max allowed shooting speed
+        chassis_unit_velocity = (
+            self.chassis.translation_velocity / self.chassis.translation_velocity.norm()
+        )
+        chassis_velocity = (
+            min(self.chassis.translation_velocity.norm(), self.MAX_SPEED)
+            * chassis_unit_velocity
+        )
         for _ in range(3):
-            robot_movement = self.chassis.translation_velocity * flight_time
+            robot_movement = chassis_velocity * flight_time
             effective_pose = Pose2d(
                 cur_pose.translation() + robot_movement, cur_pose.rotation()
             )
@@ -96,7 +104,7 @@ class ShooterController(StateMachine):
             flight_time = interpolate(
                 self.distance, self.ranges_lookup, self.times_lookup
             )
-            if not self.lead_shots or self.distance < self.MIN_DIST:
+            if not self.lead_shots or self.distance < self.LEAD_MIN_DIST:
                 # Only run once if we aren't compensating. This will mean ToF is considered to be zero (ie no compensation)
                 break
 
