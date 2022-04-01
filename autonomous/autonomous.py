@@ -81,8 +81,8 @@ class AutoBase(AutonomousStateMachine):
         # Leave some headroom over the max unloaded speed
         max_speed = Chassis.max_attainable_wheel_speed * 0.7
         self.trajectory_config = TrajectoryConfig(
-            maxVelocity=max_speed, maxAcceleration=2.9
-        )  # Acceleration expressed as max_speed / t where t is time taken to reach max speed
+            maxVelocity=max_speed, maxAcceleration=2.5
+        )
 
         self.movements: List[Movement] = []
         self.start_pose = Pose2d(0, 0, 0)
