@@ -49,7 +49,7 @@ class Turret:
     def __init__(self) -> None:
         self.angle_history = TimeInterpolatableFloatBuffer(2)
         self.sync_count = 0
-        self.abs_offset = 3.07
+        self.abs_offset = 1.886
 
     def setup(self) -> None:
         self.motor.configFactoryDefault()
@@ -148,6 +148,7 @@ class Turret:
             / 10  # Convert to counts/100ms
         )
 
+    @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
         angle = self.absolute_encoder.getDistance() + self.abs_offset
 
