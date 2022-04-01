@@ -121,7 +121,7 @@ class ShooterController(StateMachine):
             if self.interpolation_override:
                 self.shooter.motor_speed = self.flywheel_speed
             elif self._reject_through_turret:
-                self.shooter.motor_speed = 5
+                self.shooter.motor_speed = 8
             else:
                 self.shooter.motor_speed = interpolate(
                     self.distance, self.ranges_lookup, self.flywheel_speed_lookup
@@ -184,10 +184,14 @@ class ShooterController(StateMachine):
         self._track()
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
 
-    @state
+    @state(must_finish=True)
     def resetting(self):
         self._reject_through_turret = False
         self.next_state("tracking")
+
+    @feedback
+    def turret_rejection(self):
+        return self._reject_through_turret
 
     @feedback
     def distance_to_goal(self) -> float:

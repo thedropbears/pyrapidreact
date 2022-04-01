@@ -232,6 +232,12 @@ class MyRobot(magicbot.MagicRobot):
                 not self.indexer_control.wants_to_intake
             )
 
+        # hold down 11 to intake untill full, no auto-retract
+        self.intake.auto_retract = not self.joystick.getRawButton(11)
+        if self.joystick.getRawButton(11):
+            self.indexer_control.wants_to_intake = True
+
+
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
 

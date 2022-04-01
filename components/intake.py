@@ -4,6 +4,7 @@ from magicbot import tunable, will_reset_to
 from enum import Enum
 from components.indexer import Indexer
 
+import magicbot
 
 class Intake:
     indexer: Indexer
@@ -54,6 +55,7 @@ class Intake:
         else:
             self.intake_motor.set(0.0)
 
+    @magicbot.feedback
     def has_cargo(self) -> bool:
         if self._intake_limit.get():
             self._last_cargo_presence += 1
