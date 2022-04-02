@@ -33,7 +33,7 @@ class IndexerController(StateMachine):
         # By default the indexer does nothing and has the cat flap closed, so we can do nothing too!
 
         # will retract when has two balls regardless
-        if self.indexer.is_full() and not self.shooter_control._reject_through_turret:
+        if (self.indexer.is_full() and not self.shooter_control._reject_through_turret) or not self.wants_to_intake:
             self.intake.deployed = False
 
         # We need to check if we should be moving a ball from the tunnel to the chimney
@@ -91,16 +91,23 @@ class IndexerController(StateMachine):
             # It is our ball so we have finished this process
             # The "stopped" state will work out if it needs to move the ball into the chimney
             self.next_state("stopped")
+        
+        if not self.wants_to_intake:
+            self.intake.deployed = False
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def clearing(self) -> None:
         self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
         self.intake.motor_direction = self.intake.Direction.BACKWARDS
+        if not self.wants_to_intake:
+            self.intake.deployed = False
 
     @timed_state(duration=0.5, next_state="stopping", must_finish=True)
     def forced_clearing(self) -> None:
         self.indexer.run_chimney_motor(Indexer.Direction.BACKWARDS)
         self.indexer.run_tunnel_motor(Indexer.Direction.BACKWARDS)
+        if not self.wants_to_intake:
+            self.intake.deployed = False
 
     @timed_state(duration=10.0, next_state="stopping", must_finish=True)
     def transferring_to_chimney(self) -> None:
@@ -109,6 +116,8 @@ class IndexerController(StateMachine):
             return
         self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
         self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
+        if not self.wants_to_intake:
+            self.intake.deployed = False
 
     @timed_state(duration=1.0, next_state="stopping", must_finish=True)
     def trapping(self, state_tm: float) -> None:
@@ -118,3 +127,5 @@ class IndexerController(StateMachine):
             self.indexer.run_tunnel_motor(Indexer.Direction.FORWARDS)
             self.indexer.run_chimney_motor(Indexer.Direction.FORWARDS)
             self.indexer.has_trapped_cargo = True
+        if not self.wants_to_intake:
+            self.intake.deployed = False
