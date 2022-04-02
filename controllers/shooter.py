@@ -149,6 +149,7 @@ class ShooterController(StateMachine):
                 and self.distance < self.MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.MAX_SPEED
                 and self.chassis.rotation_velocity.radians() < self.MAX_ROTATION
+                and accel < self.MAX_ACCEL
             ):
                 self.next_state("firing")
 
@@ -161,6 +162,7 @@ class ShooterController(StateMachine):
                 and self.distance < self.AUTO_MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.AUTO_MAX_SPEED
                 and self.chassis.rotation_velocity.radians() < self.AUTO_MAX_ROTATION
+                and accel < self.AUTO_MAX_ACCEL
             ):
                 self.next_state("firing")
 
