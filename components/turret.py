@@ -24,7 +24,7 @@ class Turret:
     # Turret experiments show speed of 1884 counts/100ms for a throttle of about 0.35
     pidF = (0.35 * 1023) / 1884
     pidP = 3.0
-    pidI = 0.02
+    pidI = 0.0
     pidIZone = 200
     pidD = 90.0
 
