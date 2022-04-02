@@ -9,13 +9,13 @@ class Shooter:
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
-    motor_speed = 0.0
-    allowable_error = tunable(3.0)
+    motor_speed = will_reset_to(0.0)
+    allowable_error = tunable(2.0)
 
     MAX_RP100ms = 10
     pidF = 1023 / (2048 * MAX_RP100ms)
     pidP = 0.15
-    pidI = 0.02
+    pidI = 0.0
     pidIZone = 200
     pidD = 0.01
 
