@@ -81,7 +81,7 @@ class AutoBase(AutonomousStateMachine):
         # Leave some headroom over the max unloaded speed
         max_speed = Chassis.max_attainable_wheel_speed * 0.7
         self.trajectory_config = TrajectoryConfig(
-            maxVelocity=max_speed, maxAcceleration=2.5
+            maxVelocity=max_speed, maxAcceleration=2.2
         )
 
         self.movements: List[Movement] = []
@@ -322,14 +322,14 @@ class FiveBall(AutoBase):
             Movement(
                 WaypointType.SHOOT,
                 start_direction=Rotation2d.fromDegrees(45),
-                end=Pose2d(-5.0, -2.0, Rotation2d.fromDegrees(0)),
+                end=Pose2d(-3.5, -2.0, Rotation2d.fromDegrees(0)),
                 interior=[],
                 config=self.trajectory_config,
                 chassis_heading=Rotation2d.fromDegrees(-135),
             ),
             Movement(
                 WaypointType.SIMPLE,
-                start_direction=Rotation2d.fromDegrees(-45),
+                start_direction=Rotation2d.fromDegrees(-30),
                 end=Pose2d(0.4, -2.5, Rotation2d.fromDegrees(30)),
                 interior=[],
                 config=self.trajectory_config,
