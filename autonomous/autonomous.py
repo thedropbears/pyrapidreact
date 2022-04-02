@@ -81,7 +81,7 @@ class AutoBase(AutonomousStateMachine):
         # Leave some headroom over the max unloaded speed
         max_speed = Chassis.max_attainable_wheel_speed * 0.7
         self.trajectory_config = TrajectoryConfig(
-            maxVelocity=max_speed, maxAcceleration=2.5
+            maxVelocity=max_speed, maxAcceleration=2.6
         )
 
         self.movements: List[Movement] = []
@@ -116,8 +116,11 @@ class AutoBase(AutonomousStateMachine):
     @state(first=True)
     def startup(self, tm: float) -> None:
         # To make an initial shoot state, create a tiny trajectory
-        self.trajectory_start_time = tm
-        self.next_state("move")
+        self.intake.deployed = True
+        self.indexer_control.wants_to_intake = True
+        if tm > 0.5:
+            self.trajectory_start_time = tm
+            self.next_state("move")
 
     @state
     def move(self, tm: float) -> None:
