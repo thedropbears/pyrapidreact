@@ -49,7 +49,7 @@ class ShooterController(StateMachine):
     MAX_SPEED = 2.0  # m/s
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
-    ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
+    ALLOWABLE_TURRET_ERROR = 0.4  # m, ring is 1.22m diameter
 
     # firing limits for automatic shoot mode
     AUTO_MAX_DIST = 7.5
