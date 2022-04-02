@@ -33,7 +33,9 @@ class IndexerController(StateMachine):
         # By default the indexer does nothing and has the cat flap closed, so we can do nothing too!
 
         # will retract when has two balls regardless
-        if (self.indexer.is_full() and not self.shooter_control._reject_through_turret) or not self.wants_to_intake:
+        if (
+            self.indexer.is_full() and not self.shooter_control._reject_through_turret
+        ) or not self.wants_to_intake:
             self.intake.deployed = False
 
         # We need to check if we should be moving a ball from the tunnel to the chimney
@@ -91,7 +93,7 @@ class IndexerController(StateMachine):
             # It is our ball so we have finished this process
             # The "stopped" state will work out if it needs to move the ball into the chimney
             self.next_state("stopped")
-        
+
         if not self.wants_to_intake:
             self.intake.deployed = False
 

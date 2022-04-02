@@ -6,6 +6,7 @@ from components.indexer import Indexer
 
 import magicbot
 
+
 class Intake:
     indexer: Indexer
 

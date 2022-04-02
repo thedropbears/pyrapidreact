@@ -237,7 +237,6 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getRawButton(11):
             self.indexer_control.wants_to_intake = True
 
-
         if self.codriver.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
 
