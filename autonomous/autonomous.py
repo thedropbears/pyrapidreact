@@ -296,7 +296,7 @@ class FiveBall(AutoBase):
             Movement(
                 WaypointType.SHOOT,
                 start_direction=Rotation2d.fromDegrees(-90),
-                end=Pose2d(-0.65, -3.55, Rotation2d.fromDegrees(-90)),
+                end=Pose2d(-0.65, -3.45, Rotation2d.fromDegrees(-90)),
                 interior=[],
                 config=self.trajectory_config,
                 chassis_heading=Rotation2d.fromDegrees(-88.5),
