@@ -49,7 +49,7 @@ class ShooterController(StateMachine):
     MAX_SPEED = 2.0  # m/s
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
-    ALLOWABLE_TURRET_ERROR = 0.5  # m, ring is 1.22m diameter
+    ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
 
     # firing limits for automatic shoot mode
     AUTO_MAX_DIST = 7.5
@@ -199,6 +199,10 @@ class ShooterController(StateMachine):
 
     def in_range(self) -> bool:
         return self.distance < self.MAX_DIST and self.distance > self.MIN_DIST
+
+    @feedback
+    def on_target(self) -> bool:
+        return self.turret.is_on_target(math.atan(self.ALLOWABLE_TURRET_ERROR / 9.0))
 
     def fire(self) -> None:
         self._wants_to_fire = True

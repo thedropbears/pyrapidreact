@@ -1,5 +1,5 @@
 import ctre
-from magicbot import will_reset_to, tunable
+from magicbot import feedback, will_reset_to, tunable
 from wpimath.geometry import Translation2d
 
 from utilities.ctre import FALCON_CPR
@@ -75,11 +75,18 @@ class Shooter:
         self.left_motor.set(ctre.ControlMode.Disabled, 0)
         self.right_motor.set(ctre.ControlMode.Disabled, 0)
 
+    @feedback
     def actual_velocity(self) -> float:
         return self.left_motor.getSelectedSensorVelocity() * self.CTRE_UNITS_TO_RPS
 
+    @feedback
     def flywheel_error(self) -> float:
         return float(self.motor_speed) - self.actual_velocity()
 
+    @feedback
     def is_at_speed(self) -> bool:
         return abs(self.flywheel_error()) < self.allowable_error
+
+    @feedback
+    def setpoint(self) -> float:
+        return self.motor_speed
