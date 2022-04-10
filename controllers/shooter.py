@@ -110,9 +110,7 @@ class ShooterController(StateMachine):
             robot_movement = Translation2d()
             effective_pose = cur_pose
 
-        self.field_effective_goal.setPose(
-            Pose2d(-robot_movement.X(), -robot_movement.Y(), Rotation2d(0))
-        )
+        self.field_effective_goal.setPose(Pose2d(-robot_movement, Rotation2d(0)))
 
         turret_pose = self.chassis.robot_to_world(
             self.shooter.turret_offset, effective_pose
