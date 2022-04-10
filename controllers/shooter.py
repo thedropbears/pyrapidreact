@@ -92,7 +92,9 @@ class ShooterController(StateMachine):
             flight_time = 0.0  # Only compensate for time of flight if told to...
 
             chassis_unit_velocity = self.chassis.translation_velocity / chassis_speed
-            chassis_velocity = chassis_unit_velocity * min(chassis_speed, self.MAX_SPEED)
+            chassis_velocity = chassis_unit_velocity * min(
+                chassis_speed, self.MAX_SPEED
+            )
             for _ in range(3):
                 robot_movement = chassis_velocity * flight_time
                 effective_pose = Pose2d(
