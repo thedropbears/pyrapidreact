@@ -85,28 +85,34 @@ class ShooterController(StateMachine):
     def _track(self) -> None:
         cur_pose = self.chassis.estimator.getEstimatedPosition()
 
-        # adjust shot to hit while moving
-        flight_time = 0.0  # Only compensate for time of flight if told to...
         # clamp speed used for leading shots at our max allowed shooting speed
         chassis_speed = self.chassis.translation_velocity.norm()
-        chassis_unit_velocity = self.chassis.translation_velocity / chassis_speed
-        chassis_velocity = chassis_unit_velocity * min(chassis_speed, self.MAX_SPEED)
-        for _ in range(3):
-            robot_movement = chassis_velocity * flight_time
-            effective_pose = Pose2d(
-                cur_pose.translation() + robot_movement, cur_pose.rotation()
-            )
-            self.distance = effective_pose.translation().distance(Translation2d())
-            flight_time = interpolate(
-                self.distance, self.ranges_lookup, self.times_lookup
-            )
-            if not self.lead_shots or self.distance < self.LEAD_MIN_DIST:
-                # Only run once if we aren't compensating. This will mean ToF is considered to be zero (ie no compensation)
-                break
+        if chassis_speed != 0:
+            # adjust shot to hit while moving
+            flight_time = 0.0  # Only compensate for time of flight if told to...
 
-        self.field_effective_goal.setPose(
-            Pose2d(-robot_movement.X(), -robot_movement.Y(), Rotation2d(0))
-        )
+            chassis_unit_velocity = self.chassis.translation_velocity / chassis_speed
+            chassis_velocity = chassis_unit_velocity * min(
+                chassis_speed, self.MAX_SPEED
+            )
+            for _ in range(3):
+                robot_movement = chassis_velocity * flight_time
+                effective_pose = Pose2d(
+                    cur_pose.translation() + robot_movement, cur_pose.rotation()
+                )
+                self.distance = effective_pose.translation().distance(Translation2d())
+                if not self.lead_shots or self.distance < self.LEAD_MIN_DIST:
+                    # Only run once if we aren't compensating.
+                    # This will mean ToF is considered to be zero (ie no compensation)
+                    break
+                flight_time = interpolate(
+                    self.distance, self.ranges_lookup, self.times_lookup
+                )
+        else:
+            robot_movement = Translation2d()
+            effective_pose = cur_pose
+
+        self.field_effective_goal.setPose(Pose2d(-robot_movement, Rotation2d(0)))
 
         turret_pose = self.chassis.robot_to_world(
             self.shooter.turret_offset, effective_pose
