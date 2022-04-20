@@ -113,7 +113,7 @@ class MyRobot(magicbot.MagicRobot):
         self.vision.fuse_vision_observations = False
 
     def teleopInit(self) -> None:
-        self.status_lights.display_morse = False
+        self.led_control.is_enabled = True
         self.intake.auto_retract = True
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
@@ -122,7 +122,7 @@ class MyRobot(magicbot.MagicRobot):
         self.vision.fuse_vision_observations = True
 
     def disabledInit(self) -> None:
-        self.status_lights.choose_morse_message()
+        self.led_control.is_enabled = False
 
     def disabledPeriodic(self) -> None:
         self.turret.update_angle_history()

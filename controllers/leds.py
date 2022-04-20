@@ -4,6 +4,7 @@ from components.chassis import Chassis
 from controllers.shooter import ShooterController
 from components.leds import StatusLights, LedColours
 from components.vision import Vision
+import wpilib
 
 
 class LedController:
@@ -13,6 +14,9 @@ class LedController:
     shooter_control: ShooterController
     status_lights: StatusLights
     vision: Vision
+
+    def __init__(self):
+        self.is_enabled = False
 
     def execute(self) -> None:
         if not self.vision.is_connected():
