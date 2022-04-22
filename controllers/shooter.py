@@ -46,18 +46,11 @@ class ShooterController(StateMachine):
     MIN_DIST = 2.75
     LEAD_MIN_DIST = 2
 
-    MAX_SPEED = 2.0  # m/s
+    MAX_SPEED = 1.5  # m/s
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
-    ALLOWABLE_TURRET_ERROR = 0.4  # m, ring is 1.22m diameter
-
-    # firing limits for automatic shoot mode
-    AUTO_MAX_DIST = 7.5
-    AUTO_MIN_DIST = 3
-    AUTO_MAX_SPEED = 1.0  # m/s
-    AUTO_MAX_ROTATION = 1.0  # rad/s
-    AUTO_MAX_ACCEL = 0.2  # G
-    AUTO_ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
+    ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
+    ALLOWABLE_FLYWHEEL_ERROR = 0.3 # m
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
@@ -137,6 +130,14 @@ class ShooterController(StateMachine):
     def tracking(self) -> None:
         self._track()
 
+        # for debugging
+        # highest_allowed = interpolate(
+        #     self.distance+self.ALLOWABLE_FLYWHEEL_ERROR, self.ranges_lookup, self.flywheel_speed_lookup
+        # )
+        # lowest_allowed = interpolate(
+        #     self.distance-self.ALLOWABLE_FLYWHEEL_ERROR, self.ranges_lookup, self.flywheel_speed_lookup
+        # )
+        # print((highest_allowed-lowest_allowed)/2)
         accel = math.hypot(
             self.imu.getWorldLinearAccelX(), self.imu.getWorldLinearAccelY()
         )
@@ -146,29 +147,20 @@ class ShooterController(StateMachine):
             ):
                 self.next_state("firing")
 
+            # distance ball will go at current flywheel speed from lookup table
+            flywheel_dist = interpolate(
+                self.shooter.actual_velocity(), self.flywheel_speed_lookup, self.ranges_lookup
+            )
             if (
-                self._wants_to_fire
+                self._wants_to_fire or self.auto_shoot
                 and self.turret.is_on_target(
                     math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
                 )
+                and abs(flywheel_dist-self.distance) < self.ALLOWABLE_FLYWHEEL_ERROR
                 and self.distance > self.MIN_DIST
                 and self.distance < self.MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.MAX_SPEED
                 and self.chassis.rotation_velocity.radians() < self.MAX_ROTATION
-                and accel < self.MAX_ACCEL
-            ):
-                self.next_state("firing")
-
-            if (
-                self.auto_shoot
-                and self.turret.is_on_target(
-                    math.atan(self.AUTO_ALLOWABLE_TURRET_ERROR / self.distance)
-                )
-                and self.distance > self.AUTO_MIN_DIST
-                and self.distance < self.AUTO_MAX_DIST
-                and self.chassis.translation_velocity.norm() < self.AUTO_MAX_SPEED
-                and self.chassis.rotation_velocity.radians() < self.AUTO_MAX_ROTATION
-                and accel < self.AUTO_MAX_ACCEL
             ):
                 self.next_state("firing")
 
