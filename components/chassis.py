@@ -268,7 +268,12 @@ class Chassis:
         # rotation2d and translation2d have mul but not div
         control_rate = 1 / dt
         chassis_speeds = self.kinematics.toChassisSpeeds(
-            tuple(module.get() for module in self.modules)
+            (
+                self.modules[0].get(),
+                self.modules[1].get(),
+                self.modules[2].get(),
+                self.modules[3].get(),
+            )
         )
         cur_trans_vel = Translation2d(chassis_speeds.vx, chassis_speeds.vy).rotateBy(
             self.get_rotation()
