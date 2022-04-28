@@ -50,7 +50,7 @@ class ShooterController(StateMachine):
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
     ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
-    ALLOWABLE_FLYWHEEL_ERROR = 0.3 # m
+    ALLOWABLE_FLYWHEEL_ERROR = 0.3  # m
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
@@ -149,14 +149,17 @@ class ShooterController(StateMachine):
 
             # distance ball will go at current flywheel speed from lookup table
             flywheel_dist = interpolate(
-                self.shooter.actual_velocity(), self.flywheel_speed_lookup, self.ranges_lookup
+                self.shooter.actual_velocity(),
+                self.flywheel_speed_lookup,
+                self.ranges_lookup,
             )
             if (
-                self._wants_to_fire or self.auto_shoot
+                self._wants_to_fire
+                or self.auto_shoot
                 and self.turret.is_on_target(
                     math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
                 )
-                and abs(flywheel_dist-self.distance) < self.ALLOWABLE_FLYWHEEL_ERROR
+                and abs(flywheel_dist - self.distance) < self.ALLOWABLE_FLYWHEEL_ERROR
                 and self.distance > self.MIN_DIST
                 and self.distance < self.MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.MAX_SPEED
