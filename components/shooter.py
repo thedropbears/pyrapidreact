@@ -1,5 +1,5 @@
 import ctre
-from magicbot import feedback, will_reset_to, tunable
+from magicbot import feedback, tunable
 from wpimath.geometry import Translation2d
 
 from utilities.ctre import FALCON_CPR
@@ -9,7 +9,7 @@ class Shooter:
     left_motor: ctre.TalonFX
     right_motor: ctre.TalonFX
 
-    motor_speed = will_reset_to(0.0)
+    motor_speed = tunable(0.0)
     allowable_error = tunable(2.0)
 
     MAX_RP100ms = 10
@@ -86,7 +86,3 @@ class Shooter:
     @feedback
     def is_at_speed(self) -> bool:
         return abs(self.flywheel_error()) < self.allowable_error
-
-    @feedback
-    def setpoint(self) -> float:
-        return self.motor_speed
