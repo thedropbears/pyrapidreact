@@ -47,7 +47,15 @@ class SwerveModule:
     ):
         self.translation = Translation2d(x, y)
         self.steer = steer
-        self.steer.configFactoryDefault()
+        self.drive = drive
+
+        steer.configFactoryDefault()
+        drive.configFactoryDefault()
+
+        # Reduce CAN status frame rates before configuring
+        steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
+        drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
+
         self.steer.setNeutralMode(ctre.NeutralMode.Brake)
         self.steer.setInverted(steer_reversed)
 
@@ -69,8 +77,6 @@ class SwerveModule:
             timeoutMs=10,
         )
 
-        self.drive = drive
-        self.drive.configFactoryDefault()
         self.drive.setNeutralMode(ctre.NeutralMode.Brake)
         self.drive.setInverted(drive_reversed)
         self.drive.configVoltageCompSaturation(12, timeoutMs=10)
@@ -84,10 +90,6 @@ class SwerveModule:
         self.drive.config_kP(0, 0.0023546, 10)
         self.drive.config_kI(0, 0, 10)
         self.drive.config_kD(0, 0, 10)
-
-        # Reduce CAN status frame rates
-        steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
-        drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
 
     def get_absolute_angle(self) -> float:
         """Gets steer angle from absolute encoder"""
