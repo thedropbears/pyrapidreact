@@ -50,15 +50,10 @@ class Indexer:
     has_trapped_cargo = tunable(False)
 
     def setup(self) -> None:
-        self.indexer_tunnel_motor.restoreFactoryDefaults()
-        self.indexer_tunnel_motor.setInverted(True)
-        self.indexer_tunnel_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
-        self.indexer_chimney_motor.restoreFactoryDefaults()
-        self.indexer_chimney_motor.setInverted(False)
-        self.indexer_chimney_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
-
-        # Reduce all CAN periodic status frame rates.
         for motor in (self.indexer_chimney_motor, self.indexer_tunnel_motor):
+            motor.restoreFactoryDefaults()
+
+            # Reduce all CAN periodic status frame rates.
             motor.setPeriodicFramePeriod(
                 rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 500
             )
@@ -71,6 +66,11 @@ class Indexer:
             motor.setPeriodicFramePeriod(
                 rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus3, 500
             )
+
+        self.indexer_tunnel_motor.setInverted(True)
+        self.indexer_tunnel_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.indexer_chimney_motor.setInverted(False)
+        self.indexer_chimney_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
         for sendable in (
             self.lower_chimney_prox_sensor,

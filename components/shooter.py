@@ -29,14 +29,16 @@ class Shooter:
     turret_offset = Translation2d(-0.148, 0)  # From CAD
 
     def setup(self) -> None:
-        self.left_motor.setInverted(False)
-        self.right_motor.setInverted(True)
-
         for motor in (
             self.left_motor,
             self.right_motor,
         ):
             motor.configFactoryDefault()
+
+            motor.setStatusFramePeriod(
+                ctre.StatusFrameEnhanced.Status_1_General, 250, 10
+            )
+
             motor.setNeutralMode(ctre.NeutralMode.Coast)
 
             motor.configVoltageCompSaturation(self.COMPENSATED_VOLTAGE, timeoutMs=10)
@@ -51,12 +53,9 @@ class Shooter:
             motor.config_kP(0, self.pidP, 10)
             motor.config_kI(0, self.pidI, 10)
             motor.config_kD(0, self.pidD, 10)
-            motor.configSelectedFeedbackSensor(
-                ctre.FeedbackDevice.IntegratedSensor, 0, 10
-            )
-            motor.setStatusFramePeriod(
-                ctre.StatusFrameEnhanced.Status_1_General, 250, 10
-            )
+
+        self.left_motor.setInverted(False)
+        self.right_motor.setInverted(True)
 
     def on_disable(self) -> None:
         self._stop_motors()
