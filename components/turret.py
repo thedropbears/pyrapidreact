@@ -49,7 +49,6 @@ class Turret:
     def __init__(self) -> None:
         self.angle_history = TimeInterpolatableFloatBuffer(2)
         self.sync_count = 0
-        self.abs_offset = 1.886
 
     def setup(self) -> None:
         self.motor.configFactoryDefault()
@@ -74,6 +73,7 @@ class Turret:
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
         self.absolute_encoder.setDistancePerRotation(-math.tau)
+        self.absolute_encoder.setPositionOffset(0.9668)
 
     def on_disable(self) -> None:
         self.motor.set(ctre.TalonSRXControlMode.Disabled, 0)
@@ -148,9 +148,8 @@ class Turret:
             / 10  # Convert to counts/100ms
         )
 
-    @magicbot.feedback
     def absolute_encoder_reading(self) -> float:
-        angle = self.absolute_encoder.getDistance() + self.abs_offset
+        angle = self.absolute_encoder.getDistance()
 
         angle %= math.tau
         return angle
