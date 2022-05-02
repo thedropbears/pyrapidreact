@@ -136,10 +136,9 @@ class MyRobot(magicbot.MagicRobot):
         self.status_lights.execute()
 
     def teleopPeriodic(self) -> None:
-        # left trigger increases spin rate for fast manuvers
-        spin_rate = scale_value(self.xbox_controller.getLeftTriggerAxis(), 0, 1, 2, 6)
-        # right trigger loweres throttle
-        throttle = scale_value(self.xbox_controller.getRightTriggerAxis(), 0, 1, 1, 0.3)
+        # left trigger lowers throttle for precise driving
+        throttle = scale_value(self.xbox_controller.getLeftTriggerAxis(), 0, 1, 1, 0.3)
+        spin_rate = scale_value(self.xbox_controller.getLeftTriggerAxis(), 0, 1, 5, 3)
         # Don't update these values while firing
         if (
             not self.lock_motion_while_shooting
@@ -147,21 +146,21 @@ class MyRobot(magicbot.MagicRobot):
         ):
             joystick_x = (
                 -rescale_js(
-                    self.xbox_controller.getLeftY(), deadzone=0.05, exponential=1.5
+                    self.xbox_controller.getLeftY(), deadzone=0.15, exponential=1.5
                 )
                 * 4
                 * throttle
             )
             joystick_y = (
                 -rescale_js(
-                    self.xbox_controller.getLeftX(), deadzone=0.05, exponential=1.5
+                    self.xbox_controller.getLeftX(), deadzone=0.15, exponential=1.5
                 )
                 * 4
                 * throttle
             )
             joystick_z = (
                 -rescale_js(
-                    self.xbox_controller.getRightX(), deadzone=0.1, exponential=4.0
+                    self.xbox_controller.getRightX(), deadzone=0.15, exponential=4.0
                 )
                 * spin_rate
             )
@@ -170,7 +169,7 @@ class MyRobot(magicbot.MagicRobot):
                 self.joystick_y_filter.calculate(joystick_y),
                 self.joystick_z_filter.calculate(joystick_z),
             )
-            self.recorded_is_local_driving = self.xbox_controller.getYButtonPressed()
+            self.recorded_is_local_driving = self.xbox_controller.getAButton()
 
         # Drive in field oriented mode unless button 6 is pressed
         if self.recorded_is_local_driving:
@@ -182,8 +181,11 @@ class MyRobot(magicbot.MagicRobot):
         if self.xbox_controller.getPOV() == 0:
             self.chassis.zero_yaw()
 
-        if self.xbox_controller.getAButton():
+        if self.xbox_controller.getRightTriggerAxis() > 0.3:
             self.shooter_control.fire()
+
+        if self.xbox_controller.getYButtonPressed():
+            self.indexer_control.engage("forced_clearing", force=True)
 
         # right bumper puts intake down, hold to hold intake down
         self.intake.auto_retract = not self.xbox_controller.getRightBumper()
