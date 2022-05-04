@@ -111,6 +111,7 @@ class MyRobot(magicbot.MagicRobot):
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
         self.vision.fuse_vision_observations = False
+        self.led_control.is_enabled = True
 
     def teleopInit(self) -> None:
         self.led_control.is_enabled = True
