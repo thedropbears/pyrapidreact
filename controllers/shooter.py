@@ -50,7 +50,7 @@ class ShooterController(StateMachine):
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
     ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
-    ALLOWABLE_FLYWHEEL_ERROR = 0.3  # m
+    ALLOWABLE_FLYWHEEL_ERROR = 0.5 # rps
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
@@ -130,36 +130,22 @@ class ShooterController(StateMachine):
     def tracking(self) -> None:
         self._track()
 
-        # for debugging
-        # highest_allowed = interpolate(
-        #     self.distance+self.ALLOWABLE_FLYWHEEL_ERROR, self.ranges_lookup, self.flywheel_speed_lookup
-        # )
-        # lowest_allowed = interpolate(
-        #     self.distance-self.ALLOWABLE_FLYWHEEL_ERROR, self.ranges_lookup, self.flywheel_speed_lookup
-        # )
-        # print((highest_allowed-lowest_allowed)/2)
         accel = math.hypot(
             self.imu.getWorldLinearAccelX(), self.imu.getWorldLinearAccelY()
         )
-        if self.indexer.has_cargo_in_chimney() and self.shooter.is_at_speed():
-            if self._reject_through_turret and self.turret.is_on_target(
+        if self.indexer.has_cargo_in_chimney():
+            if self.shooter.flywheel_error() < 2 and self._reject_through_turret and self.turret.is_on_target(
                 math.atan(math.radians(45))
             ):
                 self.next_state("firing")
 
-            # distance ball will go at current flywheel speed from lookup table
-            flywheel_dist = interpolate(
-                self.shooter.actual_velocity(),
-                self.flywheel_speed_lookup,
-                self.ranges_lookup,
-            )
             if (
                 self._wants_to_fire
                 or self.auto_shoot
                 and self.turret.is_on_target(
                     math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
                 )
-                and abs(flywheel_dist - self.distance) < self.ALLOWABLE_FLYWHEEL_ERROR
+                and self.shooter.flywheel_error() < self.ALLOWABLE_FLYWHEEL_ERROR
                 and self.distance > self.MIN_DIST
                 and self.distance < self.MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.MAX_SPEED
