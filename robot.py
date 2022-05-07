@@ -61,13 +61,13 @@ class MyRobot(magicbot.MagicRobot):
 
         self.recorded_drive_state = (0.0, 0.0, 0.0)
         self.recorded_is_local_driving = False
-        self.xbox_controller = wpilib.XboxController(0)
+        self.gamepad = wpilib.XboxController(1)
         # (time to reach 63% of final value, rate)
         self.joystick_x_filter = LinearFilter.singlePoleIIR(0.05, 0.02)
         self.joystick_y_filter = LinearFilter.singlePoleIIR(0.05, 0.02)
         self.joystick_z_filter = LinearFilter.singlePoleIIR(0.3, 0.02)
         # joystick used for test mode
-        self.joystick = wpilib.Joystick(1)
+        self.joystick = wpilib.Joystick(0)
 
         self.shooter_left_motor = ctre.WPI_TalonFX(11)
         self.shooter_right_motor = ctre.WPI_TalonFX(10)
@@ -137,31 +137,25 @@ class MyRobot(magicbot.MagicRobot):
 
     def teleopPeriodic(self) -> None:
         # left trigger lowers throttle for precise driving
-        throttle = scale_value(self.xbox_controller.getLeftTriggerAxis(), 0, 1, 1, 0.3)
-        spin_rate = scale_value(self.xbox_controller.getLeftTriggerAxis(), 0, 1, 5, 3)
+        throttle = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 1, 0.3)
+        spin_rate = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 5, 3)
         # Don't update these values while firing
         if (
             not self.lock_motion_while_shooting
             or self.shooter_control.current_state != "firing"
         ):
             joystick_x = (
-                -rescale_js(
-                    self.xbox_controller.getLeftY(), deadzone=0.15, exponential=1.5
-                )
+                -rescale_js(self.gamepad.getLeftY(), deadzone=0.15, exponential=1.5)
                 * 4
                 * throttle
             )
             joystick_y = (
-                -rescale_js(
-                    self.xbox_controller.getLeftX(), deadzone=0.15, exponential=1.5
-                )
+                -rescale_js(self.gamepad.getLeftX(), deadzone=0.15, exponential=1.5)
                 * 4
                 * throttle
             )
             joystick_z = (
-                -rescale_js(
-                    self.xbox_controller.getRightX(), deadzone=0.15, exponential=4.0
-                )
+                -rescale_js(self.gamepad.getRightX(), deadzone=0.15, exponential=4.0)
                 * spin_rate
             )
             self.recorded_drive_state = (
@@ -169,7 +163,7 @@ class MyRobot(magicbot.MagicRobot):
                 self.joystick_y_filter.calculate(joystick_y),
                 self.joystick_z_filter.calculate(joystick_z),
             )
-            self.recorded_is_local_driving = self.xbox_controller.getAButton()
+            self.recorded_is_local_driving = self.gamepad.getAButton()
 
         # Drive in field oriented mode unless button 6 is pressed
         if self.recorded_is_local_driving:
@@ -178,28 +172,28 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.drive_field(*self.recorded_drive_state)
 
         # d pad up to zero heading
-        if self.xbox_controller.getPOV() == 0:
+        if self.gamepad.getPOV() == 0:
             self.chassis.zero_yaw()
 
-        if self.xbox_controller.getRightTriggerAxis() > 0.3:
+        if self.gamepad.getRightTriggerAxis() > 0.3:
             self.shooter_control.fire()
 
-        if self.xbox_controller.getYButtonPressed():
+        if self.gamepad.getYButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
 
         # right bumper puts intake down, hold to hold intake down
-        self.intake.auto_retract = not self.xbox_controller.getRightBumper()
-        if self.xbox_controller.getRightBumper():
+        self.intake.auto_retract = not self.gamepad.getRightBumper()
+        if self.gamepad.getRightBumper():
             self.indexer_control.wants_to_intake = True
 
         # left bumper raises intake
-        if self.xbox_controller.getLeftBumper():
+        if self.gamepad.getLeftBumper():
             self.indexer_control.wants_to_intake = False
 
-        self.indexer_control.catflap_active = self.xbox_controller.getXButton()
+        self.indexer_control.catflap_active = self.gamepad.getXButton()
 
         # Failsafe
-        if self.xbox_controller.getBButton():
+        if self.gamepad.getBButton():
             self.chassis.set_pose_failsafe()
 
     def testPeriodic(self) -> None:
