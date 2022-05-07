@@ -18,6 +18,12 @@ class LedController:
     def __init__(self):
         self.is_enabled = False
 
+    def on_enable(self):
+        self.is_enabled = True
+
+    def on_disable(self):
+        self.is_enabled = False
+
     def execute(self) -> None:
         if not self.vision.is_connected() and wpilib.RobotBase.isReal():
             self.status_lights.set(DisplayType.PULSE, LedColours.WHITE)

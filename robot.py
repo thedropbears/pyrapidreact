@@ -111,19 +111,14 @@ class MyRobot(magicbot.MagicRobot):
         self.intake.auto_retract = False
         self.shooter_control.auto_shoot = False
         self.vision.fuse_vision_observations = False
-        self.led_control.is_enabled = True
 
     def teleopInit(self) -> None:
-        self.led_control.is_enabled = True
         self.intake.auto_retract = True
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
         self.vision.max_std_dev = 0.4
         self.vision.fuse_vision_observations = True
-
-    def disabledInit(self) -> None:
-        self.led_control.is_enabled = False
 
     def disabledPeriodic(self) -> None:
         self.turret.update_angle_history()
