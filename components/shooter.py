@@ -13,10 +13,11 @@ class Shooter:
 
     MAX_RP100ms = 10
     pidF = 1023 / (2048 * MAX_RP100ms)
-    pidP = 0.15
-    pidI = 0.0
+    pidP = 0.12
+    pidI = 0.00005
     pidIZone = 200
-    pidD = 0.01
+    pidD = 0
+    kS = 0.051
 
     # Conversion factor from rev/s to Talon units (counts/100ms).
     RPS_TO_CTRE_UNITS = FALCON_CPR / 10
@@ -44,7 +45,7 @@ class Shooter:
             motor.enableVoltageCompensation(True)
 
             motor.configVelocityMeasurementPeriod(
-                ctre.SensorVelocityMeasPeriod.Period_1Ms, timeoutMs=10
+                ctre.SensorVelocityMeasPeriod.Period_5Ms, timeoutMs=10
             )
             motor.configVelocityMeasurementWindow(8, timeoutMs=10)
 
@@ -64,8 +65,8 @@ class Shooter:
         speed_rps: float = self.motor_speed
         if speed_rps:
             speed = speed_rps * self.RPS_TO_CTRE_UNITS
-            self.right_motor.set(ctre.ControlMode.Velocity, speed)
-            self.left_motor.set(ctre.ControlMode.Velocity, speed)
+            self.right_motor.set(ctre.ControlMode.Velocity, speed, ctre.DemandType.ArbitraryFeedForward, self.kS)
+            self.left_motor.set(ctre.ControlMode.Velocity, speed, ctre.DemandType.ArbitraryFeedForward, self.kS)
         else:
             self._stop_motors()
 
