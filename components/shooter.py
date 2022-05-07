@@ -10,14 +10,14 @@ class Shooter:
     right_motor: ctre.TalonFX
 
     motor_speed = tunable(0.0)
+    COMPENSATED_VOLTAGE = 10.0
 
-    MAX_RP100ms = 10
-    pidF = 1023 / (2048 * MAX_RP100ms)
-    pidP = 0.12
-    pidI = 0.00005
+    pidF = 0.11468 / COMPENSATED_VOLTAGE * 1023 / 2048 * 10
+    pidP = 0.2
+    pidI = 0.0
     pidIZone = 200
-    pidD = 0
-    kS = 0.051
+    pidD = 0.0
+    kS = 0.4 / COMPENSATED_VOLTAGE
 
     # Conversion factor from rev/s to Talon units (counts/100ms).
     RPS_TO_CTRE_UNITS = FALCON_CPR / 10
@@ -25,7 +25,6 @@ class Shooter:
 
     MAX_MOTOR_SPEED = 6000 / 60
 
-    COMPENSATED_VOLTAGE = 11.0
     turret_offset = Translation2d(-0.148, 0)  # From CAD
 
     def setup(self) -> None:
