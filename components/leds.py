@@ -38,10 +38,9 @@ def make_pattern(
 ) -> List[wpilib.AddressableLED.LEDData]:
     pattern_data = []
     for colour, number in data:
-        for _ in range(number):
             x = wpilib.AddressableLED.LEDData()
-            x.setHSV(colour.value[0], colour.value[1], colour.value[2])
-            pattern_data.append(x)
+            x.setHSV(*colour.value)
+            pattern_data += [x] * number
     return pattern_data
 
 
