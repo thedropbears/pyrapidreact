@@ -65,8 +65,18 @@ class Shooter:
         speed_rps: float = self.motor_speed
         if speed_rps:
             speed = speed_rps * self.RPS_TO_CTRE_UNITS
-            self.right_motor.set(ctre.ControlMode.Velocity, speed, ctre.DemandType.ArbitraryFeedForward, self.kS)
-            self.left_motor.set(ctre.ControlMode.Velocity, speed, ctre.DemandType.ArbitraryFeedForward, self.kS)
+            self.right_motor.set(
+                ctre.ControlMode.Velocity,
+                speed,
+                ctre.DemandType.ArbitraryFeedForward,
+                self.kS,
+            )
+            self.left_motor.set(
+                ctre.ControlMode.Velocity,
+                speed,
+                ctre.DemandType.ArbitraryFeedForward,
+                self.kS,
+            )
         else:
             self._stop_motors()
 
