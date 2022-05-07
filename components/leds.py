@@ -33,7 +33,9 @@ class DisplayType(Enum):
 
 
 # creates a list of LEDData's from a List of (hsv col, repetitions)
-def make_pattern(data: List[Tuple[Tuple, int]]) -> List[wpilib.AddressableLED.LEDData]:
+def make_pattern(
+    data: List[Tuple[LedColours, int]]
+) -> List[wpilib.AddressableLED.LEDData]:
     pattern_data = []
     for colour, number in data:
         for _ in range(number):
@@ -83,7 +85,7 @@ class StatusLights:
             DisplayType.RAINBOW,
         ]:
             self.cur_pattern = DisplayType.MORSE
-            self.choose_morse_message("GG EZ")
+            self.choose_morse_message("GGEZ")
             self.pattern_start_time = time.monotonic()
 
     def _pulse_calculation(self) -> Tuple[int, int, int]:
