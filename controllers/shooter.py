@@ -50,7 +50,7 @@ class ShooterController(StateMachine):
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
     ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter
-    ALLOWABLE_FLYWHEEL_ERROR = 0.5 # rps
+    ALLOWABLE_FLYWHEEL_ERROR = 0.5  # rps
 
     _wants_to_fire = will_reset_to(False)
     field: wpilib.Field2d
@@ -134,14 +134,15 @@ class ShooterController(StateMachine):
             self.imu.getWorldLinearAccelX(), self.imu.getWorldLinearAccelY()
         )
         if self.indexer.has_cargo_in_chimney():
-            if self.shooter.flywheel_error() < 2 and self._reject_through_turret and self.turret.is_on_target(
-                math.atan(math.radians(45))
+            if (
+                self.shooter.flywheel_error() < 2
+                and self._reject_through_turret
+                and self.turret.is_on_target(math.atan(math.radians(45)))
             ):
                 self.next_state("firing")
 
             if (
-                self._wants_to_fire
-                or self.auto_shoot
+                (self._wants_to_fire or self.auto_shoot)
                 and self.turret.is_on_target(
                     math.atan(self.ALLOWABLE_TURRET_ERROR / self.distance)
                 )
