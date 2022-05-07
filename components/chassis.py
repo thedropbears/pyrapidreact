@@ -265,12 +265,19 @@ class Chassis:
 
         # add to prevent division by 0
         dt = min(time.monotonic() - self.last_time, 0.1) + 1e-10
+        # rotation2d and translation2d have mul but not div
         control_rate = 1 / dt
-
-        cur_trans_vel = (
-            self.estimator.getEstimatedPosition().translation()
-            - self.last_pose.translation()
-        ) * control_rate
+        chassis_speeds = self.kinematics.toChassisSpeeds(
+            (
+                self.modules[0].get(),
+                self.modules[1].get(),
+                self.modules[2].get(),
+                self.modules[3].get(),
+            )
+        )
+        cur_trans_vel = Translation2d(chassis_speeds.vx, chassis_speeds.vy).rotateBy(
+            self.get_rotation()
+        )
         self.translation_velocity = (
             cur_trans_vel * self.vel_avg_alpha
             + self.translation_velocity * (1 - self.vel_avg_alpha)

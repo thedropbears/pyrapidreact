@@ -71,7 +71,7 @@ class Vision:
             self.camera = self.sim_vision_system.cam
 
         self.camera.setLEDMode(LEDMode.kOn)
-        self.max_std_dev = 0.4
+        self.max_std_dev = 0.1
         self.has_target = False
         self.distance = -1.0
         self.target_pitch = 0.0
@@ -162,7 +162,7 @@ class Vision:
                 self.chassis.estimator.getEstimatedPosition().translation()
             )
             # Gate on innovation
-            if self.gate_innovation and innovation > 2.0:
+            if self.gate_innovation and innovation > 4.0:
                 return
 
             if self.distance < 5.0:
@@ -176,7 +176,7 @@ class Vision:
             self.chassis.estimator.addVisionMeasurement(
                 vision_pose,
                 self.timestamp,
-                (std_dev, std_dev, 0.001),
+                (std_dev, std_dev, 1),
             )
 
     @feedback

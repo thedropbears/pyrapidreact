@@ -10,7 +10,6 @@ class Shooter:
     right_motor: ctre.TalonFX
 
     motor_speed = tunable(0.0)
-    allowable_error = tunable(2.0)
 
     MAX_RP100ms = 10
     pidF = 1023 / (2048 * MAX_RP100ms)
@@ -81,7 +80,3 @@ class Shooter:
     @feedback
     def flywheel_error(self) -> float:
         return float(self.motor_speed) - self.actual_velocity()
-
-    @feedback
-    def is_at_speed(self) -> bool:
-        return abs(self.flywheel_error()) < self.allowable_error
