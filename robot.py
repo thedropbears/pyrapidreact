@@ -63,9 +63,7 @@ class MyRobot(magicbot.MagicRobot):
         self.recorded_is_local_driving = False
         self.gamepad = wpilib.XboxController(1)
         # (time to reach 63% of final value, rate)
-        self.joystick_x_filter = LinearFilter.singlePoleIIR(0.05, 0.02)
-        self.joystick_y_filter = LinearFilter.singlePoleIIR(0.05, 0.02)
-        self.joystick_z_filter = LinearFilter.singlePoleIIR(0.3, 0.02)
+        self.joystick_z_filter = LinearFilter.singlePoleIIR(0.03, 0.02)
         # joystick used for test mode
         self.joystick = wpilib.Joystick(0)
 
@@ -137,21 +135,21 @@ class MyRobot(magicbot.MagicRobot):
 
     def teleopPeriodic(self) -> None:
         # left trigger lowers throttle for precise driving
-        throttle = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 1, 0.3)
-        spin_rate = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 5, 3)
+        throttle = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 1, 0.2)
+        spin_rate = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 5, 1)
         # Don't update these values while firing
         if (
             not self.lock_motion_while_shooting
             or self.shooter_control.current_state != "firing"
         ):
             joystick_x = (
-                -rescale_js(self.gamepad.getLeftY(), deadzone=0.15, exponential=1.5)
-                * 4
+                -rescale_js(self.gamepad.getLeftY(), deadzone=0.15, exponential=1)
+                * self.chassis.max_attainable_wheel_speed
                 * throttle
             )
             joystick_y = (
-                -rescale_js(self.gamepad.getLeftX(), deadzone=0.15, exponential=1.5)
-                * 4
+                -rescale_js(self.gamepad.getLeftX(), deadzone=0.15, exponential=1)
+                * self.chassis.max_attainable_wheel_speed
                 * throttle
             )
             joystick_z = (
@@ -159,8 +157,8 @@ class MyRobot(magicbot.MagicRobot):
                 * spin_rate
             )
             self.recorded_drive_state = (
-                self.joystick_x_filter.calculate(joystick_x),
-                self.joystick_y_filter.calculate(joystick_y),
+                joystick_x,
+                joystick_y,
                 self.joystick_z_filter.calculate(joystick_z),
             )
             self.recorded_is_local_driving = self.gamepad.getAButton()
