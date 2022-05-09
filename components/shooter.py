@@ -12,16 +12,16 @@ class Shooter:
     motor_speed = tunable(0.0)
     COMPENSATED_VOLTAGE = 10.0
 
-    pidF = 0.11468 / COMPENSATED_VOLTAGE * 1023 / 2048 * 10
+    # Conversion factor from rev/s to Talon units (counts/100ms).
+    RPS_TO_CTRE_UNITS = FALCON_CPR / 10
+    CTRE_UNITS_TO_RPS = 10 / FALCON_CPR
+
+    pidF = 0.11468 / COMPENSATED_VOLTAGE * 1023 / RPS_TO_CTRE_UNITS
     pidP = 0.2
     pidI = 0.0
     pidIZone = 200
     pidD = 0.0
     kS = 0.4 / COMPENSATED_VOLTAGE
-
-    # Conversion factor from rev/s to Talon units (counts/100ms).
-    RPS_TO_CTRE_UNITS = FALCON_CPR / 10
-    CTRE_UNITS_TO_RPS = 10 / FALCON_CPR
 
     MAX_MOTOR_SPEED = 6000 / 60
 
