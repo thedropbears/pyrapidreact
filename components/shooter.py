@@ -10,21 +10,21 @@ class Shooter:
     right_motor: ctre.TalonFX
 
     motor_speed = tunable(0.0)
-
-    MAX_RP100ms = 10
-    pidF = 1023 / (2048 * MAX_RP100ms)
-    pidP = 0.15
-    pidI = 0.0
-    pidIZone = 200
-    pidD = 0.01
+    COMPENSATED_VOLTAGE = 10.0
 
     # Conversion factor from rev/s to Talon units (counts/100ms).
     RPS_TO_CTRE_UNITS = FALCON_CPR / 10
     CTRE_UNITS_TO_RPS = 10 / FALCON_CPR
 
+    pidF = 0.11468 / COMPENSATED_VOLTAGE * 1023 / RPS_TO_CTRE_UNITS
+    pidP = 0.2
+    pidI = 0.0
+    pidIZone = 200
+    pidD = 0.0
+    kS = 0.4 / COMPENSATED_VOLTAGE
+
     MAX_MOTOR_SPEED = 6000 / 60
 
-    COMPENSATED_VOLTAGE = 11.0
     turret_offset = Translation2d(-0.148, 0)  # From CAD
 
     def setup(self) -> None:
@@ -44,7 +44,7 @@ class Shooter:
             motor.enableVoltageCompensation(True)
 
             motor.configVelocityMeasurementPeriod(
-                ctre.SensorVelocityMeasPeriod.Period_1Ms, timeoutMs=10
+                ctre.SensorVelocityMeasPeriod.Period_5Ms, timeoutMs=10
             )
             motor.configVelocityMeasurementWindow(8, timeoutMs=10)
 
@@ -64,8 +64,18 @@ class Shooter:
         speed_rps: float = self.motor_speed
         if speed_rps:
             speed = speed_rps * self.RPS_TO_CTRE_UNITS
-            self.right_motor.set(ctre.ControlMode.Velocity, speed)
-            self.left_motor.set(ctre.ControlMode.Velocity, speed)
+            self.right_motor.set(
+                ctre.ControlMode.Velocity,
+                speed,
+                ctre.DemandType.ArbitraryFeedForward,
+                self.kS,
+            )
+            self.left_motor.set(
+                ctre.ControlMode.Velocity,
+                speed,
+                ctre.DemandType.ArbitraryFeedForward,
+                self.kS,
+            )
         else:
             self._stop_motors()
 
