@@ -109,12 +109,12 @@ class Vision:
 
         results = self.camera.getLatestResult()
         self.has_target = results.hasTargets()
+        self.timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
         if not self.has_target:
             return
         if results.getLatency() == self.last_latency and wpilib.RobotBase.isReal():
             return
         self.last_latency = results.getLatency()
-        self.timestamp = wpilib.Timer.getFPGATimestamp() - results.getLatency()
         self.target_pitch = math.radians(results.getBestTarget().getPitch())
         # PhotonVision has yaw reversed from our RH coordinate system
         self.target_yaw = -math.radians(results.getBestTarget().getYaw())

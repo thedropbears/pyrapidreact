@@ -16,9 +16,10 @@ from components.turret import Turret
 from controllers.indexer import IndexerController
 from controllers.leds import LedController
 from components.vision import Vision
+from wpimath.filter import SlewRateLimiter
 
 from controllers.shooter import ShooterController
-from utilities.scalers import rescale_js, scale_value
+from utilities.scalers import apply_deadzone, rescale_js, scale_value
 
 from utilities import git
 
@@ -38,7 +39,7 @@ class MyRobot(magicbot.MagicRobot):
     turret: Turret
     vision: Vision
 
-    lock_motion_while_shooting = magicbot.tunable(False)
+    lock_motion_while_shooting = magicbot.tunable(True)
     test_chassis_speed = magicbot.tunable(2)
 
     def createObjects(self) -> None:
@@ -58,10 +59,18 @@ class MyRobot(magicbot.MagicRobot):
         self.chassis_4_drive = ctre.WPI_TalonFX(7)
         self.chassis_4_steer = ctre.WPI_TalonFX(8)
 
-        self.joystick = wpilib.Joystick(0)
-        self.recorded_joystick_state = (0.0, 0.0, 0.0)
+        self.recorded_drive_state = (0.0, 0.0, 0.0)
         self.recorded_is_local_driving = False
-        self.codriver = wpilib.XboxController(1)
+        self.gamepad = wpilib.XboxController(1)
+        self.joystick_x_filter = SlewRateLimiter(
+            Chassis.max_attainable_wheel_speed / 0.3
+        )
+        self.joystick_y_filter = SlewRateLimiter(
+            Chassis.max_attainable_wheel_speed / 0.3
+        )
+        self.joystick_z_filter = SlewRateLimiter(7 / 0.2)
+        # joystick used for test mode
+        self.joystick = wpilib.Joystick(0)
 
         self.shooter_left_motor = ctre.WPI_TalonFX(11)
         self.shooter_right_motor = ctre.WPI_TalonFX(10)
@@ -130,74 +139,62 @@ class MyRobot(magicbot.MagicRobot):
         self.status_lights.execute()
 
     def teleopPeriodic(self) -> None:
-        # handle chassis inputs
-        throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0.1, 1)
-        spin_rate = 4.0
+        # left trigger increases turn speed
+        spin_rate = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 2.5, 7)
         # Don't update these values while firing
         if (
             not self.lock_motion_while_shooting
             or self.shooter_control.current_state != "firing"
         ):
             joystick_x = (
-                -rescale_js(self.joystick.getY(), deadzone=0.05, exponential=1.5)
-                * 4
-                * throttle
+                -apply_deadzone(self.gamepad.getLeftY(), 0.15)
+                * Chassis.max_attainable_wheel_speed
             )
             joystick_y = (
-                -rescale_js(self.joystick.getX(), deadzone=0.05, exponential=1.5)
-                * 4
-                * throttle
+                -apply_deadzone(self.gamepad.getLeftX(), 0.15)
+                * Chassis.max_attainable_wheel_speed
             )
             joystick_z = (
-                -rescale_js(self.joystick.getZ(), deadzone=0.3, exponential=25.0)
+                -rescale_js(self.gamepad.getRightX(), deadzone=0.15, exponential=4.0)
                 * spin_rate
             )
-            self.recorded_joystick_state = (joystick_x, joystick_y, joystick_z)
-            self.recorded_is_local_driving = self.joystick.getRawButton(6)
+            self.recorded_drive_state = (
+                self.joystick_x_filter.calculate(joystick_x),
+                self.joystick_y_filter.calculate(joystick_y),
+                self.joystick_z_filter.calculate(joystick_z),
+            )
+            self.recorded_is_local_driving = self.gamepad.getAButton()
 
-        # Drive in field oriented mode unless button 6 is pressed
+        # Drive in field oriented mode unless A button is pressed
         if self.recorded_is_local_driving:
-            self.chassis.drive_local(*self.recorded_joystick_state)
+            self.chassis.drive_local(*self.recorded_drive_state)
         else:
-            self.chassis.drive_field(*self.recorded_joystick_state)
+            self.chassis.drive_field(*self.recorded_drive_state)
 
-        if self.joystick.getRawButtonPressed(9):
-            self.shooter_control.lead_shots = True
-        if self.joystick.getRawButtonPressed(10):
-            self.shooter_control.lead_shots = False
-
-        if self.joystick.getRawButtonPressed(7):
-            self.indexer_control.ignore_colour = True
-        if self.joystick.getRawButtonPressed(8):
-            self.indexer_control.ignore_colour = False
-
-        # reset heading to intake facing directly downfield
-        if self.codriver.getYButtonPressed():
-            self.chassis.zero_yaw()
-
-        if self.joystick.getTrigger():
+        if self.gamepad.getRightTriggerAxis() > 0.3:
             self.shooter_control.fire()
 
-        if self.joystick.getRawButtonPressed(2):
-            self.indexer_control.wants_to_intake = (
-                not self.indexer_control.wants_to_intake
-            )
-
-        # hold down 11 to intake untill full, no auto-retract
-        self.intake.auto_retract = not self.joystick.getRawButton(11)
-        if self.joystick.getRawButton(11):
+        # right bumper puts intake down, hold to hold intake down
+        self.intake.auto_retract = not self.gamepad.getLeftBumper()
+        if self.gamepad.getLeftBumper():
             self.indexer_control.wants_to_intake = True
 
-        if self.codriver.getBButtonPressed() or self.joystick.getRawButton(3):
+        # left bumper raises intake
+        if self.gamepad.getRightBumper():
+            self.indexer_control.wants_to_intake = False
+
+        if self.gamepad.getYButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
 
-        self.indexer_control.catflap_active = (
-            self.codriver.getXButton() or self.joystick.getRawButton(5)
-        )
+        self.indexer_control.catflap_active = self.gamepad.getXButton()
 
         # Failsafe
-        if self.codriver.getAButton() or self.joystick.getRawButton(4):
+        if self.gamepad.getBButton():
             self.chassis.set_pose_failsafe()
+
+        # d pad up to zero heading
+        if self.gamepad.getPOV() == 0:
+            self.chassis.zero_yaw()
 
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed

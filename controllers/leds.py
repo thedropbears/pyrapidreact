@@ -31,7 +31,7 @@ class LedController:
             self.status_lights.set_disabled()
         elif (
             self.chassis.translation_velocity.norm() > self.shooter_control.MAX_SPEED
-            or self.chassis.rotation_velocity.radians()
+            or abs(self.chassis.rotation_velocity.radians())
             > self.shooter_control.MAX_ROTATION
         ):
             self.status_lights.set(DisplayType.SOLID, LedColours.PINK)
