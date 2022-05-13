@@ -16,10 +16,10 @@ from components.turret import Turret
 from controllers.indexer import IndexerController
 from controllers.leds import LedController
 from components.vision import Vision
-from wpimath.filter import LinearFilter
+from wpimath.filter import SlewRateLimiter
 
 from controllers.shooter import ShooterController
-from utilities.scalers import rescale_js, scale_value
+from utilities.scalers import apply_deadzone, rescale_js, scale_value
 
 from utilities import git
 
@@ -39,7 +39,7 @@ class MyRobot(magicbot.MagicRobot):
     turret: Turret
     vision: Vision
 
-    lock_motion_while_shooting = magicbot.tunable(False)
+    lock_motion_while_shooting = magicbot.tunable(True)
     test_chassis_speed = magicbot.tunable(2)
 
     def createObjects(self) -> None:
@@ -62,8 +62,13 @@ class MyRobot(magicbot.MagicRobot):
         self.recorded_drive_state = (0.0, 0.0, 0.0)
         self.recorded_is_local_driving = False
         self.gamepad = wpilib.XboxController(1)
-        # (time to reach 63% of final value, rate)
-        self.joystick_z_filter = LinearFilter.singlePoleIIR(0.03, 0.02)
+        self.joystick_x_filter = SlewRateLimiter(
+            Chassis.max_attainable_wheel_speed / 0.3
+        )
+        self.joystick_y_filter = SlewRateLimiter(
+            Chassis.max_attainable_wheel_speed / 0.3
+        )
+        self.joystick_z_filter = SlewRateLimiter(7 / 0.2)
         # joystick used for test mode
         self.joystick = wpilib.Joystick(0)
 
@@ -134,65 +139,62 @@ class MyRobot(magicbot.MagicRobot):
         self.status_lights.execute()
 
     def teleopPeriodic(self) -> None:
-        # left trigger lowers throttle for precise driving
-        throttle = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 1, 0.2)
-        spin_rate = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 5, 1)
+        # left trigger increases turn speed
+        spin_rate = scale_value(self.gamepad.getLeftTriggerAxis(), 0, 1, 2.5, 7)
         # Don't update these values while firing
         if (
             not self.lock_motion_while_shooting
             or self.shooter_control.current_state != "firing"
         ):
             joystick_x = (
-                -rescale_js(self.gamepad.getLeftY(), deadzone=0.15, exponential=1)
-                * self.chassis.max_attainable_wheel_speed
-                * throttle
+                -apply_deadzone(self.gamepad.getLeftY(), 0.15)
+                * Chassis.max_attainable_wheel_speed
             )
             joystick_y = (
-                -rescale_js(self.gamepad.getLeftX(), deadzone=0.15, exponential=1)
-                * self.chassis.max_attainable_wheel_speed
-                * throttle
+                -apply_deadzone(self.gamepad.getLeftX(), 0.15)
+                * Chassis.max_attainable_wheel_speed
             )
             joystick_z = (
                 -rescale_js(self.gamepad.getRightX(), deadzone=0.15, exponential=4.0)
                 * spin_rate
             )
             self.recorded_drive_state = (
-                joystick_x,
-                joystick_y,
+                self.joystick_x_filter.calculate(joystick_x),
+                self.joystick_y_filter.calculate(joystick_y),
                 self.joystick_z_filter.calculate(joystick_z),
             )
             self.recorded_is_local_driving = self.gamepad.getAButton()
 
-        # Drive in field oriented mode unless button 6 is pressed
+        # Drive in field oriented mode unless A button is pressed
         if self.recorded_is_local_driving:
             self.chassis.drive_local(*self.recorded_drive_state)
         else:
             self.chassis.drive_field(*self.recorded_drive_state)
 
-        # d pad up to zero heading
-        if self.gamepad.getPOV() == 0:
-            self.chassis.zero_yaw()
-
         if self.gamepad.getRightTriggerAxis() > 0.3:
             self.shooter_control.fire()
 
-        if self.gamepad.getYButtonPressed():
-            self.indexer_control.engage("forced_clearing", force=True)
-
         # right bumper puts intake down, hold to hold intake down
-        self.intake.auto_retract = not self.gamepad.getRightBumper()
-        if self.gamepad.getRightBumper():
+        self.intake.auto_retract = not self.gamepad.getLeftBumper()
+        if self.gamepad.getLeftBumper():
             self.indexer_control.wants_to_intake = True
 
         # left bumper raises intake
-        if self.gamepad.getLeftBumper():
+        if self.gamepad.getRightBumper():
             self.indexer_control.wants_to_intake = False
+
+        if self.gamepad.getYButtonPressed():
+            self.indexer_control.engage("forced_clearing", force=True)
 
         self.indexer_control.catflap_active = self.gamepad.getXButton()
 
         # Failsafe
         if self.gamepad.getBButton():
             self.chassis.set_pose_failsafe()
+
+        # d pad up to zero heading
+        if self.gamepad.getPOV() == 0:
+            self.chassis.zero_yaw()
 
     def testPeriodic(self) -> None:
         # hold y and use joystick throttle to set flywheel speed
