@@ -150,7 +150,7 @@ class ShooterController(StateMachine):
                 and self.distance > self.MIN_DIST
                 and self.distance < self.MAX_DIST
                 and self.chassis.translation_velocity.norm() < self.MAX_SPEED
-                and self.chassis.rotation_velocity.radians() < self.MAX_ROTATION
+                and abs(self.chassis.rotation_velocity.radians()) < self.MAX_ROTATION
                 and accel < 0.5
             ):
                 self.next_state("firing")
