@@ -38,7 +38,7 @@ class ShooterController(StateMachine):
     distance = 0.0
     # fmt: off
     ranges_lookup =         ( 3.0,  3.5,  4.0,  4.5,  5.0,  5.5,  6.0,  6.5,  7.0,  7.5,  8.0)
-    flywheel_speed_lookup = (27.5, 28.0, 30.0, 32.5, 36.0, 38.5, 41.5, 42.5, 43.5, 44.5, 46.5)
+    flywheel_speed_lookup = (24.5, 27.0, 27.5, 29.5, 35.5, 37.0, 39.0, 41.0, 42.0, 42.5, 43.0)
     times_lookup =          (0.77, 0.86, 0.94, 1.02, 1.10, 1.18, 1.26, 1.34, 1.43, 1.51, 1.59)
     # fmt: on
 
@@ -46,7 +46,7 @@ class ShooterController(StateMachine):
     MIN_DIST = 2.75
     LEAD_MIN_DIST = 2
 
-    MAX_SPEED = 1.5  # m/s
+    MAX_SPEED = 2.0  # m/s
     MAX_ROTATION = 2.0  # rad/s
     MAX_ACCEL = 0.3  # G
     ALLOWABLE_TURRET_ERROR = 0.3  # m, ring is 1.22m diameter

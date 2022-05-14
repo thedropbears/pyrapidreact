@@ -71,7 +71,7 @@ class Vision:
             self.camera = self.sim_vision_system.cam
 
         self.camera.setLEDMode(LEDMode.kOn)
-        self.max_std_dev = 0.1
+        self.max_std_dev = 0.05
         self.has_target = False
         self.distance = -1.0
         self.target_pitch = 0.0
