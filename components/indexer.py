@@ -12,7 +12,7 @@ class CargoColour(Enum):
     BLUE = wpilib.DriverStation.Alliance.kBlue
 
     def is_opposition(self) -> bool:
-        return self.value != wpilib.DriverStation.getAlliance()
+        return self.is_valid() and self.value != wpilib.DriverStation.getAlliance()
 
     def is_valid(self) -> bool:
         return self is not self.NONE
