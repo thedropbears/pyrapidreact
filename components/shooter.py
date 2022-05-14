@@ -32,8 +32,6 @@ class Shooter:
             self.left_motor,
             self.right_motor,
         ):
-            motor.configFactoryDefault()
-
             motor.setStatusFramePeriod(
                 ctre.StatusFrameEnhanced.Status_1_General, 250, 10
             )

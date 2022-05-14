@@ -51,8 +51,6 @@ class Turret:
         self.sync_count = 0
 
     def setup(self) -> None:
-        self.motor.configFactoryDefault()
-
         # Positive motion is counterclockwise from above.
         self.motor.setInverted(False)
 

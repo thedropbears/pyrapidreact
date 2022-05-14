@@ -51,8 +51,6 @@ class Indexer:
 
     def setup(self) -> None:
         for motor in (self.indexer_chimney_motor, self.indexer_tunnel_motor):
-            motor.restoreFactoryDefaults()
-
             # Reduce all CAN periodic status frame rates.
             motor.setPeriodicFramePeriod(
                 rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 500
