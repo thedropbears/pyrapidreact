@@ -111,7 +111,7 @@ class IndexerController(StateMachine):
         if not self.wants_to_intake:
             self.intake.deployed = False
 
-    @timed_state(duration=10.0, next_state="stopping", must_finish=True)
+    @timed_state(duration=4.0, next_state="stopping", must_finish=True)
     def transferring_to_chimney(self) -> None:
         if self.indexer.has_cargo_in_chimney():
             self.next_state("stopping")
