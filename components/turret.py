@@ -43,6 +43,7 @@ class Turret:
     PISTON_CONTRACT_THRESHOLD = math.radians(60)
 
     is_piston_extended = False
+    is_running = magicbot.tunable(True)
 
     logger: Logger
 
@@ -70,6 +71,13 @@ class Turret:
         self.motor.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10
         )
+
+        # If the robot has just been turned on, assume the turret is in the starting configuration
+        if self.motor.getSelectedSensorPosition() == 0.0:
+            self.motor.setSelectedSensorPosition(
+                3 * math.tau / 4 * self.COUNTS_PER_TURRET_RADIAN, timeoutMs=10
+            )
+
         self.absolute_encoder.setDistancePerRotation(-math.tau)
         self.absolute_encoder.setPositionOffset(0.9668)
 
@@ -106,6 +114,10 @@ class Turret:
     def execute(self) -> None:
         self.target = self.wrap_allowable_angle(self.target)
         self.update_angle_history()
+
+        if not self.is_running:
+            self.motor.stopMotor()
+            return
 
         self.motor.set(
             ctre.ControlMode.MotionMagic,
