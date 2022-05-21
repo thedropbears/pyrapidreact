@@ -126,7 +126,6 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
-        self.vision.max_std_dev = 0.4
         self.vision.fuse_vision_observations = True
 
     def disabledPeriodic(self) -> None:
