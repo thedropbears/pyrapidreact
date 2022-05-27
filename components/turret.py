@@ -75,7 +75,7 @@ class Turret:
         # If the robot has just been turned on, assume the turret is in the starting configuration
         if self.motor.getSelectedSensorPosition() == 0.0:
             self.motor.setSelectedSensorPosition(
-                3 * math.tau / 4 * self.COUNTS_PER_TURRET_RADIAN, timeoutMs=10
+                3 / 4 * math.tau * self.COUNTS_PER_TURRET_RADIAN, timeoutMs=10
             )
 
         self.absolute_encoder.setDistancePerRotation(-math.tau)
