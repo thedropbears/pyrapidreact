@@ -26,7 +26,7 @@ class LedController:
 
     def execute(self) -> None:
         if not self.vision.is_connected() and wpilib.RobotBase.isReal():
-            self.status_lights.set(DisplayType.PULSE, LedColours.WHITE)
+            self.status_lights.set(DisplayType.PULSE, LedColours.RED)
         elif not self.is_enabled:
             self.status_lights.set_disabled()
         elif (
@@ -35,12 +35,12 @@ class LedController:
             > self.shooter_control.MAX_ROTATION
         ):
             self.status_lights.set(DisplayType.SOLID, LedColours.PINK)
-        elif not self.indexer.is_full():
-            self.status_lights.set(DisplayType.SOLID, LedColours.RED)
+        elif self.indexer.is_full():
+            self.status_lights.set(DisplayType.SOLID, LedColours.WHITE)
         elif self.indexer.has_cargo_in_tunnel() or self.indexer.has_cargo_in_chimney():
-            self.status_lights.set(DisplayType.SOLID, LedColours.ORANGE)
+            self.status_lights.set(DisplayType.SOLID, LedColours.CYAN)
         else:
-            self.status_lights.set(DisplayType.SOLID, LedColours.GREEN)
+            self.status_lights.set(DisplayType.SOLID, LedColours.BLUE)
 
         if self.shooter_control.auto_shoot and self.indexer.has_cargo_in_chimney():
             self.status_lights.set(DisplayType.PULSE)

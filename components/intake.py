@@ -28,7 +28,6 @@ class Intake:
         self.motor_enabled = True
 
     def setup(self) -> None:
-        self.intake_motor.restoreFactoryDefaults()
         self.intake_motor.setInverted(False)
         self._intake_limit = self.intake_motor.getForwardLimitSwitch(
             rev.SparkMaxLimitSwitch.Type.kNormallyOpen

@@ -126,7 +126,6 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter_control.lead_shots = True
         self.indexer_control.ignore_colour = False
         self.shooter_control.auto_shoot = False
-        self.vision.max_std_dev = 0.4
         self.vision.fuse_vision_observations = True
 
     def disabledPeriodic(self) -> None:
@@ -197,10 +196,6 @@ class MyRobot(magicbot.MagicRobot):
             self.chassis.zero_yaw()
 
     def testPeriodic(self) -> None:
-        # hold y and use joystick throttle to set flywheel speed
-        throttle = scale_value(self.joystick.getThrottle(), 1, -1, 0, 1)
-        self.shooter.motor_speed = throttle * 60
-
         # hold x and use left stick to slew turret
         if self.joystick.getPOV() != -1:
             self.turret.target += math.sin(math.radians(self.joystick.getPOV(0))) * 0.03
@@ -230,18 +225,18 @@ class MyRobot(magicbot.MagicRobot):
         if self.joystick.getRawButton(11):
             self.indexer_control.wants_to_intake = True
 
-        if self.codriver.getBButtonPressed():
+        if self.gamepad.getBButtonPressed():
             self.indexer_control.engage("forced_clearing", force=True)
 
-        self.indexer_control.catflap_active = self.codriver.getXButton()
+        self.indexer_control.catflap_active = self.gamepad.getXButton()
 
         # lower intake without running it
-        if self.codriver.getLeftBumper():
+        if self.gamepad.getLeftBumper():
             self.intake.motor_enabled = False
             self.intake.deployed = not self.intake.deployed
             self.intake.auto_retract = False
 
-        if self.codriver.getRightBumper():
+        if self.gamepad.getRightBumper():
             self.chassis.drive_local(self.test_chassis_speed, 0, 0)
         else:
             self.chassis.drive_local(0, 0, 0)

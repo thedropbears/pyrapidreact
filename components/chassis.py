@@ -49,9 +49,6 @@ class SwerveModule:
         self.steer = steer
         self.drive = drive
 
-        steer.configFactoryDefault()
-        drive.configFactoryDefault()
-
         # Reduce CAN status frame rates before configuring
         steer.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)
         drive.setStatusFramePeriod(ctre.StatusFrameEnhanced.Status_1_General, 250, 10)

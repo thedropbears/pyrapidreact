@@ -12,7 +12,7 @@ class CargoColour(Enum):
     BLUE = wpilib.DriverStation.Alliance.kBlue
 
     def is_opposition(self) -> bool:
-        return self.value != wpilib.DriverStation.getAlliance()
+        return self.is_valid() and self.value != wpilib.DriverStation.getAlliance()
 
     def is_valid(self) -> bool:
         return self is not self.NONE
@@ -51,8 +51,6 @@ class Indexer:
 
     def setup(self) -> None:
         for motor in (self.indexer_chimney_motor, self.indexer_tunnel_motor):
-            motor.restoreFactoryDefaults()
-
             # Reduce all CAN periodic status frame rates.
             motor.setPeriodicFramePeriod(
                 rev.CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 500
