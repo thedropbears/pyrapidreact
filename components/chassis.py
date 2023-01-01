@@ -272,10 +272,10 @@ class Chassis:
         # rotation2d and translation2d have mul but not div
         control_rate = 1 / dt
         chassis_speeds = self.kinematics.toChassisSpeeds(
-                self.modules[0].get(),
-                self.modules[1].get(),
-                self.modules[2].get(),
-                self.modules[3].get(),
+            self.modules[0].get(),
+            self.modules[1].get(),
+            self.modules[2].get(),
+            self.modules[3].get(),
         )
         cur_trans_vel = Translation2d(chassis_speeds.vx, chassis_speeds.vy).rotateBy(
             self.get_rotation()
@@ -304,7 +304,9 @@ class Chassis:
 
     def set_pose(self, pose: Pose2d) -> None:
         self.pose_history.clear()
-        self.estimator.resetPosition(self._get_imu_heading(), self.get_module_positions(), pose)
+        self.estimator.resetPosition(
+            self._get_imu_heading(), self.get_module_positions(), pose
+        )
         self.update_pose_history()
         self.field.setRobotPose(pose)
         self.field_obj.setPose(pose)
