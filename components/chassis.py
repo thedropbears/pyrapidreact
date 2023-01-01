@@ -344,8 +344,7 @@ class Chassis:
 
     def _get_imu_heading(self) -> Rotation2d:
         """Get the heading from the IMU."""
-        # XXX: navx.AHRS.getRotation2d segfaults
-        return Rotation2d.fromDegrees(-self.imu.getAngle())
+        return self.imu.getRotation2d()
 
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""

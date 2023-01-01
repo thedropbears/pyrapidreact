@@ -1,6 +1,6 @@
 numpy==1.24.1
 robotpy-ctre==2023.0.0b6
-robotpy-navx==2023.0.0b1
+robotpy-navx==2023.0.0b2
 robotpy-rev==2023.0.0b2
 robotpy-wpilib-utilities==2023.0.0b2
 robotpy-wpimath==2023.0.0b7
