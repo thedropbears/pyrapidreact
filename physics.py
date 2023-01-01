@@ -120,7 +120,7 @@ class PhysicsEngine:
             ],
             tuple([module.get() for module in self.swerve_modules]),
         )
-        speeds = self.kinematics.toChassisSpeeds(states)
+        speeds = self.kinematics.toChassisSpeeds(*states)
 
         self.imu_yaw.set(self.imu_yaw.get() - math.degrees(speeds.omega * tm_diff))
 

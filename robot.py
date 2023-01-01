@@ -113,7 +113,7 @@ class MyRobot(magicbot.MagicRobot):
             except ImportError:
                 self.logger.exception("Could not import CameraServer")
             else:
-                CameraServer.getInstance().startAutomaticCapture()
+                CameraServer.startAutomaticCapture()
 
     def autonomousInit(self) -> None:
         self.shooter_control.lead_shots = False

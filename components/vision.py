@@ -13,8 +13,6 @@ from photonvision import (
 )
 from wpimath.geometry import Pose2d, Transform2d, Translation2d, Rotation2d
 
-import random
-
 
 class Vision:
     """Communicates with limelight to get vision data and calculate pose"""
@@ -48,6 +46,7 @@ class Vision:
     def __init__(self) -> None:
         self.camera = PhotonCamera("gloworm")
 
+        """
         if wpilib.RobotBase.isSimulation():
             self.sim_vision_system = SimVisionSystem(
                 "gloworm",
@@ -69,6 +68,7 @@ class Vision:
                 )
             )
             self.camera = self.sim_vision_system.cam
+        """
 
         self.camera.setLEDMode(LEDMode.kOn)
         self.max_std_dev = 0.05
@@ -83,6 +83,7 @@ class Vision:
         self.field_obj = self.field.getObject("vision_pose")
 
     def execute(self) -> None:
+        """
         if wpilib.RobotBase.isSimulation():
             # Create some vision target results
             pose = self.field.getRobotPose()
@@ -106,6 +107,7 @@ class Vision:
                 newCamPitch=math.degrees(self.CAMERA_PITCH) + random.gauss(0.0, 0.5),
             )
             self.sim_vision_system.processFrame(pose)
+        """
 
         results = self.camera.getLatestResult()
         self.has_target = results.hasTargets()

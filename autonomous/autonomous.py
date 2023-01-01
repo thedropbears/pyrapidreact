@@ -148,7 +148,7 @@ class AutoBase(AutonomousStateMachine):
         self.chassis_speeds = self.drive_controller.calculate(
             currentPose=current_pose,
             desiredState=target_state,
-            angleRef=target_heading,
+            desiredHeading=target_heading,
         )
         self.chassis.drive_local(
             self.chassis_speeds.vx, self.chassis_speeds.vy, self.chassis_speeds.omega
