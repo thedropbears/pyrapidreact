@@ -4,24 +4,24 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pyfrc = "~=2022.1.2"
-robotpy-halsim-gui = "~=2022.4.1"
-numpy = "~=1.22.1"
-robotpy-ctre = "~=2022.1.0"
-robotpy-navx = "~=2022.0.1"
-robotpy-photonvision = "~=2022.1.0"
-robotpy-rev = "~=2022.0.1"
-robotpy-wpilib-utilities = "~=2022.0.5"
-robotpy-wpimath = "~=2022.4.1.1"
-robotpy-wpiutil = "~=2022.4.1.1"
-wpilib = "~=2022.4.1.5"
+pyfrc = "==2023.0.0b4"
+robotpy-halsim-gui = "==2023.0.0b7"
+numpy = "==1.24.1"
+robotpy-ctre = "==2023.0.0b6"
+robotpy-navx = "==2023.0.0b1"
+robotpy-photonvision = "==2023.1.1b7"
+robotpy-rev = "==2023.0.0b2"
+robotpy-wpilib-utilities = "==2023.0.0b2"
+robotpy-wpimath = "==2023.0.0b7"
+robotpy-wpiutil = "==2023.0.0b7"
+wpilib = "==2023.0.0b7"
 
 [dev-packages]
 hypothesis = "*"
 pytest = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.11"
 
 [scripts]
 deploy = "python robot.py deploy"

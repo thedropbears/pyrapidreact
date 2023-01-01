@@ -11,6 +11,7 @@ import wpilib
 from wpimath.kinematics import (
     SwerveDrive4Kinematics,
     ChassisSpeeds,
+    SwerveModulePosition,
     SwerveModuleState,
 )
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
@@ -103,6 +104,9 @@ class SwerveModule:
     def get_speed(self) -> float:
         return self.drive.getSelectedSensorVelocity() * self.DRIVE_COUNTS_TO_METRES * 10
 
+    def get_distance_travelled(self) -> float:
+        return self.drive.getSelectedSensorPosition() * self.DRIVE_COUNTS_TO_METRES
+
     def set(self, desired_state: SwerveModuleState):
 
         if abs(desired_state.speed) < 1e-3:
@@ -133,6 +137,9 @@ class SwerveModule:
         self.steer.setSelectedSensorPosition(
             self.get_absolute_angle() * self.STEER_RAD_TO_COUNTS
         )
+
+    def get_position(self) -> SwerveModulePosition:
+        return SwerveModulePosition(self.get_distance_travelled(), self.get_rotation())
 
     def get(self) -> SwerveModuleState:
         return SwerveModuleState(self.get_speed(), self.get_rotation())
@@ -228,11 +235,11 @@ class Chassis:
         self.sync_all()
         self.imu.zeroYaw()
         self.estimator = SwerveDrive4PoseEstimator(
-            self.imu.getRotation2d(),
-            Pose2d(0, 0, 0),
             self.kinematics,
+            self._get_imu_heading(),
+            self.get_module_positions(),
+            Pose2d(0, 0, 0),
             stateStdDevs=(0.1, 0.1, math.radians(5)),
-            localMeasurementStdDevs=(0.01,),
             visionMeasurementStdDevs=(0.5, 0.5, 0.2),
         )
         self.field_obj = self.field.getObject("fused_pose")
@@ -265,12 +272,10 @@ class Chassis:
         # rotation2d and translation2d have mul but not div
         control_rate = 1 / dt
         chassis_speeds = self.kinematics.toChassisSpeeds(
-            (
                 self.modules[0].get(),
                 self.modules[1].get(),
                 self.modules[2].get(),
                 self.modules[3].get(),
-            )
         )
         cur_trans_vel = Translation2d(chassis_speeds.vx, chassis_speeds.vy).rotateBy(
             self.get_rotation()
@@ -299,7 +304,7 @@ class Chassis:
 
     def set_pose(self, pose: Pose2d) -> None:
         self.pose_history.clear()
-        self.estimator.resetPosition(pose, self.imu.getRotation2d())
+        self.estimator.resetPosition(self._get_imu_heading(), self.get_module_positions(), pose)
         self.update_pose_history()
         self.field.setRobotPose(pose)
         self.field_obj.setPose(pose)
@@ -321,8 +326,13 @@ class Chassis:
         # a misake copied from diff drive pose estimator
         # beacuse we never pass the encoder distances to the estimator
         self.estimator.resetPosition(
-            Pose2d(cur_pose.translation(), Rotation2d(0)), self.imu.getRotation2d()
+            self._get_imu_heading(),
+            self.get_module_positions(),
+            Pose2d(cur_pose.translation(), Rotation2d(0)),
         )
+
+    def get_module_positions(self):
+        return tuple(module.get_position() for module in self.modules)
 
     def get_pose(self) -> Pose2d:
         """Get the current location of the robot relative to the goal."""
@@ -331,6 +341,11 @@ class Chassis:
     def get_rotation(self) -> Rotation2d:
         """Get the current heading of the robot."""
         return self.get_pose().rotation()
+
+    def _get_imu_heading(self) -> Rotation2d:
+        """Get the heading from the IMU."""
+        # XXX: navx.AHRS.getRotation2d segfaults
+        return Rotation2d.fromDegrees(-self.imu.getAngle())
 
     def get_pose_at(self, t: float) -> Pose2d:
         """Gets where the robot was at t"""
@@ -349,11 +364,8 @@ class Chassis:
 
     def update_odometry(self) -> None:
         self.estimator.update(
-            self.imu.getRotation2d(),
-            self.modules[0].get(),
-            self.modules[1].get(),
-            self.modules[2].get(),
-            self.modules[3].get(),
+            self._get_imu_heading(),
+            self.get_module_positions(),
         )
         self.field_obj.setPose(self.get_pose())
 
